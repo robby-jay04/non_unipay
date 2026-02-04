@@ -32,7 +32,7 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="paymentsTableBody">
                     @foreach($payments as $payment)
                     <tr>
                         <td>{{ $payment->id }}</td>
@@ -45,9 +45,15 @@
                         </td>
                         <td>{{ $payment->reference_no }}</td>
                         <td>{{ $payment->created_at->format('M d, Y') }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-info">View</button>
-                        </td>
+                       <td>
+    <button class="btn btn-sm btn-info viewPaymentBtn" 
+            data-id="{{ $payment->id }}" 
+            data-bs-toggle="modal" 
+            data-bs-target="#viewPaymentModal">
+        View
+    </button>
+</td>
+
                     </tr>
                     @endforeach
                 </tbody>
@@ -59,6 +65,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Filter Modal -->
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
@@ -88,12 +95,31 @@
         </div>
     </div>
 </div>
+<!-- Payment Details Modal -->
+<div class="modal fade" id="viewPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewPaymentBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     // Export Button
     const exportBtn = document.getElementById('exportBtn');
     exportBtn.addEventListener('click', function() {
@@ -101,6 +127,65 @@ document.addEventListener('DOMContentLoaded', function () {
         const url = '{{ route("admin.payments.export") }}?' + params.toString();
         window.location.href = url;
     });
+
+    // Function to attach View Payment modal listeners
+    const handleViewButtons = () => {
+        const viewButtons = document.querySelectorAll('.viewPaymentBtn');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', async function () {
+                const paymentId = this.dataset.id;
+                const modalBody = document.getElementById('viewPaymentBody');
+
+                modalBody.innerHTML = `<div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>`;
+
+                try {
+                    const res = await fetch(`/admin/payments/${paymentId}`);
+                    if (!res.ok) throw new Error('Failed to fetch payment details');
+
+                    const data = await res.text(); // Controller returns partial view
+                    modalBody.innerHTML = data;
+                } catch (err) {
+                    modalBody.innerHTML = `<div class="alert alert-danger">Error loading payment details.</div>`;
+                    console.error(err);
+                }
+            });
+        });
+    };
+
+    handleViewButtons(); // Initial attach
+
+    // Filter Form AJAX
+    const filterForm = document.getElementById('filterForm');
+filterForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const status = document.getElementById('status').value;
+    const url = '{{ route("admin.payments") }}' + (status ? '?status=' + status : '');
+
+    try {
+        const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!res.ok) throw new Error('Failed to fetch filtered payments');
+
+        const html = await res.text();
+        document.getElementById('paymentsTableBody').innerHTML = html;
+
+        // Hide modal after filtering
+        var filterModal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+        filterModal.hide();
+
+        // Rebind view buttons for the new rows
+        handleViewButtons();
+
+    } catch (err) {
+        console.error(err);
+        alert('Failed to apply filter');
+    }
+});
+
 });
 </script>
 @endpush
+

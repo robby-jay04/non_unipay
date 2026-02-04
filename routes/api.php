@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Fee Routes (Both Admin & Student)
     Route::get('/fees', [\App\Http\Controllers\FeeController::class, 'index']);
     Route::get('/fees/total', [\App\Http\Controllers\FeeController::class, 'getTotalFees']);
-
+    Route::get('/fees/breakdown', [\App\Http\Controllers\FeeController::class, 'breakdown']);
     // Payment Routes
     Route::prefix('payments')->group(function () {
         Route::post('/initiate', [GCashController::class, 'initiatePayment']);

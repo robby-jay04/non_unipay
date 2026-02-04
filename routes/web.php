@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Exports\PaymentsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 // ----------------------------
 // Public login page (landing page)
@@ -47,5 +49,13 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/reports/clearances', [ReportController::class, 'clearanceReport'])
             ->name('admin.reports.clearances');
-    });
+    });// Export Payments
+Route::get('/payments/export', [AdminController::class, 'exportPayments'])->name('admin.payments.export');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
+         ->name('admin.students.json');
+});
+
+
 });

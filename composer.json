@@ -11,6 +11,7 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "luigel/laravel-paymongo": "^2.5",
         "maatwebsite/excel": "3.1.48"
     },
     "require-dev": {

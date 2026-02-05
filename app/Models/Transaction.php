@@ -11,13 +11,16 @@ class Transaction extends Model
 
     protected $fillable = [
         'payment_id',
-        'reference_no',
-        'gateway_response',
-        'status', // 'initiated', 'completed', 'failed'
+        'transaction_id',
+        'amount',
+        'status',
+        'payment_method',
+        'metadata',
     ];
 
     protected $casts = [
-        'gateway_response' => 'array',
+        'amount' => 'decimal:2',
+        'metadata' => 'array',
     ];
 
     public function payment()

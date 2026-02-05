@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Log; // ✅ Add this import
 
 class Payment extends Model
 {
@@ -12,8 +13,11 @@ class Payment extends Model
     protected $fillable = [
         'student_id',
         'total_amount',
-        'status', // 'pending', 'paid', 'failed'
-        'payment_date',
+        'status',
+        'payment_method',
+        'reference_no',
+        'paymongo_source_id',
+        'paymongo_payment_intent_id',
     ];
 
     protected $casts = [
@@ -26,7 +30,7 @@ class Payment extends Model
         parent::boot();
 
         static::created(function ($payment) {
-            \Log::info('Payment created', [
+            Log::info('Payment created', [
                 'payment_id' => $payment->id,
                 'student_id' => $payment->student_id,
                 'amount' => $payment->total_amount,
@@ -35,9 +39,10 @@ class Payment extends Model
 
         static::updated(function ($payment) {
             if ($payment->isDirty('status') && $payment->status === 'paid') {
-                \Log::info('Payment completed', [
+                Log::info('Payment completed', [
                     'payment_id' => $payment->id,
                     'student_id' => $payment->student_id,
+                    'reference_no' => $payment->reference_no,
                 ]);
             }
         });
@@ -61,5 +66,10 @@ class Payment extends Model
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
+    }
+    
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'failed');
     }
 }

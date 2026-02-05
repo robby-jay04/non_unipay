@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Exports\PaymentsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\PaymentController;
 
 // ----------------------------
 // Public login page (landing page)
@@ -14,6 +15,15 @@ use Maatwebsite\Excel\Facades\Excel;
 Route::get('/', [AuthController::class, 'showLoginForm']); // landing page
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login'); // GET login page
 Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.submit'); // POST login form
+
+// Public webhook (no auth)
+Route::post('/payment/webhook', [PaymentController::class, 'webhook']);
+
+// Success / Failed pages
+Route::get('/payment/success', [PaymentController::class, 'success']);
+Route::get('/payment/failed', [PaymentController::class, 'failed']);
+
+
 
 // ----------------------------
 // Protected routes
@@ -56,6 +66,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
          ->name('admin.students.json');
 });
-
 
 });

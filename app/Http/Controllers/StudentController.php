@@ -8,15 +8,19 @@ use App\Models\Student;
 class StudentController extends Controller
 {
     public function profile(Request $request)
-    {
-        $student = $request->user()->student()->with(['clearance', 'payments'])->first();
+{
+    $student = $request->user()
+        ->student()
+        ->with(['user', 'clearance', 'payments'])
+        ->first();
 
-        if (!$student) {
-            return response()->json(['message' => 'Student profile not found'], 404);
-        }
-
-        return response()->json($student);
+    if (!$student) {
+        return response()->json(['message' => 'Student profile not found'], 404);
     }
+
+    return response()->json($student);
+}
+
 
     public function updateProfile(Request $request)
     {

@@ -134,28 +134,28 @@ class FeeController extends Controller
      * Get fees breakdown by type
      */
     public function breakdown()
-    {
-        $fees = Fee::currentSchoolYear()->get();
+{
+    $fees = Fee::currentSchoolYear()->get();
 
-        $breakdown = [
-            'tuition' => [
-                'fees' => $fees->where('type', 'tuition'),
-                'total' => $fees->where('type', 'tuition')->sum('amount'),
-            ],
-            'miscellaneous' => [
-                'fees' => $fees->where('type', 'miscellaneous'),
-                'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
-            ],
-            'exam' => [
-                'fees' => $fees->where('type', 'exam'),
-                'total' => $fees->where('type', 'exam')->sum('amount'),
-            ],
-            'grand_total' => $fees->sum('amount'),
-        ];
+    $breakdown = [
+        'tuition' => [
+            'fees' => $fees->where('type', 'tuition')->values(), // Add ->values()
+            'total' => $fees->where('type', 'tuition')->sum('amount'),
+        ],
+        'miscellaneous' => [
+            'fees' => $fees->where('type', 'miscellaneous')->values(), // Add ->values()
+            'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
+        ],
+        'exam' => [
+            'fees' => $fees->where('type', 'exam')->values(), // Add ->values()
+            'total' => $fees->where('type', 'exam')->sum('amount'),
+        ],
+        'grand_total' => $fees->sum('amount'),
+    ];
 
-        return response()->json([
-            'success' => true,
-            'breakdown' => $breakdown,
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'breakdown' => $breakdown,
+    ]);
+}
 }

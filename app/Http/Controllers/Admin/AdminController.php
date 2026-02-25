@@ -10,16 +10,28 @@ use Illuminate\Http\Request; // Added import for Request
 
 class AdminController extends Controller
 {
-  public function payments()
+ 
+
+public function payments(Request $request)
 {
-    $payments = Payment::with('student.user')
-        ->latest()
-        ->paginate(10); // ✅ pagination
+    $query = Payment::with(['student.user', 'transaction'])->orderBy('created_at', 'desc');
 
-    $students = Student::with('user')->get(); // ✅ needed by filter dropdown
+    // ✅ Only filter if status is explicitly provided and not empty
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-    return view('admin.payments', compact('payments', 'students'));
+    $payments = $query->paginate(10);
+
+    // AJAX request - return only table rows and pagination
+    if ($request->ajax()) {
+        return view('admin.payments.partials.ajax_response', compact('payments'))->render();
+    }
+
+    // Normal request - return full page
+    return view('admin.payments', compact('payments'));
 }
+
    public function students(Request $request)
 {
     $search = $request->query('search');

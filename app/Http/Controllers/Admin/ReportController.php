@@ -15,7 +15,7 @@ class ReportController extends Controller
     {
         $payments = Payment::with('student.user')
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.reports', compact('payments'));
     }

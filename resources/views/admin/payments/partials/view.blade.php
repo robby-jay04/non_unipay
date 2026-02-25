@@ -9,5 +9,5 @@
     </p>
     <p><strong>Reference No:</strong> {{ $payment->reference_no }}</p>
     <p><strong>Date:</strong> {{ $payment->created_at->format('M d, Y') }}</p>
-    <p><strong>Details:</strong> {{ $payment->details ?? 'N/A' }}</p>
+    
 </div>

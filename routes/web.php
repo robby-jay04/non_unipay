@@ -66,5 +66,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
          ->name('admin.students.json');
 });
-
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('admin.payments.verify');
+    Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('admin.payments.reject');
+});
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])
+         ->name('admin.payments.show');
+});
 });

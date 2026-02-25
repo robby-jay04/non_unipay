@@ -28,11 +28,9 @@
             <div class="card-body">
                 <h5>Clearance Reports</h5>
                 <p class="text-muted">View student clearance status</p>
-             <a href="{{ route('admin.reports.clearances') }}" class="btn btn-primary">
-    <i class="fas fa-eye"></i> View Report
-</a>
-
-
+                <a href="{{ route('admin.reports.clearances') }}" class="btn btn-primary">
+                    <i class="fas fa-eye"></i> View Report
+                </a>
             </div>
         </div>
     </div>
@@ -68,6 +66,37 @@
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- Minimalist Pagination --}}
+            <div class="d-flex justify-content-center my-3">
+                <ul class="pagination pagination-sm mb-0">
+                    {{-- Previous --}}
+                    @if($payments->onFirstPage())
+                        <li class="page-item disabled"><span class="page-link">&lt;</span></li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $payments->previousPageUrl() }}">&lt;</a>
+                        </li>
+                    @endif
+
+                    {{-- Page Numbers --}}
+                    @foreach(range(1, $payments->lastPage()) as $i)
+                        <li class="page-item {{ $payments->currentPage() == $i ? 'active' : '' }}">
+                            <a class="page-link" href="{{ $payments->url($i) }}">{{ $i }}</a>
+                        </li>
+                    @endforeach
+
+                    {{-- Next --}}
+                    @if($payments->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $payments->nextPageUrl() }}">&gt;</a>
+                        </li>
+                    @else
+                        <li class="page-item disabled"><span class="page-link">&gt;</span></li>
+                    @endif
+                </ul>
+            </div>
+
         </div>
     </div>
 </div>

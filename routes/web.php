@@ -20,9 +20,13 @@ Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.submit')
 Route::post('/payment/webhook', [PaymentController::class, 'webhook']);
 
 // Success / Failed pages
-Route::get('/payment/success', [PaymentController::class, 'success']);
-Route::get('/payment/failed', [PaymentController::class, 'failed']);
+Route::get('/payment/success', function () {
+    return view('payments.success');
+});
 
+Route::get('/payment/failed', function () {
+    return view('payments.failed');
+});
 
 
 // ----------------------------
@@ -89,4 +93,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])
          ->name('admin.payments.show');
 });
+
 });

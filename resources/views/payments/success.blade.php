@@ -87,11 +87,7 @@
         <h1>Payment Successful</h1>
         <p>{{ $message ?? 'Your payment has been processed successfully.' }}</p>
 
-        <!-- DEEP LINK BACK TO APP -->
-      <a href="#" class="btn" id="backBtn">Back to Home</a>
-        <div class="note">
-            You may now safely close this page.
-        </div>
+     
     </div>
 
 </body>
@@ -101,7 +97,7 @@
 
   backBtn.addEventListener('click', () => {
     const appLink = "nonunipay://home";
-    const fallback = "https://gcash.com"; // optional fallback
+   
 
     // Try opening the app
     window.location = appLink;

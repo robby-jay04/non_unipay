@@ -27,28 +27,50 @@
         <h4 class="mb-4 text-center p-3">Non-UniPay</h4>
 
         <div class="sidebar-container flex-grow-1">
-            <ul class="nav flex-column m-0">
-                <li class="nav-item mb-2 {{ request()->routeIs('admin.dashboard') ? 'active-row' : '' }}">
-                    <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                        <i class="fas fa-dashboard me-2"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item mb-2 {{ request()->routeIs('admin.payments') ? 'active-row' : '' }}">
-                    <a class="nav-link" href="{{ route('admin.payments') }}">
-                        <i class="fas fa-money-bill me-2"></i> Payments
-                    </a>
-                </li>
-                <li class="nav-item mb-2 {{ request()->routeIs('admin.students') ? 'active-row' : '' }}">
-                    <a class="nav-link" href="{{ route('admin.students') }}">
-                        <i class="fas fa-users me-2"></i> Students
-                    </a>
-                </li>
-                <li class="nav-item mb-2 {{ request()->routeIs('admin.reports') ? 'active-row' : '' }}">
-                    <a class="nav-link" href="{{ route('admin.reports') }}">
-                        <i class="fas fa-chart-bar me-2"></i> Reports
-                    </a>
-                </li>
-            </ul>
+           <ul class="nav flex-column m-0">
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.dashboard') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.dashboard') }}">
+            <i class="fas fa-dashboard me-2"></i> Dashboard
+        </a>
+    </li>
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.payments') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.payments') }}">
+            <i class="fas fa-money-bill me-2"></i> Payments
+        </a>
+    </li>
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.students') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.students') }}">
+            <i class="fas fa-users me-2"></i> Students
+        </a>
+    </li>
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.reports') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.reports') }}">
+            <i class="fas fa-chart-bar me-2"></i> Reports
+        </a>
+    </li>
+
+    <!-- Academic Section -->
+    <li class="nav-item mt-4 mb-2 text-white-50 px-3 small">
+        Academic Management
+    </li>
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.school-years.*') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.school-years.index') }}">
+            <i class="fas fa-calendar-alt me-2"></i> School Years
+        </a>
+    </li>
+
+    <li class="nav-item mb-2 {{ request()->routeIs('admin.fees.*') ? 'active-row' : '' }}">
+        <a class="nav-link" href="{{ route('admin.fees.index') }}">
+            <i class="fas fa-money-check-alt me-2"></i> Fee Management
+        </a>
+    </li>
+
+</ul>
         </div>
 
         <hr class="text-white opacity-50 my-3">
@@ -119,7 +141,8 @@
     background: rgba(255, 255, 255, 0.15);
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
-    left: 10px; 
+    left: 2px; 
+   
 }
 
 /* Active row: extends white to main content + rounded left corners */
@@ -129,11 +152,8 @@
     font-weight: bold;
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
-    position: relative;
-    left: 10px; 
-    width: calc(100% + 50px);
-     transition: all 0.4s ease;
-    
+    margin-right: -2px; /* slight connect effect */
+    z-index: 1;
 }
 
 /* Connect to main content */
@@ -141,13 +161,11 @@
     content: "";
     position: absolute;
     top: 0;
-    right: -100vw; /* extend to the right */
-    width: 100vw;
+    right: -20px; /* only extend slightly */
+    width: 20px;  /* small connector */
     height: 100%;
     background: white;
     z-index: -1;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
 }
 
 /* Main content background */

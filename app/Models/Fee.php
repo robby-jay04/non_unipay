@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use App\Models\SchoolYear;
 class Fee extends Model
 {
     use HasFactory;
@@ -21,11 +21,18 @@ class Fee extends Model
         'amount' => 'decimal:2',
     ];
 
-    public function scopeCurrentSchoolYear($query)
-    {
-        return $query->where('school_year', config('app.current_school_year'));
+   
+
+public function scopeCurrentSchoolYear($query)
+{
+    $current = SchoolYear::current();
+
+    if (!$current) {
+        return $query->whereNull('school_year');
     }
 
+    return $query->where('school_year', $current->name);
+}
     public function scopeByType($query, $type)
     {
         return $query->where('type', $type);

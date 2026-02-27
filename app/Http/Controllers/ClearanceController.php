@@ -15,25 +15,28 @@ class ClearanceController extends Controller
         $this->clearanceService = $clearanceService;
     }
 
-    public function show(Request $request)
+  public function show(Request $request)
 {
     $student = $request->user()->student;
 
-    $requiredAmount = 58000;
+    // 🔥 Dynamic required amount from fees table
+    $requiredAmount = \App\Models\Fee::where('school_year', $student->school_year)
+        ->where('semester', $student->semester)
+        ->sum('amount');
 
     $totalPaid = $student->payments()
         ->where('status', 'paid')
         ->sum('total_amount');
 
-    $status = ($requiredAmount - $totalPaid) <= 0
-        ? 'cleared'
-        : 'pending';
+    $remaining = $requiredAmount - $totalPaid;
+
+    $status = $remaining <= 0 ? 'cleared' : 'pending';
 
     return response()->json([
         'status' => $status,
         'total_paid' => $totalPaid,
         'required' => $requiredAmount,
-        'remaining' => max($requiredAmount - $totalPaid, 0),
+        'remaining' => max($remaining, 0),
     ]);
 }
 

@@ -143,15 +143,16 @@ public function login(Request $request)
 public function register(Request $request)
 {
     $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6|confirmed',
-        'student_no' => 'required|string|unique:students',
-        'course' => 'required|string',
-        'year_level' => 'required|integer',
-        'contact' => 'required|string',
-    ]);
-
+    'name' => 'required|string',
+    'email' => 'required|email|unique:users',
+    'password' => 'required|confirmed|min:6',
+    'student_no' => 'required',
+    'course' => 'required',
+    'year_level' => 'required',
+    'contact' => 'required',
+    'semester' => 'required|string',
+    'school_year' => 'required|string',
+]);
     // Create the User
     $user = User::create([
         'name' => $validated['name'],
@@ -162,14 +163,15 @@ public function register(Request $request)
 
     // Create the Student (NOT CONFIRMED by default)
     Student::create([
-        'user_id' => $user->id,
-        'student_no' => $validated['student_no'],
-        'course' => $validated['course'],
-        'year_level' => $validated['year_level'],
-        'contact' => $validated['contact'],
-        'is_confirmed' => false, // important
-    ]);
-
+    'user_id' => $user->id,
+    'student_no' => $validated['student_no'],
+    'course' => $validated['course'],
+    'year_level' => $validated['year_level'],
+    'contact' => $validated['contact'],
+    'semester' => $validated['semester'],
+    'school_year' => $validated['school_year'],
+    'is_confirmed' => false,
+]);
   return response()->json([
     'success' => true,
     'status' => 'pending',

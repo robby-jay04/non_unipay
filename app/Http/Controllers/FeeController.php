@@ -10,19 +10,14 @@ class FeeController extends Controller
     /**
      * Display a listing of fees for current school year
      */
-    public function index()
-    {
-        $fees = Fee::currentSchoolYear()
-            ->orderBy('type')
-            ->orderBy('name')
-            ->get();
+  public function index()
+{
+    $current = \App\Models\SchoolYear::current();
 
-        return response()->json([
-            'success' => true,
-            'fees' => $fees,
-            'count' => $fees->count(),
-        ]);
-    }
+    return response()->json([
+        'current_school_year' => $current,
+    ]);
+}
 
     /**
      * Get total of all fees
@@ -74,24 +69,83 @@ class FeeController extends Controller
      * Store a new fee (Admin only)
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:tuition,miscellaneous,exam',
-            'semester' => 'nullable|string',
-            'school_year' => 'required|string',
-        ]);
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'amount' => 'required|numeric|min:0',
+        'type' => 'required|in:tuition,miscellaneous,exam',
+        'semester' => 'nullable|string',
+        'school_year' => 'required|string',
+    ]);
 
-        $fee = Fee::create($validated);
+    Fee::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Fee created successfully',
-            'fee' => $fee,
-        ], 201);
-    }
+    return redirect()->route('admin.fees.index')
+                     ->with('success', 'Fee created successfully!');
+}
 
+    public function create()
+{
+    return view('admin.fees.create');
+}
+
+public function adminIndex()
+{
+    $fees = \App\Models\Fee::orderBy('school_year', 'desc')
+        ->orderBy('type')
+        ->get();
+
+    return view('admin.fees.index', compact('fees'));
+}
+
+public function storeWeb(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'amount' => 'required|numeric|min:0',
+        'type' => 'required|in:tuition,miscellaneous,exam',
+        'semester' => 'nullable|string',
+        'school_year' => 'required|string',
+    ]);
+
+    Fee::create($validated);
+
+    return redirect()
+        ->route('admin.fees.index')
+        ->with('success', 'Fee created successfully.');
+}
+
+public function edit(Fee $fee)
+{
+    return view('admin.fees.edit', compact('fee'));
+}
+
+
+public function updateWeb(Request $request, Fee $fee)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'amount' => 'required|numeric|min:0',
+        'type' => 'required|in:tuition,miscellaneous,exam',
+        'semester' => 'nullable|string',
+        'school_year' => 'required|string',
+    ]);
+
+    $fee->update($validated);
+
+    return redirect()
+        ->route('admin.fees.index')
+        ->with('success', 'Fee updated successfully.');
+}
+
+public function destroyWeb($fee)
+{
+    $fee = Fee::findOrFail($fee);
+    $fee->delete();
+
+    return redirect()->route('admin.fees.index')
+        ->with('success', 'Fee deleted successfully.');
+}
     /**
      * Update existing fee (Admin only)
      */
@@ -119,16 +173,13 @@ class FeeController extends Controller
     /**
      * Delete fee (Admin only)
      */
-    public function destroy($id)
-    {
-        $fee = Fee::findOrFail($id);
-        $fee->delete();
+   public function destroy(Fee $fee)
+{
+    $fee->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Fee deleted successfully',
-        ]);
-    }
+    return redirect()->route('admin.fees.index')
+                     ->with('success', 'Fee deleted successfully.');
+}
 
     /**
      * Get fees breakdown by type

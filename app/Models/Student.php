@@ -15,7 +15,11 @@ class Student extends Model
         'course',
         'year_level',
         'contact',
+        'is_confirmed',
     ];
+    protected $casts = [
+    'is_confirmed' => 'boolean',
+];
 
     public function user()
     {

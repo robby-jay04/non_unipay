@@ -70,6 +70,13 @@ Route::middleware(['auth'])->group(function () {
     ->name('admin.reports.excel');
        Route::get('/reports/clearances', [ReportController::class, 'clearances'])
         ->name('admin.reports.clearances');
+
+        Route::post('/students/{student}/confirm',
+    [AdminController::class, 'confirmStudent']
+)->name('admin.students.confirm');
+
+Route::delete('/students/{student}', [AdminController::class, 'destroy'])
+    ->name('admin.students.destroy');
 });
 
 

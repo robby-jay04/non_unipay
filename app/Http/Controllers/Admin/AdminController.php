@@ -94,4 +94,22 @@ public function students(Request $request)
     ]);
 }
 
+public function confirmStudent(Student $student)
+{
+    $student->is_confirmed = true;
+    $student->save();
+
+    return back()->with('success', 'Student confirmed successfully.');
+}
+public function destroy(Student $student)
+{
+    // Delete linked user first
+    $student->user()->delete();
+
+    // Delete student record
+    $student->delete();
+
+    return redirect()->route('admin.students')
+        ->with('success', 'Student deleted successfully.');
+}
 }

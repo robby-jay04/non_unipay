@@ -41,10 +41,36 @@
         <span class="badge bg-danger">Not Cleared</span>
     @endif
 </td>
-                        <td>
+      <td>
     <button class="btn btn-sm btn-info view-student" data-id="{{ $student->id }}">
         View
     </button>
+
+    @if(!$student->is_confirmed)
+        <form action="{{ route('admin.students.confirm', $student) }}"
+              method="POST"
+              class="d-inline"
+              onsubmit="return confirm('Confirm this student account?')">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-success">
+                Confirm
+            </button>
+        </form>
+    @else
+        <span class="badge bg-primary">Confirmed</span>
+    @endif
+
+    <!-- 🔥 DELETE BUTTON -->
+    <form action="{{ route('admin.students.destroy', $student) }}"
+          method="POST"
+          class="d-inline"
+          onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-danger">
+            Delete
+        </button>
+    </form>
 </td>
                     </tr>
                     @empty

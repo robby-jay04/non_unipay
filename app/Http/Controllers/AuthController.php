@@ -66,7 +66,7 @@ class AuthController extends Controller
     // -------------------------------
     // API Login (Sanctum)
     // -------------------------------
-  public function login(Request $request)
+public function login(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
@@ -81,7 +81,7 @@ class AuthController extends Controller
         ], 401);
     }
 
-    // Allow login if password is empty in DB and user enters "password123"
+    // Password check
     if (!$user->password) {
         if ($request->password !== 'password123') {
             return response()->json([
@@ -89,7 +89,6 @@ class AuthController extends Controller
             ], 401);
         }
     } else {
-        // Normal Hash check
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'The provided credentials are incorrect.'
@@ -97,6 +96,19 @@ class AuthController extends Controller
         }
     }
 
+    // 🔥 BLOCK STUDENT IF NOT CONFIRMED
+    if ($user->isStudent()) {
+
+        $student = $user->student;
+
+        if (!$student || !$student->is_confirmed) {
+            return response()->json([
+                'message' => 'Your account is pending admin approval.'
+            ], 403);
+        }
+    }
+
+    // Create token only if allowed
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json([
@@ -148,33 +160,22 @@ public function register(Request $request)
         'role' => 'student',
     ]);
 
-    // Create the Student linked to the user
-    $student = Student::create([
+    // Create the Student (NOT CONFIRMED by default)
+    Student::create([
         'user_id' => $user->id,
         'student_no' => $validated['student_no'],
         'course' => $validated['course'],
         'year_level' => $validated['year_level'],
         'contact' => $validated['contact'],
+        'is_confirmed' => false, // important
     ]);
 
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'access_token' => $token,
-        'token_type' => 'Bearer',
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'student_no' => $student->student_no,
-            'course' => $student->course,
-            'year_level' => $student->year_level,
-            'contact' => $student->contact,
-        ],
-    ], 201);
+  return response()->json([
+    'success' => true,
+    'status' => 'pending',
+    'message' => 'Registration successful. Please wait for admin approval.'
+], 201);
 }
-
 
 
       // -------------------------------

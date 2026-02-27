@@ -38,4 +38,15 @@ class Student extends Model
             ->where('status', 'paid')
             ->exists();
     }
+
+    public function getClearanceStatusAttribute()
+{
+    $requiredAmount = 58000; // full payment requirement
+
+    $totalPaid = $this->payments()
+        ->where('status', 'paid')
+        ->sum('total_amount');
+
+    return $totalPaid >= $requiredAmount ? 'cleared' : 'not cleared';
+}
 }

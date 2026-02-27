@@ -42,9 +42,9 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>
-                        {{ $payment->student->user->name ?? 'N/A' }}
+                    {{ optional($payment->student->user)->name ?? 'N/A' }}
                     </td>
-                    <td>₱{{ number_format($payment->amount, 2) }}</td>
+                    <td>₱{{ number_format($payment->total_amount, 2) }}</td>
                     <td>{{ ucfirst($payment->status) }}</td>
                     <td>{{ $payment->created_at->format('Y-m-d') }}</td>
                 </tr>

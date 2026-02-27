@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Student;
-use App\Exports\PaymentsExport;
+use App\Exports\PaymentExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request; // Added import for Request
 
@@ -32,24 +32,38 @@ public function payments(Request $request)
     return view('admin.payments', compact('payments'));
 }
 
-   public function students(Request $request)
+public function students(Request $request)
 {
+    $requiredAmount = 58000;
     $search = $request->query('search');
 
-    $students = \App\Models\Student::with('user')
+    $students = \App\Models\Student::with(['user', 'payments'])
         ->when($search, function($query, $search) {
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })->orWhere('student_no', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhere('student_no', 'like', "%{$search}%");
+            });
         })
         ->orderBy('created_at', 'desc')
         ->paginate(10)
-        ->appends(request()->query()); // preserve search query on pagination links
+        ->appends(request()->query());
+
+    // LOOP manually instead of getCollection()
+    foreach ($students as $student) {
+
+        $totalPaid = $student->payments
+            ->where('status', 'paid')
+            ->sum('total_amount');
+
+        $student->clearance_status =
+            $totalPaid >= $requiredAmount ? 'cleared' : 'not cleared';
+    }
 
     return view('admin.students', compact('students', 'search'));
 }
-
     public function reports()
     {
         $payments = Payment::with('student.user')
@@ -65,7 +79,7 @@ public function payments(Request $request)
         // Get filters from query string if needed
         $filters = request()->only(['status', 'student_id', 'date_from', 'date_to']);
 
-        return Excel::download(new PaymentsExport($filters), 'payments.xlsx');
+        return Excel::download(new PaymentExport($filters), 'payments.xlsx');
     }public function studentJson($id)
 {
     $student = \App\Models\Student::with('user')->findOrFail($id);

@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class PaymentsExport implements FromCollection, WithHeadings, WithMapping
+class PaymentExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $filters;
 

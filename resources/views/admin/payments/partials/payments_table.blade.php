@@ -23,31 +23,3 @@
     @endforeach
 </tbody>
 
-<div id="paymentsPagination" class="d-flex justify-content-center my-2">
-    <ul class="pagination pagination-sm mb-0">
-        {{-- Previous --}}
-        @if($payments->onFirstPage())
-            <li class="page-item disabled"><span class="page-link">&lt;</span></li>
-        @else
-            <li class="page-item">
-                <a class="page-link" href="{{ $payments->previousPageUrl() }}">&lt;</a>
-            </li>
-        @endif
-
-        {{-- Page Numbers --}}
-        @foreach(range(1, $payments->lastPage()) as $i)
-            <li class="page-item {{ $payments->currentPage() == $i ? 'active' : '' }}">
-                <a class="page-link" href="{{ $payments->url($i) }}">{{ $i }}</a>
-            </li>
-        @endforeach
-
-        {{-- Next --}}
-        @if($payments->hasMorePages())
-            <li class="page-item">
-                <a class="page-link" href="{{ $payments->nextPageUrl() }}">&gt;</a>
-            </li>
-        @else
-            <li class="page-item disabled"><span class="page-link">&gt;</span></li>
-        @endif
-    </ul>
-</div>

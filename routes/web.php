@@ -36,40 +36,48 @@ Route::middleware(['auth'])->group(function () {
     // ----------------------------
     // Admin routes
     // ----------------------------
-    Route::middleware('admin')->prefix('admin')->group(function () {
+ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('admin.dashboard');
 
-        Route::get('/payments', [AdminController::class, 'payments'])
-            ->name('admin.payments');
-            
+    Route::get('/payments', [PaymentController::class, 'index'])
+        ->name('admin.payments');
 
-        Route::get('/students', [AdminController::class, 'students'])
-            ->name('admin.students');
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])
+        ->name('admin.payments.show');
 
-        Route::get('/reports', [ReportController::class, 'index'])
-            ->name('admin.reports');
+    Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])
+        ->name('admin.payments.verify');
 
-        Route::get('/reports/pdf', [ReportController::class, 'exportPDF'])
-            ->name('admin.reports.pdf');
+    Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])
+        ->name('admin.payments.reject');
 
-        Route::get('/reports/excel', [ReportController::class, 'exportExcel'])
-            ->name('admin.reports.excel');
+    Route::get('/payments/export', [AdminController::class, 'exportPayments'])
+        ->name('admin.payments.export');
 
-        Route::get('/reports/clearances', [ReportController::class, 'clearanceReport'])
-            ->name('admin.reports.clearances');
-    });// Export Payments
-Route::get('/payments/export', [AdminController::class, 'exportPayments'])->name('admin.payments.export');
+    Route::get('/students', [AdminController::class, 'students'])
+        ->name('admin.students');
+
+    Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
+        ->name('admin.students.json');
+
+    Route::get('/reports', [ReportController::class, 'index'])
+        ->name('admin.reports');
+        Route::get('/reports/pdf', [ReportController::class, 'downloadPdf'])
+    ->name('admin.reports.pdf');
+    Route::get('/reports/excel', [ReportController::class, 'exportExcel'])
+    ->name('admin.reports.excel');
+       Route::get('/reports/clearances', [ReportController::class, 'clearances'])
+        ->name('admin.reports.clearances');
+});
+
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
          ->name('admin.students.json');
 });
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('admin.payments.verify');
-    Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('admin.payments.reject');
-});
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])
          ->name('admin.payments.show');

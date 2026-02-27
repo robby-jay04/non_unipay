@@ -34,7 +34,13 @@
                         <td>{{ $student->user->name }}</td>
                         <td>{{ $student->course }}</td>
                         <td>{{ $student->year_level }}</td>
-                        <td>{{ ucfirst($student->clearance_status) }}</td>
+                        <td>
+    @if($student->clearance_status === 'cleared')
+        <span class="badge bg-success">Cleared</span>
+    @else
+        <span class="badge bg-danger">Not Cleared</span>
+    @endif
+</td>
                         <td>
     <button class="btn btn-sm btn-info view-student" data-id="{{ $student->id }}">
         View

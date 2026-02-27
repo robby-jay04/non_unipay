@@ -8,6 +8,8 @@ use App\Models\Payment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentExport;
+use App\Models\Student;
+use App\Models\Clearance;
 
 class ReportController extends Controller
 {
@@ -24,15 +26,15 @@ class ReportController extends Controller
     {
         $query = Payment::with('student.user');
 
-        if ($request->has('status')) {
+        if ($request->status) {
             $query->where('status', $request->status);
         }
 
-        if ($request->has('from_date')) {
+        if ($request->from_date) {
             $query->whereDate('created_at', '>=', $request->from_date);
         }
 
-        if ($request->has('to_date')) {
+        if ($request->to_date) {
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
@@ -41,16 +43,11 @@ class ReportController extends Controller
         return view('admin.reports.payments', compact('payments'));
     }
 
-    public function exportPDF(Request $request)
-    {
-        $payments = Payment::with('student.user')
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->get();
-
-        $pdf = PDF::loadView('admin.reports.pdf', compact('payments'));
-        return $pdf->download('payment-report-' . now()->format('Y-m-d') . '.pdf');
-    }
-
+public function exportPDF()
+{
+    $pdf = PDF::loadHTML('<h1>PDF WORKING BOSS</h1>');
+    return $pdf->download('test.pdf');
+}
     public function exportExcel(Request $request)
     {
         return Excel::download(
@@ -59,12 +56,35 @@ class ReportController extends Controller
         );
     }
 
-    public function clearanceReport()
+    public function clearances()
     {
-        $clearances = \App\Models\Clearance::with('student.user')
-            ->latest()
-            ->get();
+        $requiredAmount = 58000;
+
+        $clearances = Student::with(['user', 'payments'])
+            ->get()
+            ->filter(function ($student) use ($requiredAmount) {
+
+                $totalPaid = $student->payments
+                    ->where('status', 'paid')
+                    ->sum('total_amount');
+
+                return $totalPaid >= $requiredAmount;
+            });
 
         return view('admin.reports.clearances', compact('clearances'));
+    }
+
+ public function downloadPdf()
+{
+    $payments = Payment::with('student.user')->get();
+
+    $pdf = Pdf::loadView('admin.reports.payments_pdf', compact('payments'));
+
+    return $pdf->download('payment-report-' . now()->format('Y-m-d') . '.pdf');
+}
+
+    public function downloadExcel()
+    {
+        return Excel::download(new PaymentExport, 'payments.xlsx');
     }
 }

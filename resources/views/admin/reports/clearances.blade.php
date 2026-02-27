@@ -15,25 +15,27 @@
                     <th>Last Updated</th>
                 </tr>
             </thead>
-            <tbody>
-                @forelse($clearances as $clearance)
-                <tr>
-                    <td>{{ $clearance->student->user->name }}</td>
-                    <td>
-                        <span class="badge bg-{{ $clearance->status === 'cleared' ? 'success' : 'warning' }}">
-                            {{ ucfirst($clearance->status) }}
-                        </span>
-                    </td>
-                    <td>{{ $clearance->updated_at->format('M d, Y') }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="3" class="text-center text-muted">
-                        No clearance records found
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
+          <tbody>
+@forelse($clearances as $student)
+<tr>
+    <td>{{ $student->user->name }}</td>
+
+    <td>
+        <span class="badge bg-success">
+            Fully Paid
+        </span>
+    </td>
+
+    <td>{{ $student->updated_at->format('M d, Y') }}</td>
+</tr>
+@empty
+<tr>
+    <td colspan="3" class="text-center text-muted">
+        No fully paid students found
+    </td>
+</tr>
+@endforelse
+</tbody>
         </table>
     </div>
 </div>

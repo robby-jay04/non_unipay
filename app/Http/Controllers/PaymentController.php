@@ -23,10 +23,10 @@ class PaymentController extends Controller
         $payments = $query->paginate(10);
 
         if ($request->ajax()) {
-            return view('admin.payments.partials.payments_rows', compact('payments'))->render();
-        }
+   return view('admin.payments', compact('payments'))->render();
+}
 
-        return view('admin.payments.index', compact('payments'));
+        return view('admin.payments', compact('payments'));
     }
 
     public function show($id)
@@ -236,6 +236,42 @@ public function failed()
         ]);
     }
 
-   
+   public function verify($id)
+{
+    $payment = Payment::find($id);
+
+    if (!$payment) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment not found'
+        ]);
+    }
+
+    $payment->status = 'paid';
+    $payment->save();
+
+    return response()->json([
+        'success' => true
+    ]);
+}
+
+public function reject($id)
+{
+    $payment = Payment::find($id);
+
+    if (!$payment) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment not found'
+        ]);
+    }
+
+    $payment->status = 'failed';
+    $payment->save();
+
+    return response()->json([
+        'success' => true
+    ]);
+}
 
 }

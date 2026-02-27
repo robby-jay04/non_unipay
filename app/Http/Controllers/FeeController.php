@@ -135,22 +135,34 @@ class FeeController extends Controller
      */
     public function breakdown()
 {
+    $student = auth()->user()->student;
+
     $fees = Fee::currentSchoolYear()->get();
+
+    $grandTotal = $fees->sum('amount');
+
+    $totalPaid = $student->payments()
+        ->where('status', 'paid')
+        ->sum('total_amount');
+
+    $remainingBalance = $grandTotal - $totalPaid;
 
     $breakdown = [
         'tuition' => [
-            'fees' => $fees->where('type', 'tuition')->values(), // Add ->values()
+            'fees' => $fees->where('type', 'tuition')->values(),
             'total' => $fees->where('type', 'tuition')->sum('amount'),
         ],
         'miscellaneous' => [
-            'fees' => $fees->where('type', 'miscellaneous')->values(), // Add ->values()
+            'fees' => $fees->where('type', 'miscellaneous')->values(),
             'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
         ],
         'exam' => [
-            'fees' => $fees->where('type', 'exam')->values(), // Add ->values()
+            'fees' => $fees->where('type', 'exam')->values(),
             'total' => $fees->where('type', 'exam')->sum('amount'),
         ],
-        'grand_total' => $fees->sum('amount'),
+        'grand_total' => $grandTotal,
+        'total_paid' => $totalPaid,
+        'remaining_balance' => max($remainingBalance, 0),
     ];
 
     return response()->json([

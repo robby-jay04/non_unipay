@@ -16,19 +16,26 @@ class ClearanceController extends Controller
     }
 
     public function show(Request $request)
-    {
-        $student = $request->user()->student;
-        $clearance = Clearance::where('student_id', $student->id)->first();
+{
+    $student = $request->user()->student;
 
-        if (!$clearance) {
-            return response()->json([
-                'status' => 'pending',
-                'message' => 'No clearance record found',
-            ]);
-        }
+    $requiredAmount = 58000;
 
-        return response()->json($clearance);
-    }
+    $totalPaid = $student->payments()
+        ->where('status', 'paid')
+        ->sum('total_amount');
+
+    $status = ($requiredAmount - $totalPaid) <= 0
+        ? 'cleared'
+        : 'pending';
+
+    return response()->json([
+        'status' => $status,
+        'total_paid' => $totalPaid,
+        'required' => $requiredAmount,
+        'remaining' => max($requiredAmount - $totalPaid, 0),
+    ]);
+}
 
     public function checkClearance($studentId)
     {

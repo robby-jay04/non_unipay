@@ -13,9 +13,7 @@
             <button class="btn btn-sm btn-primary" id="filterBtn" data-bs-toggle="modal" data-bs-target="#filterModal">
                 <i class="fas fa-filter"></i> Filter
             </button>
-            <button class="btn btn-sm btn-success" id="exportBtn">
-                <i class="fas fa-download"></i> Export
-            </button>
+          
         </div>
     </div>
     <div class="card-body">
@@ -148,12 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
-    // Export Button
-    document.getElementById('exportBtn').addEventListener('click', function() {
-        const params = new URLSearchParams(window.location.search);
-        window.location.href = '{{ route("admin.payments.export") }}?' + params.toString();
-    });
-
+ 
     // Handle View Payment Buttons
     const handleViewButtons = () => {
         document.querySelectorAll('.viewPaymentBtn').forEach(btn => {

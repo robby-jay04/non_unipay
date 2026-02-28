@@ -57,22 +57,24 @@ public function exportPDF()
     }
 
     public function clearances()
-    {
-        $requiredAmount = 58000;
+{
+    $students = Student::with(['user', 'payments'])->get();
 
-        $clearances = Student::with(['user', 'payments'])
-            ->get()
-            ->filter(function ($student) use ($requiredAmount) {
+    $clearances = $students->filter(function ($student) {
 
-                $totalPaid = $student->payments
-                    ->where('status', 'paid')
-                    ->sum('total_amount');
+        $requiredAmount = \App\Models\Fee::where('school_year', $student->school_year)
+            ->where('semester', $student->semester)
+            ->sum('amount');
 
-                return $totalPaid >= $requiredAmount;
-            });
+        $totalPaid = $student->payments
+            ->where('status', 'paid')
+            ->sum('total_amount');
 
-        return view('admin.reports.clearances', compact('clearances'));
-    }
+        return $totalPaid >= $requiredAmount;
+    });
+
+    return view('admin.reports.clearances', compact('clearances'));
+}
 
  public function downloadPdf()
 {

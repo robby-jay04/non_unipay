@@ -29,7 +29,7 @@
             </tr>
             <tr>
                 <th>Payment Date:</th>
-                <td>{{ $payment->payment_date ? $payment->payment_date->format('M d, Y h:i A') : 'Not paid yet' }}</td>
+                <td>{{ $payment->payment_date ? $payment->payment_date->format('M d, Y h:i A') : 'Not verified yet' }}</td>
             </tr>
             <tr>
                 <th>Created:</th>

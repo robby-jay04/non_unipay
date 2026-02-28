@@ -18,6 +18,7 @@ class Payment extends Model
         'reference_no',
         'paymongo_source_id',
         'paymongo_payment_intent_id',
+        'payment_date',
     ];
 
     protected $casts = [

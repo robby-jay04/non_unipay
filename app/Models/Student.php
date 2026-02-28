@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Payment;
 
 class Student extends Model
 {
@@ -46,14 +47,26 @@ class Student extends Model
             ->exists();
     }
 
-    public function getClearanceStatusAttribute()
+ public function getClearanceStatus()
 {
-    $requiredAmount = 58000; // full payment requirement
+    $requiredAmount = \App\Models\Fee::where('school_year', $this->school_year)
+        ->where('semester', $this->semester)
+        ->sum('amount');
 
     $totalPaid = $this->payments()
         ->where('status', 'paid')
         ->sum('total_amount');
 
-    return $totalPaid >= $requiredAmount ? 'cleared' : 'not cleared';
+    return [
+        'status' => $totalPaid >= $requiredAmount ? 'cleared' : 'pending',
+        'total_paid' => $totalPaid,
+        'required' => $requiredAmount,
+        'remaining' => max($requiredAmount - $totalPaid, 0),
+    ];
+}
+
+public function getClearanceStatusAttribute()
+{
+    return $this->getClearanceStatus()['status'];
 }
 }

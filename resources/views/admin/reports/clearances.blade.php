@@ -21,10 +21,12 @@
     <td>{{ $student->user->name }}</td>
 
     <td>
-        <span class="badge bg-success">
-            Fully Paid
-        </span>
-    </td>
+    @if($student->clearance_status === 'cleared')
+        <span class="badge bg-success">Cleared</span>
+    @else
+        <span class="badge bg-danger">Not Cleared</span>
+    @endif
+</td>
 
     <td>{{ $student->updated_at->format('M d, Y') }}</td>
 </tr>

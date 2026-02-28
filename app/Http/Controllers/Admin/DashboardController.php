@@ -15,7 +15,9 @@ class DashboardController extends Controller
         $stats = [
             'total_revenue' => Payment::paid()->sum('total_amount'),
             'pending_payments' => Payment::pending()->count(),
-            'cleared_students' => Clearance::cleared()->count(),
+            'cleared_students' => Student::with('payments')->get()
+    ->where('clearance_status', 'cleared')
+    ->count(),
             'total_students' => Student::count(),
             'recent_payments' => Payment::with('student.user')
                 ->latest()

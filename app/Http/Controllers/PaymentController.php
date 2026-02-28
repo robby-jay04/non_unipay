@@ -136,11 +136,11 @@ public function webhook(Request $request)
                 ]);
 
                 // Update payment to paid
-                $payment->update([
-                    'status' => 'paid',
-                    'paymongo_payment_intent_id' => $paymentResponse->id,
-                ]);
-
+              $payment->update([
+    'status' => 'paid',
+    'payment_date' => now(), // ✅ CORRECT COLUMN
+    'paymongo_payment_intent_id' => $paymentResponse->id,
+]);
                 Transaction::create([
                     'payment_id' => $payment->id,
                     'transaction_id' => $paymentResponse->id,
@@ -236,7 +236,7 @@ public function failed()
         ]);
     }
 
-   public function verify($id)
+ public function verify($id)
 {
     $payment = Payment::find($id);
 
@@ -247,14 +247,15 @@ public function failed()
         ]);
     }
 
-    $payment->status = 'paid';
-    $payment->save();
+    $payment->update([
+        'status' => 'paid',
+        'payment_date' => now(), // ✅ USE CORRECT COLUMN
+    ]);
 
     return response()->json([
         'success' => true
     ]);
 }
-
 public function reject($id)
 {
     $payment = Payment::find($id);

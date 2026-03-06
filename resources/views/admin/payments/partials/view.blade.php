@@ -1,97 +1,113 @@
+<div class="container-fluid p-3">
+    <div class="row">
+        <!-- Student Information -->
+        <div class="col-md-6">
+            <h6 class="fw-bold">Student Information</h6>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td width="120">Name:</td>
+                    <td><strong>{{ $payment->student->user->name }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Student No:</td>
+                    <td>{{ $payment->student->student_no }}</td>
+                </tr>
+                <tr>
+                    <td>Course:</td>
+                    <td>{{ $payment->student->course }}</td>
+                </tr>
+                <tr>
+                    <td>Year Level:</td>
+                    <td>{{ $payment->student->year_level }}</td>
+                </tr>
+            </table>
+        </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <h6 class="text-muted mb-3">Payment Information</h6>
-        <table class="table table-sm table-borderless">
-            <tr>
-                <th width="40%">Payment ID:</th>
-                <td>{{ $payment->id }}</td>
-            </tr>
-            <tr>
-                <th>Reference No:</th>
-                <td><code>{{ $payment->reference_no ?? 'N/A' }}</code></td>
-            </tr>
-            <tr>
-                <th>Amount:</th>
-                <td class="fw-bold text-success">₱{{ number_format($payment->total_amount, 2) }}</td>
-            </tr>
-            <tr>
-                <th>Status:</th>
-                <td>
-                    <span class="badge bg-{{ $payment->status == 'paid' ? 'success' : ($payment->status == 'processing' ? 'info' : ($payment->status == 'pending' ? 'warning' : 'danger')) }}">
-                        {{ ucfirst($payment->status) }}
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <th>Payment Method:</th>
-                <td>{{ strtoupper($payment->payment_method ?? 'N/A') }}</td>
-            </tr>
-            <tr>
-                <th>Payment Date:</th>
-                <td>{{ $payment->payment_date ? $payment->payment_date->format('M d, Y h:i A') : 'Not verified yet' }}</td>
-            </tr>
-            <tr>
-                <th>Created:</th>
-                <td>{{ $payment->created_at->format('M d, Y h:i A') }}</td>
-            </tr>
-        </table>
+        <!-- Payment Details -->
+        <div class="col-md-6">
+            <h6 class="fw-bold">Payment Details</h6>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td width="120">Reference No:</td>
+                    <td><strong>{{ $payment->reference_no }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Total Amount:</td>
+                    <td>₱{{ number_format($payment->total_amount, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>
+                        @if($payment->status == 'paid')
+                            <span class="badge bg-success">Paid</span>
+                        @elseif($payment->status == 'pending')
+                            <span class="badge bg-warning">Pending</span>
+                        @else
+                            <span class="badge bg-danger">Failed</span>
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Payment Date:</td>
+                    <td>{{ $payment->payment_date ? date('M d, Y h:i A', strtotime($payment->payment_date)) : 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td>Method:</td>
+                    <td>{{ ucfirst($payment->payment_method) }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
-    
-    <div class="col-md-6">
-        <h6 class="text-muted mb-3">Student Information</h6>
-        <table class="table table-sm table-borderless">
-            <tr>
-                <th width="40%">Name:</th>
-                <td>{{ $payment->student->user->name }}</td>
-            </tr>
-            <tr>
-                <th>Student No:</th>
-                <td>{{ $payment->student->student_no }}</td>
-            </tr>
-            <tr>
-                <th>Course:</th>
-                <td>{{ $payment->student->course }}</td>
-            </tr>
-            <tr>
-                <th>Year Level:</th>
-                <td>{{ $payment->student->year_level }}</td>
-            </tr>
-            <tr>
-                <th>Contact:</th>
-                <td>{{ $payment->student->contact }}</td>
-            </tr>
-            <tr>
-                <th>Email:</th>
-                <td>{{ $payment->student->user->email }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
 
-@if($payment->transaction)
-<hr class="my-4">
-<h6 class="text-muted mb-3">Transaction Details</h6>
-<div class="bg-light p-3 rounded">
-    <table class="table table-sm table-borderless mb-0">
-        <tr>
-            <th width="20%">Transaction ID:</th>
-            <td>{{ $payment->transaction->id }}</td>
-        </tr>
-        <tr>
-            <th>Reference:</th>
-            <td><code>{{ $payment->transaction->reference_no }}</code></td>
-        </tr>
-        <tr>
-            <th>Status:</th>
-            <td>{{ ucfirst($payment->transaction->status) }}</td>
-        </tr>
-        @if($payment->paymongo_source_id)
-        <tr>
-            <th>PayMongo Source:</th>
-            <td><small><code>{{ $payment->paymongo_source_id }}</code></small></td>
-        </tr>
-        @endif
-    </table>
+    <!-- Fees Breakdown -->
+    @if($payment->fees->count())
+        <div class="mt-4">
+            <h6 class="fw-bold">Fees Paid</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fee Name</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($payment->fees as $fee)
+                            <tr>
+                                <td>{{ $fee->name }}</td>
+                                <td class="text-end">₱{{ number_format($fee->pivot->amount, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold">
+                            <td class="text-end">Total:</td>
+                            <td class="text-end">₱{{ number_format($payment->total_amount, 2) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    @else
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i> No fee items recorded for this payment.
+        </div>
+    @endif
+
+    <!-- Transaction Details (if available) -->
+    @if($payment->transaction)
+        <div class="mt-4">
+            <h6 class="fw-bold">Transaction Details</h6>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td width="120">Transaction ID:</td>
+                    <td>{{ $payment->transaction->transaction_id }}</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td><span class="badge bg-success">Completed</span></td>
+                </tr>
+            </table>
+        </div>
+    @endif
 </div>
-@endif

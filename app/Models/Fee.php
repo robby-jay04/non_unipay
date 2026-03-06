@@ -37,4 +37,10 @@ public function scopeCurrentSchoolYear($query)
     {
         return $query->where('type', $type);
     }
+    public function payments()
+{
+    return $this->belongsToMany(Payment::class, 'fee_payment')
+                ->withPivot('amount')
+                ->withTimestamps();
+}
 }

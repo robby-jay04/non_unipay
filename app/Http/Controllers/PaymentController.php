@@ -8,7 +8,8 @@ use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Luigel\Paymongo\Facades\Paymongo;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log; // ✅ Add this import
+use Illuminate\Support\Facades\Log;
+use App\Models\Fee; 
 
 class PaymentController extends Controller
 {
@@ -30,46 +31,56 @@ class PaymentController extends Controller
     }
 
     public function show($id)
-    {
-        $payment = Payment::with('student.user')->findOrFail($id);
-        return view('admin.payments.partials.view', compact('payment'));
-    }
-
+{
+    $payment = Payment::with(['student.user', 'fees'])->findOrFail($id);
+    return view('admin.payments.partials.view', compact('payment'));
+}
     /**
      * Initiate payment with PayMongo
      */
 
-public function initiate(Request $request)
-{
-    $request->validate([
-        'amount' => 'required|numeric|min:100',
-    ]);
-
-    $student = $request->user()->student;
-
-    // Convert to float
-    $amountPesos = floatval($request->amount);
-
-    // Check PayMongo max (₱100,000)
-    if ($amountPesos > 100000) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Amount exceeds PayMongo maximum of ₱100,000'
+ public function initiate(Request $request)
+    {
+        $request->validate([
+            'amount'   => 'required|numeric|min:100',
+            'fee_ids'  => 'required|array',
+            'fee_ids.*' => 'exists:fees,id',
         ]);
-    }
 
-    // Convert to centavos as integer
-    $amountCentavos = (int) round($amountPesos * 100);
+        $student = $request->user()->student;
 
-    // Create pending payment in DB
-    $payment = Payment::create([
-        'student_id' => $student->id,
-        'total_amount' => $amountPesos,
-        'status' => 'pending',
-        'payment_method' => 'gcash',
-        'reference_no' => 'PAY-' . strtoupper(Str::random(10)),
-    ]);
+        // Verify total matches selected fees
+        $selectedFees = Fee::whereIn('id', $request->fee_ids)->get();
+        $calculatedTotal = $selectedFees->sum('amount');
+        if (abs($calculatedTotal - $request->amount) > 0.01) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total amount mismatch'
+            ], 400);
+        }
 
+        // PayMongo max check
+        $amountPesos = floatval($request->amount);
+        if ($amountPesos > 100000) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Amount exceeds PayMongo maximum of ₱100,000'
+            ]);
+        }
+
+        // Create pending payment in DB
+        $payment = Payment::create([
+            'student_id'   => $student->id,
+            'total_amount' => $amountPesos,
+            'status'       => 'pending',
+            'payment_method' => 'gcash',
+            'reference_no' => 'PAY-' . strtoupper(Str::random(10)),
+        ]);
+
+        // Attach selected fees
+        foreach ($selectedFees as $fee) {
+            $payment->fees()->attach($fee->id, ['amount' => $fee->amount]);
+        }
     try {
     $source = Paymongo::source()->create([
     'type' => 'gcash',
@@ -225,7 +236,7 @@ public function failed()
         $student = $request->user()->student;
         
         $payments = Payment::where('student_id', $student->id)
-            ->with('transaction')
+            ->with(['transaction', 'fees']) 
             ->orderBy('created_at', 'desc')
             ->get();
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+ use Illuminate\Auth\Notifications\ResetPassword;
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -19,8 +19,13 @@ class AuthServiceProvider extends ServiceProvider
     /**
      * Register any authentication / authorization services.
      */
-    public function boot(): void
-    {
-        //
-    }
+  
+
+public function boot()
+{
+    ResetPassword::createUrlUsing(function ($user, string $token) {
+        // Send link directly to mobile app (replace with your deep link)
+        return "nonunipay://reset-password?token={$token}&email={$user->email}";
+    });
+}
 }

@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
-
+use Illuminate\Support\Facades\Storage;
 class StudentController extends Controller
 {
-    public function profile(Request $request)
+ public function profile(Request $request)
 {
     $student = $request->user()
         ->student()
@@ -16,6 +16,11 @@ class StudentController extends Controller
 
     if (!$student) {
         return response()->json(['message' => 'Student profile not found'], 404);
+    }
+
+    // Generate full URL for profile picture if exists
+    if ($student->profile_picture) {
+        $student->profile_picture = asset('storage/' . $student->profile_picture);
     }
 
     return response()->json($student);
@@ -53,5 +58,35 @@ class StudentController extends Controller
             ->get();
 
         return response()->json($payments);
+    }
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $student = $request->user()->student;
+
+        if ($request->hasFile('profile_picture')) {
+            // Delete old picture if exists
+            if ($student->profile_picture) {
+                Storage::disk('public')->delete($student->profile_picture);
+            }
+
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $student->profile_picture = $path;
+            $student->save();
+
+            return response()->json([
+                'success' => true,
+                'profile_picture' => asset('storage/' . $path),
+                'message' => 'Profile picture updated'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No file uploaded'
+        ], 400);
     }
 }

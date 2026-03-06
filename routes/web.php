@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\FeeController;
-
+use App\Http\Controllers\PasswordResetController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -19,6 +19,8 @@ use App\Http\Controllers\FeeController;
 Route::get('/', [AuthController::class, 'showLoginForm']);
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.submit');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])
+    ->name('password.reset');
 
 // Payment Webhook (NO AUTH)
 Route::post('/payment/webhook', [PaymentController::class, 'webhook']);
@@ -31,7 +33,13 @@ Route::get('/payment/success', function () {
 Route::get('/payment/failed', function () {
     return view('payments.failed');
 });
+// Clickable link from email redirects to mobile deep link
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'redirectToMobile']);
+// Password reset form
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 
+// Form submission
+Route::post('/password/reset', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 
 /*
 |--------------------------------------------------------------------------

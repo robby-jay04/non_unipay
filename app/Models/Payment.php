@@ -73,4 +73,10 @@ class Payment extends Model
     {
         return $query->where('status', 'failed');
     }
+    public function fees()
+{
+    return $this->belongsToMany(Fee::class, 'fee_payment')
+                ->withPivot('amount')
+                ->withTimestamps();
+}
 }

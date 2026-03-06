@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
   use App\Models\Student;
+     use Illuminate\Support\Facades\Password;
+
 
 class AuthController extends Controller
 {
@@ -187,4 +189,29 @@ public function register(Request $request)
     {
         return response()->json($request->user());
     }
+ 
+
+public function showResetForm(Request $request, $token = null)
+{
+    // Validate email query parameter
+    $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    $email = $request->query('email');
+
+    // Check if user exists
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return redirect()->back()->withErrors([
+            'email' => 'Email not found in our system',
+        ]);
+    }
+
+    // Return Blade view instead of JSON
+    return view('emails.password-reset', [
+        'token' => $token,
+        'email' => $email,
+    ]);
+}
 }

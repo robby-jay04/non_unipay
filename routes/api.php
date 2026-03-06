@@ -8,10 +8,12 @@ use App\Http\Controllers\ClearanceController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\PasswordResetController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/password/reset-request', [PasswordResetController::class, 'sendResetLink']);
 
 // PayMongo Webhook (Public - no auth required)
 Route::post('/webhooks/paymongo', [PaymentController::class, 'webhook'])->name('paymongo.webhook');
@@ -21,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth Routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/student/profile/picture', [App\Http\Controllers\StudentController::class, 'uploadProfilePicture']);
 
     // Student Routes
     Route::middleware('student')->prefix('student')->group(function () {

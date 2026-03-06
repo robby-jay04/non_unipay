@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Fee;
 use Illuminate\Http\Request;
+use App\Http\Controllers\SemesterController;
+use App\Models\Semester;
 
 class FeeController extends Controller
 {
@@ -184,17 +186,35 @@ public function destroyWeb($fee)
     /**
      * Get fees breakdown by type
      */
-    public function breakdown()
+ public function breakdown()
 {
     $student = auth()->user()->student;
 
-    $fees = Fee::currentSchoolYear()->get();
+    // Get current semester
+    $currentSemester = Semester::where('is_current', true)->first();
+    if (!$currentSemester) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No active semester set.'
+        ], 404);
+    }
+
+    // Get fees for current school year AND current semester
+    $fees = Fee::currentSchoolYear()
+                ->where('semester', $currentSemester->name)
+                ->get();
 
     $grandTotal = $fees->sum('amount');
 
-    $totalPaid = $student->payments()
-        ->where('status', 'paid')
-        ->sum('total_amount');
+    // Calculate total paid for these specific fees only
+    $totalPaid = 0;
+    foreach ($fees as $fee) {
+        $paidForFee = $fee->payments()
+            ->wherePivot('fee_id', $fee->id)
+            ->where('status', 'paid')
+            ->sum('payments.total_amount');
+        $totalPaid += $paidForFee;
+    }
 
     $remainingBalance = $grandTotal - $totalPaid;
 

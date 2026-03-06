@@ -9,6 +9,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PasswordResetController;
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -28,18 +29,23 @@ Route::post('/payment/webhook', [PaymentController::class, 'webhook']);
 // Payment Success / Failed Pages
 Route::get('/payment/success', function () {
     return view('payments.success');
-});
+})->name('payment.success');
 
 Route::get('/payment/failed', function () {
     return view('payments.failed');
-});
+})->name('payment.failed');
+
 // Clickable link from email redirects to mobile deep link
-Route::get('/password/reset/{token}', [PasswordResetController::class, 'redirectToMobile']);
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'redirectToMobile'])
+    ->name('password.reset.mobile');
+
 // Password reset form
-Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])
+    ->name('password.reset');
 
 // Form submission
-Route::post('/password/reset', [PasswordResetController::class, 'resetPassword'])->name('password.update');
+Route::post('/password/reset', [PasswordResetController::class, 'resetPassword'])
+    ->name('password.update');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,99 +65,78 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware(['admin'])->prefix('admin')->group(function () {
+    Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
 
         // ==========================
         // DASHBOARD
         // ==========================
         Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('admin.dashboard');
-
+            ->name('dashboard');
 
         // ==========================
         // PAYMENTS
         // ==========================
         Route::get('/payments', [PaymentController::class, 'index'])
-            ->name('admin.payments');
-
+            ->name('payments');
         Route::get('/payments/{payment}', [PaymentController::class, 'show'])
-            ->name('admin.payments.show');
-
+            ->name('payments.show');
         Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])
-            ->name('admin.payments.verify');
-
+            ->name('payments.verify');
         Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject'])
-            ->name('admin.payments.reject');
-
+            ->name('payments.reject');
         Route::get('/payments/export', [AdminController::class, 'exportPayments'])
-            ->name('admin.payments.export');
-
+            ->name('payments.export');
 
         // ==========================
         // STUDENTS
         // ==========================
         Route::get('/students', [AdminController::class, 'students'])
-            ->name('admin.students');
-
+            ->name('students');
         Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])
-            ->name('admin.students.json');
-
+            ->name('students.json');
         Route::post('/students/{student}/confirm', [AdminController::class, 'confirmStudent'])
-            ->name('admin.students.confirm');
-
+            ->name('students.confirm');
         Route::delete('/students/{student}', [AdminController::class, 'destroy'])
-            ->name('admin.students.destroy');
-
+            ->name('students.destroy');
 
         // ==========================
         // REPORTS
         // ==========================
         Route::get('/reports', [ReportController::class, 'index'])
-            ->name('admin.reports');
-
+            ->name('reports');
         Route::get('/reports/pdf', [ReportController::class, 'downloadPdf'])
-            ->name('admin.reports.pdf');
-
+            ->name('reports.pdf');
         Route::get('/reports/excel', [ReportController::class, 'exportExcel'])
-            ->name('admin.reports.excel');
-
+            ->name('reports.excel');
         Route::get('/reports/clearances', [ReportController::class, 'clearances'])
-            ->name('admin.reports.clearances');
-
+            ->name('reports.clearances');
 
         // ==========================
         // SCHOOL YEARS
         // ==========================
         Route::get('/school-years', [SchoolYearController::class, 'index'])
-            ->name('admin.school-years.index');
-
+            ->name('school-years.index');
         Route::post('/school-years', [SchoolYearController::class, 'store'])
-            ->name('admin.school-years.store');
-
-        Route::post('/school-years/{id}/set-current', [SchoolYearController::class, 'setCurrent'])
-            ->name('admin.school-years.setCurrent');
-
+            ->name('school-years.store');
+        Route::post('/school-years/{schoolYear}/set-current', [SchoolYearController::class, 'setCurrent'])
+            ->name('school-years.setCurrent');
+        Route::post('/school-years/{schoolYear}/set-semester', [SchoolYearController::class, 'setSemester'])
+            ->name('school-years.setSemester');
 
         // ==========================
         // FEE MANAGEMENT
         // ==========================
-        // FEE MANAGEMENT
-Route::get('/fees', [FeeController::class, 'adminIndex'])
-    ->name('admin.fees.index');
-
-Route::get('/fees/create', [FeeController::class, 'create'])
-    ->name('admin.fees.create');
-
-Route::post('/fees', [FeeController::class, 'storeWeb'])
-    ->name('admin.fees.store');
-
-Route::get('/fees/{fee}/edit', [FeeController::class, 'edit'])
-    ->name('admin.fees.edit');
-
-Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])
-    ->name('admin.fees.update');
-
-Route::delete('/fees/{fee}', [FeeController::class, 'destroyWeb'])
-    ->name('admin.fees.destroy');
+        Route::get('/fees', [FeeController::class, 'adminIndex'])
+            ->name('fees.index');
+        Route::get('/fees/create', [FeeController::class, 'create'])
+            ->name('fees.create');
+        Route::post('/fees', [FeeController::class, 'storeWeb'])
+            ->name('fees.store');
+        Route::get('/fees/{fee}/edit', [FeeController::class, 'edit'])
+            ->name('fees.edit');
+        Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])
+            ->name('fees.update');
+        Route::delete('/fees/{fee}', [FeeController::class, 'destroyWeb'])
+            ->name('fees.destroy');
     });
 });

@@ -13,4 +13,8 @@ class SchoolYear extends Model
     {
         return self::where('is_current', true)->first();
     }
+public function semesters()
+{
+    return $this->hasMany(Semester::class);
+}
 }

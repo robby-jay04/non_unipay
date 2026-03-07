@@ -195,7 +195,14 @@
                 {{ $message ?? 'Your payment has been processed successfully.' }}
             </div>
 
-          
+            <!-- Return to App button -->
+            <button id="backBtn" class="app-btn">
+                <i class="fas fa-arrow-right"></i> Return to App
+            </button>
+
+            <div class="note">
+                <a href="{{ route('login') }}">Go to web dashboard</a>
+            </div>
         </div>
     </div>
 
@@ -203,18 +210,18 @@
         const backBtn = document.getElementById('backBtn');
 
         backBtn.addEventListener('click', () => {
-            // Deep link to your app (custom scheme)
-            const appLink = "nonunipay://home";   // change to your app's scheme
+            // Deep link to your app with query parameter to trigger refresh
+            const appLink = "nonunipay://home?paymentSuccess=true";
             const fallbackUrl = "{{ route('login') }}"; // fallback web URL
 
             // Try opening the app
             window.location.href = appLink;
 
-            // After 1 second, if still on web, go to fallback
+            // After 1.5 seconds, if still on web, go to fallback
             setTimeout(() => {
                 // if the page is still visible (app didn't open), redirect
                 window.location.href = fallbackUrl;
-            }, 1000);
+            }, 1500);
         });
     </script>
 </body>

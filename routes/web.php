@@ -27,13 +27,13 @@ Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])
 Route::post('/payment/webhook', [PaymentController::class, 'webhook']);
 
 // Payment Success / Failed Pages
-Route::get('/payment/success', function () {
-    return view('payments.success');
-})->name('payment.success');
 
-Route::get('/payment/failed', function () {
-    return view('payments.failed');
-})->name('payment.failed');
+
+Route::get('/payments/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::get('/payments/failed', [PaymentController::class, 'failed'])->name('payment.failed');
+Route::get('/payment/success', function () {
+    return redirect()->route('payment.success');
+});
 
 // Clickable link from email redirects to mobile deep link
 Route::get('/password/reset/{token}', [PasswordResetController::class, 'redirectToMobile'])

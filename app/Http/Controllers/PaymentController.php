@@ -87,9 +87,9 @@ class PaymentController extends Controller
     'amount' => $amountPesos, // ✅ PESOS ONLY
     'currency' => 'PHP',
     'redirect' => [
-        'success' => 'https://daniele-cosmic-vapidly.ngrok-free.dev/payment/success',
-        'failed' => 'https://daniele-cosmic-vapidly.ngrok-free.dev/payment/failed',
-    ],
+    'success' => route('payment.success'),
+    'failed'  => route('payment.failed'),
+],
     'billing' => [
         'name' => $student->user->name,
         'email' => $student->user->email,

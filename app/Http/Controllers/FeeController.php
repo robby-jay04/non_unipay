@@ -210,7 +210,7 @@ public function destroyWeb($fee)
     $totalPaid = 0;
     foreach ($fees as $fee) {
         $paidForFee = $fee->payments()
-            ->wherePivot('fee_id', $fee->id)
+            ->where('student_id', $student->id)
             ->where('status', 'paid')
             ->sum('payments.total_amount');
         $totalPaid += $paidForFee;

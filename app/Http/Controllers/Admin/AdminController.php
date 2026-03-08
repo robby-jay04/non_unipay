@@ -112,4 +112,10 @@ public function destroy(Student $student)
     return redirect()->route('admin.students')
         ->with('success', 'Student deleted successfully.');
 }
+  public function newStudentsCount()
+    {
+        // Count students that are not yet confirmed (adjust column if needed)
+        $count = Student::where('is_confirmed', false)->count();
+        return response()->json(['count' => $count]);
+    }
 }

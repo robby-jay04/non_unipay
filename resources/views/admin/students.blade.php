@@ -11,7 +11,7 @@
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Students</h5>
-        <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}">
+        <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
             <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2" 
                    placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
             <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
@@ -33,7 +33,7 @@
                         <th class="py-3 pe-4">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="students-table-body">
                     @forelse($students as $student)
                     <tr>
                         <td class="px-4 py-3">{{ $student->student_no }}</td>
@@ -93,7 +93,7 @@
 
         <!-- Pagination -->
         @if($students->hasPages())
-        <div class="d-flex justify-content-center py-4">
+        <div class="d-flex justify-content-center py-4" id="students-pagination">
             <ul class="pagination pagination-sm mb-0">
                 @if($students->onFirstPage())
                     <li class="page-item disabled"><span class="page-link rounded-start-3">&laquo;</span></li>
@@ -218,24 +218,76 @@
 document.addEventListener('DOMContentLoaded', function() {
     const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
 
-    document.querySelectorAll('.view-student').forEach(button => {
-        button.addEventListener('click', function() {
-            const studentId = this.dataset.id;
-
-            fetch(`/admin/students/${studentId}/json`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('modalStudentNo').textContent = data.student_no;
-                    document.getElementById('modalStudentName').textContent = data.name;
-                    document.getElementById('modalStudentEmail').textContent = data.email;
-                    document.getElementById('modalStudentCourse').textContent = data.course;
-                    document.getElementById('modalStudentYear').textContent = data.year_level;
-                    document.getElementById('modalStudentStatus').textContent = data.clearance_status;
-
-                    studentModal.show();
-                })
-                .catch(err => console.error(err));
+    // Function to attach view button handlers (reusable after AJAX updates)
+    function attachViewHandlers() {
+        document.querySelectorAll('.view-student').forEach(button => {
+            button.addEventListener('click', function() {
+                const studentId = this.dataset.id;
+                fetch(`/admin/students/${studentId}/json`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('modalStudentNo').textContent = data.student_no;
+                        document.getElementById('modalStudentName').textContent = data.name;
+                        document.getElementById('modalStudentEmail').textContent = data.email;
+                        document.getElementById('modalStudentCourse').textContent = data.course;
+                        document.getElementById('modalStudentYear').textContent = data.year_level;
+                        document.getElementById('modalStudentStatus').textContent = data.clearance_status;
+                        studentModal.show();
+                    })
+                    .catch(err => console.error(err));
+            });
         });
+    }
+
+    // AJAX load function
+    function loadStudents(url) {
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.getElementById('students-table-body');
+                const newPagination = doc.getElementById('students-pagination');
+                if (newTbody) document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
+                if (newPagination) document.getElementById('students-pagination').innerHTML = newPagination.innerHTML;
+                attachViewHandlers(); // re‑attach after update
+            })
+            .catch(err => console.error(err));
+    }
+
+    // Initial attachment
+    attachViewHandlers();
+
+    // Auto‑refresh every 10 seconds
+    let refreshInterval = setInterval(() => loadStudents(window.location.href), 10000);
+
+    // Stop when page is hidden
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(() => loadStudents(window.location.href), 10000);
+        }
+    });
+
+    // Handle search form submission via AJAX
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const search = new FormData(searchForm).get('search');
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        url.searchParams.delete('page'); // reset page on new search
+        loadStudents(url.toString());
+    });
+
+    // Handle pagination clicks via AJAX
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('.pagination a');
+        if (link && !link.classList.contains('disabled')) {
+            e.preventDefault();
+            loadStudents(link.href);
+        }
     });
 });
 </script>

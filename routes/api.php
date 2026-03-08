@@ -9,6 +9,7 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\NotificationController; // <-- ADD THIS
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -60,6 +61,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Clearance Routes
     Route::get('/clearance', [ClearanceController::class, 'show']);
     Route::get('/clearance/{studentId}', [ClearanceController::class, 'checkClearance']);
+
+    // ======================== NOTIFICATION ROUTES ========================
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);                 // get all notifications
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']); // get unread count
+        Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);   // mark all as read
+        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);     // mark one as read (optional)
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);          // delete one (optional)
+    });
+    // =======================================================================
 
     // Admin Routes
     Route::middleware('admin')->prefix('admin')->group(function () {

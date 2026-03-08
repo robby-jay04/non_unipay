@@ -129,6 +129,7 @@
         color: #cbd5e0;
         background: transparent;
     }
+
     /* Table rows */
     .table td {
         border-bottom: 1px solid #f0f2f5;
@@ -139,14 +140,32 @@
         color: #475569;
         border-bottom: 2px solid #e9ecef;
     }
+
+    /* Custom badge styles (to match students page) */
+    .badge-paid {
+        background: rgba(76, 175, 80, 0.15);
+        color: #2e7d32;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        display: inline-block;
+    }
+    .badge-pending {
+        background: rgba(244, 180, 20, 0.15);
+        color: #b26a00;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        display: inline-block;
+    }
     .badge-failed {
-    background: rgba(220, 53, 69, 0.15);
-    color: #a71d2a;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 30px;
-    display: inline-block;
-}
+        background: rgba(220, 53, 69, 0.15);
+        color: #a71d2a;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        display: inline-block;
+    }
 </style>
 @endpush
 
@@ -196,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         const badge = document.getElementById(`status-badge-${paymentId}`);
                         if (badge) {
-                            badge.className = 'badge-paid'; // Bootstrap success class
+                            badge.className = 'badge-paid'; // custom paid class
                             badge.textContent = 'Paid';
                         }
                         // Remove verify/reject buttons
@@ -239,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         const badge = document.getElementById(`status-badge-${paymentId}`);
                         if (badge) {
-                            badge.className = 'badge-failed'; // Bootstrap danger class
+                            badge.className = 'badge-failed'; // custom failed class
                             badge.textContent = 'Failed';
                         }
                         document.getElementById(`verify-btn-${paymentId}`)?.remove();
@@ -278,8 +297,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => console.error(err));
     }
 
-    // ========== AUTO‑REFRESH (optional) ==========
-    // setInterval(() => loadPayments(window.location.href), 30000);
+    // ========== AUTO‑REFRESH EVERY 10 SECONDS ==========
+    let refreshInterval = setInterval(() => loadPayments(window.location.href), 10000);
+
+    // Stop refreshing when the page is hidden (saves resources)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            refreshInterval = setInterval(() => loadPayments(window.location.href), 10000);
+        }
+    });
 
     // ========== INITIAL ATTACH ==========
     attachViewHandlers();

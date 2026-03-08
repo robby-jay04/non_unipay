@@ -86,6 +86,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('payments.reject');
         Route::get('/payments/export', [AdminController::class, 'exportPayments'])
             ->name('payments.export');
+            Route::get('/api/pending-payments-count', [App\Http\Controllers\Admin\DashboardController::class, 'pendingPaymentsCount'])->name('admin.payments.pending-count');
+
 
         // ==========================
         // STUDENTS
@@ -98,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('students.confirm');
         Route::delete('/students/{student}', [AdminController::class, 'destroy'])
             ->name('students.destroy');
+            Route::get('/api/new-students-count', [App\Http\Controllers\Admin\AdminController::class, 'newStudentsCount'])->name('admin.students.new-count');
 
         // ==========================
         // REPORTS

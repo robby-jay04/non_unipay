@@ -59,6 +59,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative; /* For badge positioning */
         }
 
         .sidebar-nav .nav-link i {
@@ -81,7 +82,7 @@
             position: relative;
         }
 
-        /* Connector for active item (subtle) */
+        /* Connector for active item */
         .sidebar-nav .nav-item.active .nav-link::after {
             content: '';
             position: absolute;
@@ -195,6 +196,24 @@
             border-radius: 30px;
             font-weight: 500;
         }
+
+        /* Notification badge styles */
+        .badge-notification {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            margin-left: 8px;
+            box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.2);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
     </style>
     @stack('styles')
 </head>
@@ -219,11 +238,13 @@
                             <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.payments') }}">
                                     <i class="fas fa-money-bill-wave"></i> Payments
+                                    <span class="badge-notification" id="payments-badge" style="display: none;"></span>
                                 </a>
                             </li>
                             <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.students') }}">
                                     <i class="fas fa-user-graduate"></i> Students
+                                    <span class="badge-notification" id="students-badge" style="display: none;"></span>
                                 </a>
                             </li>
                             <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
@@ -286,5 +307,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+
+    <!-- Notification polling script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function fetchNotificationCounts() {
+            // Pending payments count
+            fetch('/admin/api/pending-payments-count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('payments-badge');
+                    if (data.count > 0) {
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching payments count:', err));
+
+            // New students count (unconfirmed)
+            fetch('/admin/api/new-students-count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('students-badge');
+                    if (data.count > 0) {
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching students count:', err));
+        }
+
+        fetchNotificationCounts();
+        setInterval(fetchNotificationCounts, 30000); // refresh every 30 seconds
+    });
+    </script>
 </body>
 </html>

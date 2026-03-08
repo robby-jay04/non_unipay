@@ -194,35 +194,15 @@
             <div class="message">
                 {{ $message ?? 'Your payment has been processed successfully.' }}
             </div>
-
-            <!-- Return to App button -->
-            <button id="backBtn" class="app-btn">
-                <i class="fas fa-arrow-right"></i> Return to App
-            </button>
-
-            <div class="note">
-                <a href="{{ route('login') }}">Go to web dashboard</a>
+<!-- Simple instruction -->
+            <div class="note" style="margin-top: 2rem;">
+                <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                You may now close this tab and return to the app.
             </div>
+           
         </div>
     </div>
 
-    <script>
-        const backBtn = document.getElementById('backBtn');
-
-        backBtn.addEventListener('click', () => {
-            // Deep link to your app with query parameter to trigger refresh
-            const appLink = "nonunipay://home?paymentSuccess=true";
-            const fallbackUrl = "{{ route('login') }}"; // fallback web URL
-
-            // Try opening the app
-            window.location.href = appLink;
-
-            // After 1.5 seconds, if still on web, go to fallback
-            setTimeout(() => {
-                // if the page is still visible (app didn't open), redirect
-                window.location.href = fallbackUrl;
-            }, 1500);
-        });
-    </script>
+   
 </body>
 </html>

@@ -15,6 +15,8 @@ class Fee extends Model
         'type', // 'tuition', 'miscellaneous', 'exam'
         'semester',
         'school_year',
+        'semester_id',
+        'school_year_id',
     ];
 
     protected $casts = [

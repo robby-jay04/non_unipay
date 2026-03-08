@@ -8,6 +8,9 @@ use App\Services\ClearanceService;
 use App\Models\Semester;
 use App\Models\Fee;
 
+use App\Models\SchoolYear;
+
+
 class ClearanceController extends Controller
 {
     protected $clearanceService;
@@ -16,6 +19,8 @@ class ClearanceController extends Controller
     {
         $this->clearanceService = $clearanceService;
     }
+
+
 
 public function show(Request $request)
 {
@@ -26,44 +31,44 @@ public function show(Request $request)
     }
 
     $currentSemester = Semester::where('is_current', true)->first();
-    if (!$currentSemester) {
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+
+    if (!$currentSemester || !$currentSchoolYear) {
         return response()->json([
             'status' => 'pending',
-            'message' => 'No active semester set.',
+            'message' => 'No active semester or school year set.',
             'exam_period' => null,
         ]);
     }
 
-    $fees = Fee::currentSchoolYear()
-                ->where('semester', $currentSemester->name)
-                ->get();
+    // Get total fees for current period using IDs
+    $totalFees = Fee::where('school_year_id', $currentSchoolYear->id)
+                    ->where('semester_id', $currentSemester->id)
+                    ->sum('amount');
 
-    if ($fees->isEmpty()) {
-        return response()->json([
-            'status' => 'pending',
-            'exam_period' => $currentSemester->name,
-        ]);
-    }
+    // Get total paid by this student for fees in the current period
+    // This assumes a many-to-many relationship with a pivot table 'fee_payment'
+    $paidFees = Fee::where('school_year_id', $currentSchoolYear->id)
+                   ->where('semester_id', $currentSemester->id)
+                   ->get();
 
     $totalPaid = 0;
-    foreach ($fees as $fee) {
+    foreach ($paidFees as $fee) {
         $paidForFee = $fee->payments()
-            ->where('student_id', $student->id)   // ✅ FIXED
+            ->where('student_id', $student->id)
             ->where('status', 'paid')
             ->sum('payments.total_amount');
         $totalPaid += $paidForFee;
     }
 
-    $grandTotal = $fees->sum('amount');
-    $remainingBalance = $grandTotal - $totalPaid;
-
-    $isCleared = ($remainingBalance <= 0);
+    $isCleared = ($totalPaid >= $totalFees);
 
     return response()->json([
         'status' => $isCleared ? 'cleared' : 'pending',
         'exam_period' => $currentSemester->name,
     ]);
-}    public function updateClearance($studentId)
+}
+   public function updateClearance($studentId)
     {
         try {
             $clearance = $this->clearanceService->updateClearance($studentId);

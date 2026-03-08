@@ -16,7 +16,7 @@
                     data-id="{{ $payment->id }}" 
                     data-bs-toggle="modal" 
                     data-bs-target="#viewPaymentModal">
-                View
+                Vie
             </button>
         </td>
     </tr>

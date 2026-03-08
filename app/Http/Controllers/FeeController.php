@@ -6,7 +6,9 @@ use App\Models\Fee;
 use Illuminate\Http\Request;
 use App\Http\Controllers\SemesterController;
 use App\Models\Semester;
-
+use App\Models\SchoolYear;
+use App\Models\Student;
+use App\Models\StudentFee;
 class FeeController extends Controller
 {
     /**
@@ -100,17 +102,28 @@ public function adminIndex()
     return view('admin.fees.index', compact('fees'));
 }
 
+
+
 public function storeWeb(Request $request)
 {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'amount' => 'required|numeric|min:0',
         'type' => 'required|in:tuition,miscellaneous,exam',
-        'semester' => 'nullable|string',
-        'school_year' => 'required|string',
     ]);
 
-    Fee::create($validated);
+    $currentSemester = Semester::where('is_current', true)->first();
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+
+    Fee::create([
+        'name' => $validated['name'],
+        'amount' => $validated['amount'],
+        'type' => $validated['type'],
+        'school_year' => $currentSchoolYear->name,
+            'semester' => $currentSemester->name,
+        'semester_id' => $currentSemester->id,
+        'school_year_id' => $currentSchoolYear->id,
+    ]);
 
     return redirect()
         ->route('admin.fees.index')
@@ -182,41 +195,58 @@ public function destroyWeb($fee)
     return redirect()->route('admin.fees.index')
                      ->with('success', 'Fee deleted successfully.');
 }
-
-    /**
-     * Get fees breakdown by type
-     */
- public function breakdown()
+/**
+ * Get fees breakdown by type for the authenticated student (mobile app)
+ */
+public function breakdown()
 {
     $student = auth()->user()->student;
 
-    // Get current semester
+    // Get current semester and school year
     $currentSemester = Semester::where('is_current', true)->first();
-    if (!$currentSemester) {
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+
+    if (!$currentSemester || !$currentSchoolYear) {
         return response()->json([
             'success' => false,
-            'message' => 'No active semester set.'
+            'message' => 'No active semester or school year set.'
         ], 404);
     }
 
-    // Get fees for current school year AND current semester
-    $fees = Fee::currentSchoolYear()
-                ->where('semester', $currentSemester->name)
-                ->get();
+    // Fetch fees for current semester and school year
+    $fees = Fee::where('school_year_id', $currentSchoolYear->id)
+               ->where('semester_id', $currentSemester->id)
+               ->get();
 
     $grandTotal = $fees->sum('amount');
 
-    // Calculate total paid for these specific fees only
+    // Calculate total paid
     $totalPaid = 0;
     foreach ($fees as $fee) {
         $paidForFee = $fee->payments()
             ->where('student_id', $student->id)
             ->where('status', 'paid')
             ->sum('payments.total_amount');
+
         $totalPaid += $paidForFee;
     }
 
-    $remainingBalance = $grandTotal - $totalPaid;
+    $remainingBalance = max($grandTotal - $totalPaid, 0);
+
+    // Determine status per fee
+    $status = 'cleared';
+
+    foreach ($fees as $fee) {
+        $paidForFee = $fee->payments()
+            ->where('student_id', $student->id)
+            ->where('status', 'paid')
+            ->sum('payments.total_amount');
+
+        if ($paidForFee < $fee->amount) {
+            $status = 'pending';
+            break;
+        }
+    }
 
     $breakdown = [
         'tuition' => [
@@ -233,7 +263,8 @@ public function destroyWeb($fee)
         ],
         'grand_total' => $grandTotal,
         'total_paid' => $totalPaid,
-        'remaining_balance' => max($remainingBalance, 0),
+        'remaining_balance' => $remainingBalance,
+        'status' => $status
     ];
 
     return response()->json([

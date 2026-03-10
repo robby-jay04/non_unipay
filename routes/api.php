@@ -65,13 +65,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/clearance/{studentId}', [ClearanceController::class, 'checkClearance']);
 
     // ======================== NOTIFICATION ROUTES ========================
-    Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index']);                 // get all notifications
-        Route::get('/unread-count', [NotificationController::class, 'unreadCount']); // get unread count
-        Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);   // mark all as read
-        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);     // mark one as read (optional)
-        Route::delete('/{id}', [NotificationController::class, 'destroy']);          // delete one (optional)
-    });
+   Route::prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/clear-all', [NotificationController::class, 'clearAll']); // ✅ removed extra /notifications/
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+});
     // =======================================================================
 
     // Admin Routes

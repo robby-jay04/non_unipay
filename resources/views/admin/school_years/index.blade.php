@@ -12,13 +12,55 @@
 </div>
 @endif
 
+{{-- ✅ Current School Year & Semester Banner --}}
+@php
+    $currentYear     = $years->firstWhere('is_current', true);
+    $currentSemester = $currentYear?->semesters->firstWhere('is_current', true);
+@endphp
+
+<div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:52px; height:52px; background: rgba(255,255,255,0.15); flex-shrink:0;">
+                <i class="fas fa-calendar-check fa-lg text-white"></i>
+            </div>
+            <div>
+                <p class="mb-0 text-white-50" style="font-size:13px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">
+                    Active Academic Period
+                </p>
+                @if($currentYear)
+                    <h4 class="mb-0 text-white fw-bold">
+                        {{ $currentYear->name }}
+                        @if($currentSemester)
+                            &nbsp;—&nbsp;{{ $currentSemester->name }}
+                        @else
+                            <span class="text-white-50" style="font-size:16px; font-weight:400;">— No semester set</span>
+                        @endif
+                    </h4>
+                @else
+                    <h4 class="mb-0 text-white fw-bold">No active school year set</h4>
+                @endif
+            </div>
+            @if($currentYear)
+                <div class="ms-auto">
+                    <span class="badge rounded-pill px-3 py-2"
+                          style="background: rgba(255,255,255,0.2); color: #fff; font-size:12px;">
+                        <i class="fas fa-circle me-1" style="font-size:8px; color: #4caf50;"></i> Active
+                    </span>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
 <!-- Add School Year Card -->
 <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-4">
         <form action="{{ route('admin.school-years.store') }}" method="POST" class="d-flex gap-3">
             @csrf
             <div class="flex-grow-1">
-                <input type="text" name="name" class="form-control rounded-pill border-0 bg-light px-4 py-2" 
+                <input type="text" name="name" class="form-control rounded-pill border-0 bg-light px-4 py-2"
                        placeholder="e.g., 2025-2026" required>
             </div>
             <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
@@ -109,7 +151,6 @@
 
 @push('styles')
 <style>
-    /* Badge style (reused from other pages) */
     .badge-paid {
         background: rgba(40, 167, 69, 0.15);
         color: #28a745;
@@ -118,8 +159,6 @@
         border-radius: 30px;
         display: inline-block;
     }
-
-    /* Table */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
@@ -129,8 +168,6 @@
         color: #475569;
         border-bottom: 2px solid #e9ecef;
     }
-
-    /* Input focus */
     .form-control:focus {
         box-shadow: none;
         border-color: #0f3c91;

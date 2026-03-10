@@ -106,4 +106,9 @@ public function getClearanceStatusAttribute()
 {
     return $this->getClearanceStatus()['status'];
 }
+
+public function notifications()
+{
+    return $this->hasMany(\App\Models\Notification::class);
+}
 }

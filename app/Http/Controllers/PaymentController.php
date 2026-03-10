@@ -40,85 +40,109 @@ class PaymentController extends Controller
     /**
      * Initiate payment with PayMongo
      */
-    public function initiate(Request $request)
-    {
-        $request->validate([
-            'amount'   => 'required|numeric|min:100',
-            'fee_ids'  => 'required|array',
-            'fee_ids.*' => 'exists:fees,id',
-        ]);
+  public function initiate(Request $request)
+{
+    $request->validate([
+        'amount'    => 'required|numeric|min:100',
+        'fee_ids'   => 'required|array',
+        'fee_ids.*' => 'exists:fees,id',
+    ]);
 
-        $student = $request->user()->student;
+    $student = $request->user()->student;
 
-        // Verify total matches selected fees
-        $selectedFees = Fee::whereIn('id', $request->fee_ids)->get();
-        $calculatedTotal = $selectedFees->sum('amount');
-        if (abs($calculatedTotal - $request->amount) > 0.01) {
+    $selectedFees = Fee::whereIn('id', $request->fee_ids)->get();
+    $calculatedTotal = $selectedFees->sum('amount');
+
+    if (abs($calculatedTotal - $request->amount) > 0.01) {
+        return response()->json(['success' => false, 'message' => 'Total amount mismatch'], 400);
+    }
+
+    $amountPesos = floatval($request->amount);
+    if ($amountPesos > 100000) {
+        return response()->json(['success' => false, 'message' => 'Amount exceeds PayMongo maximum of ₱100,000']);
+    }
+
+    // ✅ Get semester & school year from fees first, fallback to current active ones
+    $firstFee     = $selectedFees->first();
+    $semesterId   = $firstFee->semester_id
+        ?? optional(\App\Models\Semester::where('is_current', true)->first())->id;
+    $schoolYearId = $firstFee->school_year_id
+        ?? optional(\App\Models\SchoolYear::where('is_current', true)->first())->id;
+
+    Log::info('Initiate payment debug', [
+        'student_id'     => $student->id,
+        'semester_id'    => $semesterId,
+        'school_year_id' => $schoolYearId,
+        'fee_ids'        => $request->fee_ids,
+    ]);
+
+    // ✅ Only block if BOTH IDs are known and a PAID record exists
+    if ($semesterId && $schoolYearId) {
+        $existingPaid = Payment::where('student_id', $student->id)
+            ->where('semester_id', $semesterId)
+            ->where('school_year_id', $schoolYearId)
+            ->where('status', 'paid')
+            ->exists();
+
+        if ($existingPaid) {
             return response()->json([
                 'success' => false,
-                'message' => 'Total amount mismatch'
+                'message' => 'You have already paid for this semester.',
             ], 400);
         }
 
-        // PayMongo max check
-        $amountPesos = floatval($request->amount);
-        if ($amountPesos > 100000) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Amount exceeds PayMongo maximum of ₱100,000'
-            ]);
-        }
-
-        // Create pending payment in DB
-        $payment = Payment::create([
-            'student_id'   => $student->id,
-            'total_amount' => $amountPesos,
-            'status'       => 'pending',
-            'payment_method' => 'gcash',
-            'reference_no' => 'PAY-' . strtoupper(Str::random(10)),
-        ]);
-
-        // Attach selected fees
-        foreach ($selectedFees as $fee) {
-            $payment->fees()->attach($fee->id, ['amount' => $fee->amount]);
-        }
-
-        try {
-            $source = Paymongo::source()->create([
-                'type' => 'gcash',
-                'amount' => $amountPesos,
-                'currency' => 'PHP',
-                'redirect' => [
-                    'success' => route('payment.success'),
-                    'failed'  => route('payment.failed'),
-                ],
-                'billing' => [
-                    'name' => $student->user->name,
-                    'email' => $student->user->email,
-                    'phone' => $student->user->phone ?? '09000000000',
-                ],
-            ]);
-
-            // Save PayMongo source ID
-            $payment->update([
-                'paymongo_source_id' => $source->id,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'payment_url' => $source->getRedirect()['checkout_url'],
-                'reference_no' => $payment->reference_no,
-                'payment_id' => $payment->id,
-            ]);
-
-        } catch (\Luigel\Paymongo\Exceptions\BadRequestException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
-        }
+        // ✅ Cancel only active pending/processing for same semester
+        Payment::where('student_id', $student->id)
+            ->where('semester_id', $semesterId)
+            ->where('school_year_id', $schoolYearId)
+            ->whereIn('status', ['pending', 'processing'])
+            ->update(['status' => 'cancelled']);
     }
 
+    $payment = Payment::create([
+        'student_id'     => $student->id,
+        'total_amount'   => $amountPesos,
+        'status'         => 'pending',
+        'payment_method' => 'gcash',
+        'reference_no'   => 'PAY-' . strtoupper(Str::random(10)),
+        'semester_id'    => $semesterId,
+        'school_year_id' => $schoolYearId,
+    ]);
+
+    foreach ($selectedFees as $fee) {
+        $payment->fees()->attach($fee->id, ['amount' => $fee->amount]);
+    }
+
+    try {
+        $source = Paymongo::source()->create([
+            'type'     => 'gcash',
+            'amount'   => $amountPesos,
+            'currency' => 'PHP',
+            'redirect' => [
+                'success' => route('payment.success'),
+                'failed'  => route('payment.failed'),
+            ],
+            'billing' => [
+                'name'  => $student->user->name,
+                'email' => $student->user->email,
+                'phone' => $student->user->phone ?? '09000000000',
+            ],
+        ]);
+
+        $payment->update(['paymongo_source_id' => $source->id]);
+
+        return response()->json([
+            'success'      => true,
+            'payment_url'  => $source->getRedirect()['checkout_url'],
+            'reference_no' => $payment->reference_no,
+            'payment_id'   => $payment->id,
+        ]);
+
+    } catch (\Luigel\Paymongo\Exceptions\BadRequestException $e) {
+        $payment->delete();
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
     // Webhook — updates payment automatically
     public function webhook(Request $request)
     {
@@ -257,21 +281,44 @@ class PaymentController extends Controller
         return $pdf->download('receipt-' . $payment->id . '.pdf');
     }
 
-    public function history(Request $request)
-    {
-        $student = $request->user()->student;
+  public function history(Request $request)
+{
+    $student = $request->user()->student;
 
+    if (!$student) {
+        return response()->json([
+            'success'  => false,
+            'message'  => 'Student profile not found',
+            'payments' => [],
+        ], 404);
+    }
+
+    try {
         $payments = Payment::where('student_id', $student->id)
-            ->with(['transaction', 'fees'])
+            ->with([
+                'transaction',
+                'fees',           // ✅ just load fees
+                'fees.semester',  // ✅ load semester relation on fee
+                'fees.schoolYear', // ✅ load school year relation on fee
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
-            'success' => true,
-            'payments' => $payments,
+            'success'    => true,
+            'payments'   => $payments,
             'total_paid' => $payments->where('status', 'paid')->sum('total_amount'),
         ]);
+
+    } catch (\Exception $e) {
+        Log::error('Payment history error: ' . $e->getMessage());
+        return response()->json([
+            'success'  => false,
+            'message'  => $e->getMessage(),
+            'payments' => [],
+        ], 500);
     }
+}
 
     public function verify($id)
     {

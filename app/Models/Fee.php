@@ -45,4 +45,14 @@ public function payments()
                 ->withPivot('amount')
                 ->withTimestamps();
 }
+
+public function semester()
+{
+    return $this->belongsTo(Semester::class);
+}
+
+public function schoolYear()
+{
+    return $this->belongsTo(SchoolYear::class);
+}
 }

@@ -19,6 +19,8 @@ class Payment extends Model
         'paymongo_source_id',
         'paymongo_payment_intent_id',
         'payment_date',
+        'semester_id',
+    'school_year_id',
     ];
 
     protected $casts = [
@@ -79,4 +81,5 @@ class Payment extends Model
                 ->withPivot('amount')
                 ->withTimestamps();
 }
+
 }

@@ -9,8 +9,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentExport;
 use App\Models\Student;
+use App\Models;
 use App\Models\Clearance;
-
+use App\Models\Semester;
 class ReportController extends Controller
 {
     public function index()
@@ -58,10 +59,14 @@ public function exportPDF()
 
     public function clearances()
 {
+    // Get the current semester (the one marked as current)
+    $currentSemester = Semester::where('is_current', true)->first();
+
+    // Get all students with their user and payments (adjust as needed)
     $students = Student::with(['user', 'payments'])->get();
 
+    // Filter students who have paid the required amount (cleared)
     $clearances = $students->filter(function ($student) {
-
         $requiredAmount = \App\Models\Fee::where('school_year', $student->school_year)
             ->where('semester', $student->semester)
             ->sum('amount');
@@ -73,7 +78,7 @@ public function exportPDF()
         return $totalPaid >= $requiredAmount;
     });
 
-    return view('admin.reports.clearances', compact('clearances'));
+    return view('admin.reports.clearances', compact('clearances', 'currentSemester'));
 }
 
  public function downloadPdf()

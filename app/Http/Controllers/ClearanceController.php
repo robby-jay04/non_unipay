@@ -7,7 +7,7 @@ use App\Models\Clearance;
 use App\Services\ClearanceService;
 use App\Models\Semester;
 use App\Models\Fee;
-
+use App\Models\Student;
 use App\Models\SchoolYear;
 
 
@@ -18,6 +18,13 @@ class ClearanceController extends Controller
     public function __construct(ClearanceService $clearanceService)
     {
         $this->clearanceService = $clearanceService;
+    }
+    public function index()
+    {
+        $currentSemester = Semester::where('is_current', true)->first();
+        $clearances = Student::with('user')->get(); // or your existing query
+
+        return view('admin.clearance.report', compact('clearances', 'currentSemester'));
     }
 
 
@@ -84,4 +91,5 @@ public function show(Request $request)
             ], 400);
         }
     }
+    
 }

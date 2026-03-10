@@ -63,7 +63,7 @@
                 <input type="text" name="name" class="form-control rounded-pill border-0 bg-light px-4 py-2"
                        placeholder="e.g., 2025-2026" required>
             </div>
-            <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
+            <button type="submit" class="btn-action-submit rounded-pill px-4 py-2">
                 <i class="fas fa-plus-circle me-2"></i> Add School Year
             </button>
         </form>
@@ -80,46 +80,60 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="px-4 py-3">Name</th>
+                        <th class="px-4 py-3">School Year</th>
                         <th class="py-3">Current</th>
                         <th class="py-3 pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($years as $year)
-                    <tr>
+                    @forelse($years as $year)
+                    <tr class="school-year-row">
                         <td class="px-4 py-3 fw-medium">{{ $year->name }}</td>
                         <td class="py-3">
                             @if($year->is_current)
-                                <span class="badge-paid">Current</span>
+                                <span class="badge-current">
+                                    <i class="fas fa-star me-1"></i> Current
+                                </span>
+                            @else
+                                <span class="text-muted">—</span>
                             @endif
                         </td>
                         <td class="py-3 pe-4">
-                            @if(!$year->is_current)
-                                <form action="{{ route('admin.school-years.setCurrent', $year->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm rounded-pill px-3"
-                                            style="background: rgba(244, 180, 20, 0.15); color: #b26a00; border: none;">
-                                        <i class="fas fa-star me-1"></i> Set as Current
-                                    </button>
-                                </form>
-                            @endif
-                            <button type="button" class="btn btn-sm rounded-pill px-3"
-                                    style="background: rgba(15, 60, 145, 0.1); color: #0f3c91; border: none;"
-                                    data-bs-toggle="modal" data-bs-target="#semesterModal"
-                                    data-year-id="{{ $year->id }}" data-year-name="{{ $year->name }}">
-                                <i class="fas fa-calendar-week me-1"></i> Set Semester
-                            </button>
+                            <div class="d-flex gap-2">
+                                @if(!$year->is_current)
+                                    <form action="{{ route('admin.school-years.setCurrent', $year->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn-action set-current" title="Set as current year">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                <button type="button" class="btn-action set-semester" title="Set semester"
+                                        data-bs-toggle="modal" data-bs-target="#semesterModal"
+                                        data-year-id="{{ $year->id }}" data-year-name="{{ $year->name }}">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="3" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times fa-4x" style="color: #d1d5db;"></i>
+                                <h6 class="fw-semibold mt-3" style="color: #1e293b;">No school years found</h6>
+                                <p class="text-muted small">Add a school year to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Semester Modal -->
+<!-- Semester Modal (updated to match other modals) -->
 <div class="modal fade" id="semesterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -133,15 +147,15 @@
                     <div class="mb-3">
                         <label for="semester" class="form-label fw-medium">Select Semester</label>
                         <select class="form-select rounded-pill border-0 bg-light px-4 py-2" id="semester" name="semester" required>
-                            <option value="">Choose...</option>
+                            <option value="" disabled selected>Choose...</option>
                             <option value="1st Semester">1st Semester</option>
                             <option value="2nd Semester">2nd Semester</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">Update Semester</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Update Semester</button>
                 </div>
             </form>
         </div>
@@ -151,26 +165,126 @@
 
 @push('styles')
 <style>
-    .badge-paid {
+    /* School year row hover */
+    .school-year-row {
+        transition: all 0.2s ease;
+    }
+    .school-year-row:hover {
+        background-color: rgba(15, 60, 145, 0.02) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+    }
+
+    /* Action buttons (circular) */
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        cursor: pointer;
+        background: transparent;
+        color: #64748b;
+        padding: 0;
+    }
+    .btn-action:hover {
+        background: rgba(15,60,145,0.1);
+        color: #0f3c91;
+        transform: scale(1.1);
+    }
+    .btn-action.set-current:hover {
+        background: rgba(244,180,20,0.1);
+        color: #b26a00;
+    }
+    .btn-action.set-semester:hover {
+        background: rgba(15,60,145,0.1);
+        color: #0f3c91;
+    }
+
+    /* Submit button (Add School Year) */
+    .btn-action-submit {
+        background: #0f3c91;
+        color: white;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-action-submit:hover {
+        background: #1a4da8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(15,60,145,0.2);
+    }
+
+    /* Current badge */
+    .badge-current {
         background: rgba(40, 167, 69, 0.15);
         color: #28a745;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
+        font-weight: 600;
+        padding: 0.45rem 1rem;
         border-radius: 30px;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
     }
+
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+    }
+    .empty-state i {
+        opacity: 0.7;
+    }
+    .empty-state h6 {
+        font-size: 1.1rem;
+    }
+    .empty-state p {
+        font-size: 0.9rem;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    /* Table */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
+        vertical-align: middle;
     }
     .table th {
         font-weight: 600;
         color: #475569;
         border-bottom: 2px solid #e9ecef;
     }
-    .form-control:focus {
+
+    /* Form elements */
+    .form-control:focus, .form-select:focus {
         box-shadow: none;
         border-color: #0f3c91;
+    }
+
+    /* Modal buttons (reuse from other pages) */
+    .btn-primary {
+        background: #0f3c91;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 500;
+    }
+    .btn-primary:hover {
+        background: #1a4da8;
+    }
+    .btn-secondary {
+        background: #e9ecef;
+        border: none;
+        color: #495057;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 500;
+    }
+    .btn-secondary:hover {
+        background: #d3d8de;
     }
 </style>
 @endpush

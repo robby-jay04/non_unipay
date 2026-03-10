@@ -21,7 +21,7 @@
 
 <!-- Add Fee Button -->
 <div class="mb-4">
-    <a href="{{ route('admin.fees.create') }}" class="btn rounded-pill px-4 py-2" style="background: #0f3c91; color: white;">
+    <a href="{{ route('admin.fees.create') }}" class="btn-add-fee rounded-pill px-4 py-2">
         <i class="fas fa-plus-circle me-2"></i> Add New Fee
     </a>
 </div>
@@ -45,33 +45,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($fees as $fee)
-                    <tr>
+                    @forelse($fees as $fee)
+                    <tr class="fee-row">
                         <td class="px-4 py-3 fw-medium">{{ $fee->name }}</td>
                         <td class="py-3">
-                            <span class="badge-type-{{ $fee->type }}">{{ ucfirst($fee->type) }}</span>
+                            <span class="badge-type badge-type-{{ $fee->type }}">
+                                @if($fee->type == 'tuition')
+                                    <i class="fas fa-graduation-cap me-1"></i>
+                                @elseif($fee->type == 'miscellaneous')
+                                    <i class="fas fa-cogs me-1"></i>
+                                @elseif($fee->type == 'exam')
+                                    <i class="fas fa-pencil-alt me-1"></i>
+                                @endif
+                                {{ ucfirst($fee->type) }}
+                            </span>
                         </td>
                         <td class="py-3 fw-semibold" style="color: #0f3c91;">₱{{ number_format($fee->amount, 2) }}</td>
-                        <td class="py-3">{{ $fee->semester }}</td>
+                        <td class="py-3">{{ $fee->semester ?? '—' }}</td>
                         <td class="py-3">{{ $fee->school_year }}</td>
                         <td class="py-3 pe-4">
-                            <a href="{{ route('admin.fees.edit', $fee) }}" 
-                               class="btn btn-sm rounded-pill px-3 me-2"
-                               style="background: rgba(244, 180, 20, 0.15); color: #b26a00; border: none;">
-                                <i class="fas fa-edit me-1"></i> Edit
-                            </a>
-
-                            <button type="button"
-                                    class="btn btn-sm rounded-pill px-3"
-                                    style="background: rgba(220, 53, 69, 0.15); color: #dc3545; border: none;"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-id="{{ $fee->id }}">
-                                <i class="fas fa-trash-alt me-1"></i> Delete
-                            </button>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.fees.edit', $fee) }}" 
+                                   class="btn-action edit-fee" title="Edit fee">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn-action delete-fee"
+                                        title="Delete fee"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="{{ $fee->id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-coins fa-4x" style="color: #d1d5db;"></i>
+                                <h6 class="fw-semibold mt-3" style="color: #1e293b;">No fees found</h6>
+                                <p class="text-muted small">Add a fee to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -90,11 +109,11 @@
                 <p class="mb-0">Are you sure you want to delete this fee? This action cannot be undone.</p>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn rounded-pill px-4" style="background: #dc3545; color: white;">Yes, Delete</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Yes, Delete</button>
                 </form>
             </div>
         </div>
@@ -104,36 +123,103 @@
 
 @push('styles')
 <style>
+    /* Fee row hover effect */
+    .fee-row {
+        transition: all 0.2s ease;
+    }
+    .fee-row:hover {
+        background-color: rgba(15, 60, 145, 0.02) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+    }
+
+    /* Action buttons (circular) */
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        cursor: pointer;
+        background: transparent;
+        color: #64748b;
+        padding: 0;
+        text-decoration: none;
+    }
+    .btn-action:hover {
+        background: rgba(15,60,145,0.1);
+        color: #0f3c91;
+        transform: scale(1.1);
+    }
+    .btn-action.delete-fee:hover {
+        background: rgba(220,53,69,0.1);
+        color: #dc3545;
+    }
+
+    /* Add button */
+    .btn-add-fee {
+        background: #0f3c91;
+        color: white;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-add-fee:hover {
+        background: #1a4da8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(15,60,145,0.2);
+        color: white;
+    }
+
     /* Badge styles for fee types */
+    .badge-type {
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+    }
     .badge-type-tuition {
         background: rgba(15, 60, 145, 0.15);
         color: #0f3c91;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
     }
     .badge-type-miscellaneous {
         background: rgba(244, 180, 20, 0.15);
         color: #b26a00;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
     }
     .badge-type-exam {
         background: rgba(76, 175, 80, 0.15);
         color: #2e7d32;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+    }
+    .empty-state i {
+        opacity: 0.7;
+    }
+    .empty-state h6 {
+        font-size: 1.1rem;
+    }
+    .empty-state p {
+        font-size: 0.9rem;
+        max-width: 300px;
+        margin: 0 auto;
     }
 
     /* Table */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
+        vertical-align: middle;
     }
     .table th {
         font-weight: 600;
@@ -141,13 +227,23 @@
         border-bottom: 2px solid #e9ecef;
     }
 
-    /* Action buttons */
-    .btn-sm {
-        transition: all 0.2s;
+    /* Modal buttons */
+    .btn-secondary {
+        background: #e9ecef;
+        border: none;
+        color: #495057;
+        font-weight: 500;
     }
-    .btn-sm:hover {
-        transform: translateY(-1px);
-        filter: brightness(1.05);
+    .btn-secondary:hover {
+        background: #d3d8de;
+    }
+    .btn-danger {
+        background: #dc3545;
+        border: none;
+        font-weight: 500;
+    }
+    .btn-danger:hover {
+        background: #b02a37;
     }
 </style>
 @endpush

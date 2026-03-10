@@ -14,29 +14,46 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        /* Sidebar */
+        /* Sidebar (offcanvas on mobile, visible on larger screens) */
         .sidebar {
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            overflow-y: auto;
             background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
             color: white;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
         }
 
-        .sidebar-header {
-            padding: 1.5rem 1rem;
+        /* Custom offcanvas styling */
+        .offcanvas.sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+        }
+
+        .offcanvas.sidebar .offcanvas-header {
             border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding: 1.5rem 1rem;
+        }
+
+        .offcanvas.sidebar .offcanvas-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .sidebar-header {
             text-align: center;
+        }
+
+        .sidebar-header img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 30px;
+            background: white;
+            padding: 5px;
         }
 
         .sidebar-header h4 {
             font-weight: 700;
-            letter-spacing: 0.5px;
-            margin: 0;
             color: white;
             font-size: 1.5rem;
+            margin-bottom: 0;
         }
 
         .sidebar-header small {
@@ -56,13 +73,12 @@
         .sidebar-nav .nav-link {
             color: rgba(255,255,255,0.85);
             padding: 0.85rem 1.5rem;
-            border-radius: 30px 0 0 30px;
+            border-radius: 30px;
             transition: all 0.2s ease;
             font-weight: 500;
             display: flex;
             align-items: center;
             gap: 12px;
-            position: relative; /* For badge positioning */
         }
 
         .sidebar-nav .nav-link i {
@@ -82,22 +98,6 @@
             color: #0f3c91;
             font-weight: 600;
             box-shadow: -4px 0 10px rgba(0,0,0,0.05);
-            position: relative;
-        }
-
-        /* Connector for active item */
-        .sidebar-nav .nav-item.active .nav-link::after {
-            content: '';
-            position: absolute;
-            right: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-left: 8px solid white;
-            filter: drop-shadow(2px 0 2px rgba(0,0,0,0.05));
         }
 
         /* Section headers */
@@ -110,7 +110,7 @@
             padding: 1rem 1.5rem 0.25rem;
         }
 
-        /* Logout button */
+        /* Logout button inside sidebar */
         .logout-btn {
             background: transparent;
             border: none;
@@ -135,9 +135,8 @@
         .main-content {
             background: #f0f2f5;
             padding: 2rem;
-            border-radius: 30px 0 0 30px;
             min-height: 100vh;
-            box-shadow: inset 1px 0 0 rgba(0,0,0,0.05);
+            border-radius: 30px 0 0 30px;
         }
 
         /* Content card (optional) */
@@ -148,7 +147,26 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* Modal styling */
+        /* Responsive adjustments */
+        @media (max-width: 767.98px) {
+            .main-content {
+                border-radius: 0;
+                padding: 1rem;
+            }
+        }
+
+        /* Navbar toggle button */
+        .navbar-toggle {
+            background: #0f3c91;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal styling (unchanged) */
         .modal-content {
             border: none;
             border-radius: 20px;
@@ -200,7 +218,7 @@
             font-weight: 500;
         }
 
-        /* Notification badge styles */
+        /* Notification badge */
         .badge-notification {
             display: inline-block;
             width: 8px;
@@ -221,19 +239,85 @@
     @stack('styles')
 </head>
 <body>
+    <!-- Top navbar with toggle button (visible only on mobile) -->
+    <nav class="d-md-none p-3" style="background: white;">
+        <div class="d-flex align-items-center justify-content-between">
+            <button class="navbar-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="fw-bold" style="color: #0f3c91;">Non-UniPay Admin</span>
+            <div style="width: 40px;"></div> <!-- spacer -->
+        </div>
+    </nav>
+
+    <!-- Sidebar as Offcanvas (mobile) and also visible on desktop -->
+    <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header">
+            <div class="sidebar-header w-100">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
+                <h4>Non-UniPay</h4>
+                <small>Admin Panel</small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                            <i class="fas fa-chart-pie"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.payments') }}">
+                            <i class="fas fa-money-bill-wave"></i> Payments
+                            <span class="badge-notification" id="payments-badge" style="display: none;"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.students') }}">
+                            <i class="fas fa-user-graduate"></i> Students
+                            <span class="badge-notification" id="students-badge" style="display: none;"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.reports') }}">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+
+                    <li class="nav-section-title">ACADEMIC</li>
+                    <li class="nav-item {{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.school-years.index') }}">
+                            <i class="fas fa-calendar-alt"></i> School Years
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.fees*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.fees.index') }}">
+                            <i class="fas fa-coins"></i> Fee Management
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Logout Button inside sidebar -->
+            <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper (responsive) -->
     <div class="container-fluid p-0">
         <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-auto" style="width: 280px;">
-                <div class="sidebar d-flex flex-column">
-                    <div class="sidebar-header">
-                        <!-- Added logo image from public directory -->
-                        <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo" 
-                             style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 0.5rem; border-radius: 30px; background: white; padding: 5px;">
+            <!-- Desktop sidebar (hidden on mobile, visible on md+) -->
+            <div class="col-auto d-none d-md-block" style="width: 280px;">
+                <div class="sidebar d-flex flex-column vh-100 sticky-top">
+                    <div class="sidebar-header p-4">
+                        <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
                         <h4>Non-UniPay</h4>
                         <small>Admin Panel</small>
                     </div>
-
                     <div class="sidebar-nav flex-grow-1">
                         <ul class="nav flex-column">
                             <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -244,13 +328,13 @@
                             <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.payments') }}">
                                     <i class="fas fa-money-bill-wave"></i> Payments
-                                    <span class="badge-notification" id="payments-badge" style="display: none;"></span>
+                                    <span class="badge-notification" id="payments-badge-desktop" style="display: none;"></span>
                                 </a>
                             </li>
                             <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.students') }}">
                                     <i class="fas fa-user-graduate"></i> Students
-                                    <span class="badge-notification" id="students-badge" style="display: none;"></span>
+                                    <span class="badge-notification" id="students-badge-desktop" style="display: none;"></span>
                                 </a>
                             </li>
                             <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
@@ -273,7 +357,6 @@
                         </ul>
                     </div>
 
-                    <!-- Logout Button -->
                     <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
@@ -314,7 +397,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 
-    <!-- Notification polling script -->
+    <!-- Notification polling script (updated to handle both desktop and mobile badges) -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         function fetchNotificationCounts() {
@@ -322,12 +405,15 @@
             fetch('/admin/api/pending-payments-count')
                 .then(response => response.json())
                 .then(data => {
-                    const badge = document.getElementById('payments-badge');
-                    if (data.count > 0) {
-                        badge.style.display = 'inline-block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    // Update both mobile and desktop badges
+                    const badges = document.querySelectorAll('#payments-badge, #payments-badge-desktop');
+                    badges.forEach(badge => {
+                        if (data.count > 0) {
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    });
                 })
                 .catch(err => console.error('Error fetching payments count:', err));
 
@@ -335,12 +421,14 @@
             fetch('/admin/api/new-students-count')
                 .then(response => response.json())
                 .then(data => {
-                    const badge = document.getElementById('students-badge');
-                    if (data.count > 0) {
-                        badge.style.display = 'inline-block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    const badges = document.querySelectorAll('#students-badge, #students-badge-desktop');
+                    badges.forEach(badge => {
+                        if (data.count > 0) {
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    });
                 })
                 .catch(err => console.error('Error fetching students count:', err));
         }

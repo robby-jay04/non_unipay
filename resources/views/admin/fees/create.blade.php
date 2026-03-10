@@ -5,7 +5,7 @@
     <h2 class="fw-bold" style="color: #0f3c91;">Add New Fee</h2>
 </div>
 
-<!-- Error Alert (if any) -->
+<!-- Error Alert -->
 @if ($errors->any())
 <div class="alert alert-light d-flex align-items-start shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid #dc3545; background: white;">
     <i class="fas fa-exclamation-circle me-3 mt-1" style="color: #dc3545; font-size: 1.2rem;"></i>
@@ -20,74 +20,116 @@
 @endif
 
 <!-- Add Fee Card -->
-<div class="card border-0 shadow-sm rounded-4">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-0 py-3 px-4">
+        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">
+            <i class="fas fa-plus-circle me-2"></i> Fee Information
+        </h5>
+    </div>
     <div class="card-body p-4">
         <form action="{{ route('admin.fees.store') }}" method="POST">
             @csrf
 
             <!-- Fee Name -->
             <div class="mb-3">
-                <label class="form-label fw-medium">Fee Name</label>
-                <input type="text"
-                       name="name"
-                       class="form-control rounded-3 border-0 bg-light px-4 py-2"
-                       value="{{ old('name') }}"
-                       required>
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-tag me-1" style="color: #0f3c91;"></i> Fee Name
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-pencil-alt" style="color: #0f3c91;"></i>
+                    </span>
+                    <input type="text"
+                           name="name"
+                           class="form-control bg-light border-0 px-3 py-2"
+                           placeholder="e.g., Tuition Fee"
+                           value="{{ old('name') }}"
+                           required>
+                </div>
             </div>
 
             <!-- Type -->
             <div class="mb-3">
-                <label class="form-label fw-medium">Type</label>
-                <select name="type" class="form-select rounded-3 border-0 bg-light px-4 py-2" required>
-                    <option value="" disabled selected>Select Type</option>
-                    <option value="tuition" {{ old('type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
-                    <option value="miscellaneous" {{ old('type') == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                    <option value="exam" {{ old('type') == 'exam' ? 'selected' : '' }}>Exam</option>
-                </select>
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-layer-group me-1" style="color: #0f3c91;"></i> Type
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-list" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="type" class="form-select bg-light border-0 px-3 py-2" required>
+                        <option value="" disabled selected>Select Type</option>
+                        <option value="tuition" {{ old('type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
+                        <option value="miscellaneous" {{ old('type') == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
+                        <option value="exam" {{ old('type') == 'exam' ? 'selected' : '' }}>Exam</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Amount -->
             <div class="mb-3">
-                <label class="form-label fw-medium">Amount (₱)</label>
-                <input type="number"
-                       name="amount"
-                       step="0.01"
-                       min="0"
-                       class="form-control rounded-3 border-0 bg-light px-4 py-2"
-                       value="{{ old('amount') }}"
-                       required>
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-coins me-1" style="color: #0f3c91;"></i> Amount (₱)
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-peso-sign" style="color: #0f3c91;"></i>
+                    </span>
+                    <input type="number"
+                           name="amount"
+                           step="0.01"
+                           min="0"
+                           class="form-control bg-light border-0 px-3 py-2"
+                           placeholder="0.00"
+                           value="{{ old('amount') }}"
+                           required>
+                </div>
             </div>
 
             <!-- Semester -->
             <div class="mb-3">
-                <label class="form-label fw-medium">Semester</label>
-                <select name="semester" class="form-select rounded-3 border-0 bg-light px-4 py-2">
-                    <option value="" selected>-- Select Semester --</option>
-                    <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
-                    <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
-                </select>
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> Semester
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="semester" class="form-select bg-light border-0 px-3 py-2">
+                        <option value="" selected>-- Select Semester --</option>
+                        <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
+                        <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
+                    </select>
+                </div>
             </div>
 
-          <!-- School Year (Dynamic from Database) -->
-<div class="mb-3">
-    <label class="form-label fw-medium">School Year</label>
-    <select name="school_year" class="form-select rounded-3 border-0 bg-light px-4 py-2" required>
-        <option value="" disabled {{ old('school_year') ? '' : 'selected' }}>-- Select School Year --</option>
-        @foreach($schoolYears as $schoolYear)
-            <option value="{{ $schoolYear->name }}"
-                {{ old('school_year') == $schoolYear->name ? 'selected' : ( !old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '' ) }}>
-                {{ $schoolYear->name }}
-            </option>
-        @endforeach
-    </select>
-</div>
+            <!-- School Year -->
+            <div class="mb-4">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-calendar" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="school_year" class="form-select bg-light border-0 px-3 py-2" required>
+                        <option value="" disabled {{ old('school_year') ? '' : 'selected' }}>-- Select School Year --</option>
+                        @foreach($schoolYears as $schoolYear)
+                            <option value="{{ $schoolYear->name }}"
+                                {{ old('school_year') == $schoolYear->name ? 'selected' : ( !old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '' ) }}>
+                                {{ $schoolYear->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
             <!-- Buttons -->
-            <div class="d-flex gap-3 mt-4">
-                <button type="submit" class="btn rounded-pill px-4 py-2" style="background: #0f3c91; color: white;">
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary rounded-pill px-5 py-2">
                     <i class="fas fa-save me-2"></i> Save Fee
                 </button>
-                <a href="{{ route('admin.fees.index') }}" class="btn btn-light rounded-pill px-4 py-2" style="background: #e9ecef; color: #495057;">
+                <a href="{{ route('admin.fees.index') }}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
                     <i class="fas fa-times me-2"></i> Cancel
                 </a>
             </div>
@@ -98,10 +140,53 @@
 
 @push('styles')
 <style>
-    /* Form focus */
+    /* Input group styling */
+    .input-group-text {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+    .form-control, .form-select {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        background-color: #f8f9fa;
+        transition: all 0.2s;
+    }
     .form-control:focus, .form-select:focus {
-        box-shadow: none;
+        background-color: #fff;
         border-color: #0f3c91;
+        box-shadow: 0 0 0 0.2rem rgba(15, 60, 145, 0.1);
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background: #0f3c91;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: #1a4da8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(15, 60, 145, 0.2);
+    }
+    .btn-outline-secondary {
+        border: 1px solid #ced4da;
+        color: #6c757d;
+        background: transparent;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-outline-secondary:hover {
+        background: #e9ecef;
+        border-color: #b0b3b7;
+        color: #495057;
+        transform: translateY(-2px);
+    }
+
+    /* Labels */
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
     }
 </style>
 @endpush

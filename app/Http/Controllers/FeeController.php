@@ -146,7 +146,19 @@ public function updateWeb(Request $request, Fee $fee)
         'school_year' => 'required|string',
     ]);
 
-    $fee->update($validated);
+    // Look up the semester by name and get its ID
+    $semester = Semester::where('name', $validated['semester'])->first();
+    $schoolYear = SchoolYear::where('name', $validated['school_year'])->first();
+
+    $fee->update([
+        'name'           => $validated['name'],
+        'amount'         => $validated['amount'],
+        'type'           => $validated['type'],
+        'semester'       => $validated['semester'],
+        'school_year'    => $validated['school_year'],
+        'semester_id'    => $semester?->id,
+        'school_year_id' => $schoolYear?->id,
+    ]);
 
     return redirect()
         ->route('admin.fees.index')
@@ -202,7 +214,6 @@ public function breakdown()
 {
     $student = auth()->user()->student;
 
-    // Get current semester and school year
     $currentSemester = Semester::where('is_current', true)->first();
     $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
@@ -213,15 +224,29 @@ public function breakdown()
         ], 404);
     }
 
-    // Fetch fees for current semester and school year
     $fees = Fee::where('school_year_id', $currentSchoolYear->id)
                ->where('semester_id', $currentSemester->id)
                ->get();
 
-    $grandTotal = $fees->sum('amount');
+    // ✅ If no fees exist yet for this semester, don't mark as cleared
+    if ($fees->isEmpty()) {
+        return response()->json([
+            'success' => true,
+            'breakdown' => [
+                'tuition'           => ['fees' => [], 'total' => 0],
+                'miscellaneous'     => ['fees' => [], 'total' => 0],
+                'exam'              => ['fees' => [], 'total' => 0],
+                'grand_total'       => 0,
+                'total_paid'        => 0,
+                'remaining_balance' => 0,
+                'status'            => 'no_fees', // ✅ distinct status
+            ],
+        ]);
+    }
 
-    // Calculate total paid
+    $grandTotal = $fees->sum('amount');
     $totalPaid = 0;
+
     foreach ($fees as $fee) {
         $paidForFee = $fee->payments()
             ->where('student_id', $student->id)
@@ -233,9 +258,8 @@ public function breakdown()
 
     $remainingBalance = max($grandTotal - $totalPaid, 0);
 
-    // Determine status per fee
+    // ✅ Only cleared if all fees are fully paid (and fees actually exist)
     $status = 'cleared';
-
     foreach ($fees as $fee) {
         $paidForFee = $fee->payments()
             ->where('student_id', $student->id)
@@ -249,27 +273,15 @@ public function breakdown()
     }
 
     $breakdown = [
-        'tuition' => [
-            'fees' => $fees->where('type', 'tuition')->values(),
-            'total' => $fees->where('type', 'tuition')->sum('amount'),
-        ],
-        'miscellaneous' => [
-            'fees' => $fees->where('type', 'miscellaneous')->values(),
-            'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
-        ],
-        'exam' => [
-            'fees' => $fees->where('type', 'exam')->values(),
-            'total' => $fees->where('type', 'exam')->sum('amount'),
-        ],
-        'grand_total' => $grandTotal,
-        'total_paid' => $totalPaid,
+        'tuition'           => ['fees' => $fees->where('type', 'tuition')->values(),       'total' => $fees->where('type', 'tuition')->sum('amount')],
+        'miscellaneous'     => ['fees' => $fees->where('type', 'miscellaneous')->values(),  'total' => $fees->where('type', 'miscellaneous')->sum('amount')],
+        'exam'              => ['fees' => $fees->where('type', 'exam')->values(),           'total' => $fees->where('type', 'exam')->sum('amount')],
+        'grand_total'       => $grandTotal,
+        'total_paid'        => $totalPaid,
         'remaining_balance' => $remainingBalance,
-        'status' => $status
+        'status'            => $status,
     ];
 
-    return response()->json([
-        'success' => true,
-        'breakdown' => $breakdown,
-    ]);
+    return response()->json(['success' => true, 'breakdown' => $breakdown]);
 }
 }

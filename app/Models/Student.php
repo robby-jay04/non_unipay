@@ -20,6 +20,9 @@ class Student extends Model
     'school_year',
         'is_confirmed',
         'profile_picture',
+        'last_profile_update',
+
+        'last_picture_update',
     ];
     protected $casts = [
     'is_confirmed' => 'boolean',

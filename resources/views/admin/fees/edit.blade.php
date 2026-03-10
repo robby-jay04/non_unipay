@@ -66,17 +66,19 @@
                     <option value="2nd Semester" {{ old('semester', $fee->semester) == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
                 </select>
             </div>
-
-            <!-- School Year -->
-            <div class="mb-3">
-                <label class="form-label fw-medium">School Year</label>
-                <input type="text"
-                       name="school_year"
-                       class="form-control rounded-3 border-0 bg-light px-4 py-2"
-                       value="{{ old('school_year', $fee->school_year) }}"
-                       required>
-            </div>
-
+<!-- School Year (Dynamic from Database) -->
+<div class="mb-3">
+    <label class="form-label fw-medium">School Year</label>
+    <select name="school_year" class="form-select rounded-3 border-0 bg-light px-4 py-2" required>
+        <option value="" disabled>-- Select School Year --</option>
+        @foreach($schoolYears as $schoolYear)
+            <option value="{{ $schoolYear->name }}"
+                {{ old('school_year', $fee->school_year) == $schoolYear->name ? 'selected' : '' }}>
+                {{ $schoolYear->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
             <!-- Buttons -->
             <div class="d-flex gap-3 mt-4">
                 <button type="submit" class="btn rounded-pill px-4 py-2" style="background: #0f3c91; color: white;">

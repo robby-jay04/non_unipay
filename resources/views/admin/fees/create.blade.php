@@ -68,21 +68,19 @@
                 </select>
             </div>
 
-            <!-- School Year (Smart Dropdown) -->
-            <div class="mb-3">
-                <label class="form-label fw-medium">School Year</label>
-                <select name="school_year" class="form-select rounded-3 border-0 bg-light px-4 py-2" required>
-                    @php
-                        $currentYear = date('Y');
-                    @endphp
-                    @for ($i = 0; $i < 5; $i++)
-                        <option value="{{ $currentYear+$i }}-{{ $currentYear+$i+1 }}"
-                            {{ old('school_year') == ($currentYear+$i).'-'.($currentYear+$i+1) ? 'selected' : '' }}>
-                            {{ $currentYear+$i }}-{{ $currentYear+$i+1 }}
-                        </option>
-                    @endfor
-                </select>
-            </div>
+          <!-- School Year (Dynamic from Database) -->
+<div class="mb-3">
+    <label class="form-label fw-medium">School Year</label>
+    <select name="school_year" class="form-select rounded-3 border-0 bg-light px-4 py-2" required>
+        <option value="" disabled {{ old('school_year') ? '' : 'selected' }}>-- Select School Year --</option>
+        @foreach($schoolYears as $schoolYear)
+            <option value="{{ $schoolYear->name }}"
+                {{ old('school_year') == $schoolYear->name ? 'selected' : ( !old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '' ) }}>
+                {{ $schoolYear->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
             <!-- Buttons -->
             <div class="d-flex gap-3 mt-4">

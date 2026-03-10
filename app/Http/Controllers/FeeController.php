@@ -88,11 +88,16 @@ class FeeController extends Controller
                      ->with('success', 'Fee created successfully!');
 }
 
-    public function create()
+  public function create()
 {
-    return view('admin.fees.create');
-}
+    // Get all school years ordered by name (or by creation)
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
 
+    // Find the current school year (if any)
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+
+    return view('admin.fees.create', compact('schoolYears', 'currentSchoolYear'));
+}
 public function adminIndex()
 {
     $fees = \App\Models\Fee::orderBy('school_year', 'desc')
@@ -132,7 +137,13 @@ public function storeWeb(Request $request)
 
 public function edit(Fee $fee)
 {
-    return view('admin.fees.edit', compact('fee'));
+    // Get all school years ordered by name (latest first)
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+
+    // Optional: get the current school year (if you want to highlight it)
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+
+    return view('admin.fees.edit', compact('fee', 'schoolYears', 'currentSchoolYear'));
 }
 
 

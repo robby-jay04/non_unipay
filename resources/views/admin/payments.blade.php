@@ -9,17 +9,14 @@
 
 <!-- Filter Badge (if active) -->
 @if(request()->filled('status'))
-<div class="alert alert-light alert-dismissible fade show d-flex align-items-center justify-content-between shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid rgb(244, 180, 20); background: white;">
+<div class="alert alert-light d-flex align-items-center justify-content-between shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid rgb(244, 180, 20); background: white;">
     <div>
         <i class="fas fa-filter me-2" style="color: rgb(244, 180, 20);"></i>
         <strong>Filtered by:</strong> {{ ucfirst(request('status')) }}
     </div>
-    <div>
-        <a href="{{ route('admin.payments') }}" class="btn btn-sm btn-outline-secondary rounded-pill me-2">
-            <i class="fas fa-times"></i> Clear
-        </a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <a href="{{ route('admin.payments') }}" class="text-muted" style="font-size: 1.5rem; line-height: 1; text-decoration: none;">
+        <i class="fas fa-times"></i>
+    </a>
 </div>
 @endif
 

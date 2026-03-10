@@ -52,63 +52,62 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($clearances as $student)
-                    <tr>
-                        <td class="px-4 py-3 text-muted">{{ $student->student_no ?? '—' }}</td>
-                        <td class="py-3 fw-medium">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                     style="width:36px; height:36px; background: rgba(15,60,145,0.1); font-size:14px; font-weight:700; color:#0f3c91;">
-                                    {{ strtoupper(substr($student->user->name, 0, 1)) }}
-                                </div>
-                                {{ $student->user->name }}
-                            </div>
-                        </td>
-                        <td class="py-3 text-muted">{{ $student->course ?? '—' }}</td>
-                        <td class="py-3 text-muted">
-                            {{ $student->year_level ? 'Year ' . $student->year_level : '—' }}
-                        </td>
-                        <td class="py-3 text-muted">
-                            {{ $current->name ?? '—' }}
-                        </td>
-                        <td class="py-3 text-muted">
-                            {{ $current->schoolYear->name ?? '—' }}
-                        </td>
-                        <td class="py-3">
-                            @if($student->clearance_status === 'cleared')
-                                <span class="badge-paid">
-                                    <i class="fas fa-check-circle me-1"></i>Cleared
-                                </span>
-                            @else
-                                <span class="badge-pending">
-                                    <i class="fas fa-clock me-1"></i>Not Cleared
-                                </span>
-                            @endif
-                        </td>
-                        <td class="py-3 pe-4 text-muted">
-                            {{-- Show last payment date if available, otherwise student updated_at --}}
-                            @php
-                                $lastPayment = $student->payments()
-                                            ->where('status', 'paid')
-                                            ->latest('payment_date')
-                                            ->first();
-                            @endphp
-                            @if($lastPayment && $lastPayment->payment_date)
-                                {{ \Carbon\Carbon::parse($lastPayment->payment_date)->format('M d, Y') }}
-                            @else
-                                {{ $student->updated_at->format('M d, Y') }}
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="fas fa-inbox fa-2x mb-3 d-block" style="color:#ccc;"></i>
-                            No students found
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
+    @forelse($clearances->where('clearance_status', 'cleared') as $student)
+    <tr>
+        <td class="px-4 py-3 text-muted">{{ $student->student_no ?? '—' }}</td>
+        <td class="py-3 fw-medium">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:36px; height:36px; background: rgba(15,60,145,0.1); font-size:14px; font-weight:700; color:#0f3c91;">
+                    {{ strtoupper(substr($student->user->name, 0, 1)) }}
+                </div>
+                {{ $student->user->name }}
+            </div>
+        </td>
+        <td class="py-3 text-muted">{{ $student->course ?? '—' }}</td>
+        <td class="py-3 text-muted">
+            {{ $student->year_level ? 'Year ' . $student->year_level : '—' }}
+        </td>
+        <td class="py-3 text-muted">
+            {{ $current->name ?? '—' }}
+        </td>
+        <td class="py-3 text-muted">
+            {{ $current->schoolYear->name ?? '—' }}
+        </td>
+        <td class="py-3">
+            @if($student->clearance_status === 'cleared')
+                <span class="badge-paid">
+                    <i class="fas fa-check-circle me-1"></i>Cleared
+                </span>
+            @else
+                <span class="badge-pending">
+                    <i class="fas fa-clock me-1"></i>Not Cleared
+                </span>
+            @endif
+        </td>
+        <td class="py-3 pe-4 text-muted">
+            @php
+                $lastPayment = $student->payments()
+                            ->where('status', 'paid')
+                            ->latest('payment_date')
+                            ->first();
+            @endphp
+            @if($lastPayment && $lastPayment->payment_date)
+                {{ \Carbon\Carbon::parse($lastPayment->payment_date)->format('M d, Y') }}
+            @else
+                {{ $student->updated_at->format('M d, Y') }}
+            @endif
+        </td>
+    </tr>
+    @empty
+    <tr>
+        <td colspan="8" class="text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-2x mb-3 d-block" style="color:#ccc;"></i>
+            No cleared students found
+        </td>
+    </tr>
+    @endforelse
+</tbody>
             </table>
         </div>
     </div>

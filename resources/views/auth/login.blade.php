@@ -44,20 +44,19 @@
             justify-content: center;
             padding: 0 1.5rem 2rem;
         }
-    .glass-card {
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 40px;
-    padding: 2.5rem 2rem 2rem;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 30px 50px rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.5);
-    text-align: center;
-
-    animation: fadeInUp 0.7s ease-out;
-}
+        .glass-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 2.5rem 2rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.5);
+            text-align: center;
+            animation: fadeInUp 0.7s ease-out;
+        }
         .logo {
             position: absolute;
             top: 38%;
@@ -129,7 +128,6 @@
             color: #9ca3af;
         }
         
-
         .btn-login {
             background: #0f3c91;
             color: white;
@@ -147,15 +145,14 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(15,60,145,0.3);
         }
-     
-      
+        
         /* Password eye icon */
         .password-toggle {
             cursor: pointer;
             color: #6b7280;
             font-size: 1.2rem;
         }
-      
+        
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -163,16 +160,18 @@
     </style>
 </head>
 <body>
-    <!-- Background gradient (simulating image) -->
-    <div class="bg-image">
-        
+    <!-- 🚀 Student message in upper right corner -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 30; background: rgba(255,255,255,0.95); border-left: 4px solid #0f3c91; border-radius: 8px; padding: 8px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.9rem; display: flex; align-items: center;">
+        <i class="fas fa-info-circle me-2" style="color:#0f3c91; font-size: 1.1rem;"></i>
+        <span><strong>Students:</strong> Please use the mobile app</span>
     </div>
+
+    <!-- Background image -->
+    <div class="bg-image"></div>
 
     <!-- Logo (floating) -->
     <div class="logo">
-        <!-- Replace with your actual logo image -->
-        
-          <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+        <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
     </div>
 
     <div class="login-wrapper">
@@ -193,17 +192,14 @@
                     <i class="fas fa-lock"></i>
                     <input type="password" name="password" id="password" placeholder="Password" required>
                     <span class="password-toggle" onclick="togglePassword()">
-                        
+                        <!-- Eye icon (you can add an icon here if you want) -->
                     </span>
                 </div>
-
-              
 
                 <!-- Login Button -->
                 <button type="submit" class="btn-login">Login</button>
             </form>
 
-            
             <!-- Error message placeholder -->
             @if(session('error'))
                 <div class="mt-3 text-danger small">{{ session('error') }}</div>
@@ -211,8 +207,13 @@
         </div>
     </div>
 
-  
-  
-  
+    <!-- Optional: Add a simple password toggle script (if you want) -->
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        }
+    </script>
 </body>
 </html>

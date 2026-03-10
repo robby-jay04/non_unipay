@@ -16,14 +16,14 @@
 
         /* Sidebar */
         .sidebar {
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    overflow-y: auto;
-    background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
-    color: white;
-    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-}
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            color: white;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
 
         .sidebar-header {
             padding: 1.5rem 1rem;
@@ -227,6 +227,9 @@
             <div class="col-auto" style="width: 280px;">
                 <div class="sidebar d-flex flex-column">
                     <div class="sidebar-header">
+                        <!-- Added logo image from public directory -->
+                        <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo" 
+                             style="width: 60px; height: 60px; object-fit: contain; margin-bottom: 0.5rem; border-radius: 30px; background: white; padding: 5px;">
                         <h4>Non-UniPay</h4>
                         <small>Admin Panel</small>
                     </div>

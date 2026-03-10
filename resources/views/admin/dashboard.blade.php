@@ -10,7 +10,7 @@
 <!-- Stat Cards -->
 <div class="row g-4 mb-5">
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column">
+        <a href="{{ route('admin.payments') }}" class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column text-decoration-none">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted text-uppercase small fw-semibold">Total Revenue</span>
                 <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(15, 60, 145, 0.1); width: 48px; height: 48px;">
@@ -21,11 +21,11 @@
                 <h3 class="fw-bold mb-0" style="color: #0f3c91;">₱{{ number_format($stats['total_revenue'], 2) }}</h3>
                 <small class="text-muted">All time</small>
             </div>
-        </div>
+        </a>
     </div>
 
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column">
+        <a href="{{ route('admin.payments', ['status' => 'pending']) }}" class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column text-decoration-none">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted text-uppercase small fw-semibold">Pending Payments</span>
                 <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(244, 180, 20, 0.1); width: 48px; height: 48px;">
@@ -36,11 +36,11 @@
                 <h3 class="fw-bold mb-0" style="color: rgb(244, 180, 20);">{{ $stats['pending_payments'] }}</h3>
                 <small class="text-muted">Awaiting confirmation</small>
             </div>
-        </div>
+        </a>
     </div>
 
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column">
+        <a href="{{ route('admin.reports.clearances') }}" class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column text-decoration-none">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted text-uppercase small fw-semibold">Cleared Students</span>
                 <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(76, 175, 80, 0.1); width: 48px; height: 48px;">
@@ -51,11 +51,11 @@
                 <h3 class="fw-bold mb-0" style="color: #4caf50;">{{ $stats['cleared_students'] }}</h3>
                 <small class="text-muted">Ready for exams</small>
             </div>
-        </div>
+        </a>
     </div>
 
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column">
+        <a href="{{ route('admin.students') }}" class="stat-card bg-white p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column text-decoration-none">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted text-uppercase small fw-semibold">Total Students</span>
                 <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(15, 60, 145, 0.1); width: 48px; height: 48px;">
@@ -65,6 +65,124 @@
             <div>
                 <h3 class="fw-bold mb-0" style="color: #0f3c91;">{{ $stats['total_students'] }}</h3>
                 <small class="text-muted">Registered</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Additional Mini Stats Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3 col-sm-6">
+        <div class="bg-white p-3 rounded-4 shadow-sm h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(15,60,145,0.1);">
+                    <i class="fas fa-calendar-day" style="color: #0f3c91; font-size: 20px;"></i>
+                </div>
+                <div>
+                    <span class="text-muted small text-uppercase">Today's Revenue</span>
+                    <h5 class="fw-bold mb-0" style="color: #0f3c91;">₱{{ number_format($stats['today_revenue'] ?? 0, 2) }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="bg-white p-3 rounded-4 shadow-sm h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(244,180,20,0.1);">
+                    <i class="fas fa-calendar-alt" style="color: rgb(244,180,20); font-size: 20px;"></i>
+                </div>
+                <div>
+                    <span class="text-muted small text-uppercase">This Month</span>
+                    <h5 class="fw-bold mb-0" style="color: rgb(244,180,20);">₱{{ number_format($stats['monthly_revenue'] ?? 0, 2) }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="bg-white p-3 rounded-4 shadow-sm h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(76,175,80,0.1);">
+                    <i class="fas fa-chart-line" style="color: #4caf50; font-size: 20px;"></i>
+                </div>
+                <div>
+                    <span class="text-muted small text-uppercase">Average Payment</span>
+                    <h5 class="fw-bold mb-0" style="color: #4caf50;">₱{{ number_format($stats['average_payment'] ?? 0, 2) }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="bg-white p-3 rounded-4 shadow-sm h-100">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(15,60,145,0.1);">
+                    <i class="fas fa-trophy" style="color: #0f3c91; font-size: 20px;"></i>
+                </div>
+                <div>
+                    <span class="text-muted small text-uppercase">Top Student</span>
+                    <h6 class="fw-bold mb-0 text-truncate" style="max-width: 120px;">{{ $stats['top_student'] ?? 'N/A' }}</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 py-3 px-4">
+                <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Revenue Trend (Last 7 Days)</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="revenueChart" style="width:100%; height:300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 py-3 px-4">
+                <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Payment Status</h5>
+            </div>
+            <div class="card-body p-4 d-flex justify-content-center align-items-center" style="height: 300px;">
+                <canvas id="statusChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Clearance Activity -->
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Recently Cleared Students</h5>
+                <a href="{{ route('admin.reports.clearances') }}" class="btn btn-sm rounded-pill px-3" style="background: rgba(15,60,145,0.1); color: #0f3c91;">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4 py-3">Student</th>
+                                <th class="py-3">Course</th>
+                                <th class="py-3">Year</th>
+                                <th class="py-3">Cleared At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($stats['recent_cleared'] ?? [] as $cleared)
+                            <tr>
+                                <td class="px-4 py-3">{{ $cleared->student->user->name }}</td>
+                                <td class="py-3">{{ $cleared->student->course }}</td>
+                                <td class="py-3">{{ $cleared->student->year_level }}</td>
+                                <td class="py-3">{{ $cleared->created_at->format('M d, Y h:i A') }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-center py-4 text-muted">No recent clearances</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -116,6 +234,7 @@
 <style>
     .stat-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
     }
     .stat-card:hover {
         transform: translateY(-4px);
@@ -141,5 +260,80 @@
     .table > :not(caption) > * > * {
         border-bottom-color: #f0f2f5;
     }
+    a.stat-card {
+        color: inherit;
+    }
+    a.stat-card:hover {
+        color: inherit;
+    }
 </style>
+@endpush
+
+@push('scripts')
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{{-- Store PHP data as JSON (no linter warnings) --}}
+<script id="dashboard-data" type="application/json">
+{
+    "revenueLabels": {!! json_encode($stats['revenue_labels'] ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']) !!},
+    "revenueData": {!! json_encode($stats['revenue_data'] ?? [0,0,0,0,0,0,0]) !!},
+    "paidCount": {{ $stats['paid_count'] ?? 0 }},
+    "pendingCount": {{ $stats['pending_count'] ?? 0 }},
+    "failedCount": {{ $stats['failed_count'] ?? 0 }}
+}
+</script>
+
+{{-- Pure JavaScript – reads data from JSON tag --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the JSON data
+    const data = JSON.parse(document.getElementById('dashboard-data').textContent);
+
+    // Revenue trend chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: data.revenueLabels,
+            datasets: [{
+                label: 'Revenue (₱)',
+                data: data.revenueData,
+                borderColor: '#0f3c91',
+                backgroundColor: 'rgba(15,60,145,0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // Payment status pie chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paid', 'Pending', 'Failed'],
+            datasets: [{
+                data: [data.paidCount, data.pendingCount, data.failedCount],
+                backgroundColor: ['#4caf50', 'rgb(244,180,20)', '#dc3545'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+});
+</script>
 @endpush

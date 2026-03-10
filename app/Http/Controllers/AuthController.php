@@ -145,48 +145,64 @@ public function login(Request $request)
 public function register(Request $request)
 {
     $validated = $request->validate([
-    'name' => 'required|string',
-    'email' => 'required|email|unique:users',
-    'password' => 'required|confirmed|min:6',
-    'student_no' => 'required',
-    'course' => 'required',
-    'year_level' => 'required',
-    'contact' => 'required',
-    'semester' => 'required|string',
-    'school_year' => 'required|string',
-]);
-    // Create the User
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
-        'role' => 'student',
+        'name'        => 'required|string|max:255',
+        'email'       => 'required|email|unique:users,email',
+        'password'    => 'required|confirmed|min:6',
+        'student_no'  => 'required|string|unique:students,student_no',
+        'course'      => 'required|string',
+        'year_level'  => 'required',
+        'contact'     => 'required|string|unique:students,contact',
+        'semester'    => 'required|string',
+        'school_year' => 'required|string',
+    ], [
+        'email.unique'       => 'This email is already registered.',
+        'student_no.unique'  => 'This student number is already registered.',
+        'contact.unique'     => 'This contact number is already used by another student.',
+        'password.confirmed' => 'Passwords do not match.',
+        'password.min'       => 'Password must be at least 6 characters.',
+        'name.required'      => 'Full name is required.',
+        'email.required'     => 'Email is required.',
+        'email.email'        => 'Please enter a valid email address.',
+        'student_no.required'=> 'Student number is required.',
+        'course.required'    => 'Course is required.',
+        'year_level.required'=> 'Year level is required.',
+        'contact.required'   => 'Contact number is required.',
+        'semester.required'  => 'Semester is required.',
+        'school_year.required'=> 'School year is required.',
     ]);
 
-    // Create the Student (NOT CONFIRMED by default)
-    Student::create([
-    'user_id' => $user->id,
-    'student_no' => $validated['student_no'],
-    'course' => $validated['course'],
-    'year_level' => $validated['year_level'],
-    'contact' => $validated['contact'],
-    'semester' => $validated['semester'],
-    'school_year' => $validated['school_year'],
-    'is_confirmed' => false,
-]);
-  return response()->json([
-    'success' => true,
-    'status' => 'pending',
-    'message' => 'Registration successful. Please wait for admin approval.'
-], 201);
-}
+    $user = User::create([
+        'name'     => $validated['name'],
+        'email'    => $validated['email'],
+        'password' => Hash::make($validated['password']),
+        'role'     => 'student',
+    ]);
 
+    Student::create([
+        'user_id'    => $user->id,
+        'student_no' => $validated['student_no'],
+        'course'     => $validated['course'],
+        'year_level' => $validated['year_level'],
+        'contact'    => $validated['contact'],
+        'semester'   => $validated['semester'],
+        'school_year'=> $validated['school_year'],
+        'is_confirmed' => false,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'status'  => 'pending',
+        'message' => 'Registration successful. Please wait for admin approval.',
+    ], 201);
+}
 
       // -------------------------------
     // Get Authenticated User
     // -------------------------------
     public function me(Request $request)
     {
+
+
         return response()->json($request->user());
     }
  

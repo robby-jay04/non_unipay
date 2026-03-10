@@ -12,9 +12,11 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\NotificationController; // <-- ADD THIS
 
 // Public Routes
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/password/reset-request', [PasswordResetController::class, 'sendResetLink']);
+Route::get('/school-years', [App\Http\Controllers\SchoolYearController::class, 'apiIndex']); // ✅ Add this
 
 // PayMongo Webhook (Public - no auth required)
 Route::post('/webhooks/paymongo', [PaymentController::class, 'webhook'])->name('paymongo.webhook');

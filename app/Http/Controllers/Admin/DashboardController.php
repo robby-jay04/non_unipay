@@ -41,9 +41,9 @@ class DashboardController extends Controller
             'total_fees' => Fee::sum('amount'),
         ]);
     }
-      public function pendingPaymentsCount()
-    {
-        $count = Payment::whereIn('status', ['pending', 'processing'])->count();
-        return response()->json(['count' => $count]);
-    }
+   public function pendingPaymentsCount()
+{
+    $count = \App\Models\Payment::where('status', 'pending')->count();
+    return response()->json(['count' => $count]);
+}
 }

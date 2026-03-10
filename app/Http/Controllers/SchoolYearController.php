@@ -59,4 +59,9 @@ public function setSemester(Request $request, SchoolYear $schoolYear)
 
     return redirect()->back()->with('success', 'Current semester updated for all students.');
 }
+public function apiIndex()
+{
+    $schoolYears = \App\Models\SchoolYear::orderBy('name', 'desc')->get(['id', 'name']);
+    return response()->json(['school_years' => $schoolYears]);
+}
 }

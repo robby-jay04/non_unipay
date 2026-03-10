@@ -27,28 +27,41 @@ class StudentController extends Controller
 }
 
 
-    public function updateProfile(Request $request)
-    {
-        $validated = $request->validate([
-            'contact' => 'sometimes|string',
-            'course' => 'sometimes|string',
-            'year_level' => 'sometimes|integer|min:1|max:5',
-        ]);
+   public function updateProfile(Request $request)
+{
+    $student = $request->user()->student;
 
-        $student = $request->user()->student;
-
-        if (!$student) {
-            return response()->json(['message' => 'Student profile not found'], 404);
-        }
-
-        $student->update($validated);
-
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'student' => $student,
-        ]);
+    if (!$student) {
+        return response()->json(['message' => 'Student profile not found'], 404);
     }
 
+    $validated = $request->validate([
+        'contact'    => 'sometimes|string|unique:students,contact,' . $student->id,
+        'course'     => 'sometimes|string',
+        'year_level' => 'sometimes|integer|min:1|max:5',
+        'email'      => 'sometimes|email|unique:users,email,' . $request->user()->id,
+    ], [
+        'contact.unique' => 'This contact number is already used by another student.',
+        'email.unique'   => 'This email is already registered to another account.',
+        'email.email'    => 'Please enter a valid email address.',
+    ]);
+
+    // Update email on users table if provided
+    if (isset($validated['email'])) {
+        $request->user()->update(['email' => $validated['email']]);
+        unset($validated['email']); // remove from student update
+    }
+
+    $student->update($validated);
+
+    // Return fresh data with updated email
+    $student->load('user');
+
+    return response()->json([
+        'message' => 'Profile updated successfully',
+        'student' => $student,
+    ]);
+}
     public function paymentHistory(Request $request)
     {
         $student = $request->user()->student;

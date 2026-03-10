@@ -34,8 +34,17 @@ public function payments(Request $request)
 
 public function students(Request $request)
 {
-    $requiredAmount = 58000;
     $search = $request->query('search');
+
+    // Get required amount from current semester/school year fees
+    $currentSemester  = \App\Models\Semester::where('is_current', true)->first();
+    $currentSchoolYear = \App\Models\SchoolYear::where('is_current', true)->first();
+
+    $requiredAmount = ($currentSemester && $currentSchoolYear)
+        ? \App\Models\Fee::where('semester_id', $currentSemester->id)
+                         ->where('school_year_id', $currentSchoolYear->id)
+                         ->sum('amount')
+        : 0;
 
     $students = \App\Models\Student::with(['user', 'payments'])
         ->when($search, function($query, $search) {
@@ -51,8 +60,12 @@ public function students(Request $request)
         ->paginate(10)
         ->appends(request()->query());
 
-    // LOOP manually instead of getCollection()
     foreach ($students as $student) {
+        // If no fees set yet, never show as cleared
+        if ($requiredAmount <= 0) {
+            $student->clearance_status = 'not cleared';
+            continue;
+        }
 
         $totalPaid = $student->payments
             ->where('status', 'paid')
@@ -80,19 +93,55 @@ public function students(Request $request)
         $filters = request()->only(['status', 'student_id', 'date_from', 'date_to']);
 
         return Excel::download(new PaymentExport($filters), 'payments.xlsx');
-    }public function studentJson($id)
+    }
+    
+ public function studentJson($id)
 {
-    $student = \App\Models\Student::with('user')->findOrFail($id);
+    $student = \App\Models\Student::with(['user', 'payments'])->findOrFail($id);
+
+    // Live clearance calculation using current semester/school year
+    $currentSemester   = \App\Models\Semester::where('is_current', true)->first();
+    $currentSchoolYear = \App\Models\SchoolYear::where('is_current', true)->first();
+
+    $requiredAmount = ($currentSemester && $currentSchoolYear)
+        ? \App\Models\Fee::where('semester_id', $currentSemester->id)
+                         ->where('school_year_id', $currentSchoolYear->id)
+                         ->sum('amount')
+        : 0;
+
+    $totalPaid = 0;
+    if ($requiredAmount > 0 && $currentSemester && $currentSchoolYear) {
+        $fees = \App\Models\Fee::where('semester_id', $currentSemester->id)
+                               ->where('school_year_id', $currentSchoolYear->id)
+                               ->get();
+        foreach ($fees as $fee) {
+            $totalPaid += $fee->payments()
+                ->where('student_id', $student->id)
+                ->where('status', 'paid')
+                ->sum('payments.total_amount');
+        }
+    }
+
+    $clearanceStatus = ($requiredAmount > 0 && $totalPaid >= $requiredAmount)
+        ? 'cleared'
+        : 'not cleared';
 
     return response()->json([
-        'student_no' => $student->student_no,
-        'name' => $student->user->name,
-        'email' => $student->user->email,
-        'course' => $student->course,
-        'year_level' => $student->year_level,
-        'clearance_status' => ucfirst($student->clearance_status),
+        'student_no'       => $student->student_no,
+        'name'             => $student->user->name,
+        'email'            => $student->user->email,
+        'course'           => $student->course,
+        'year_level'       => $student->year_level,
+        'is_confirmed'     => (bool) $student->is_confirmed,
+        'clearance_status' => $clearanceStatus,
+         'contact'          => $student->contact,
+         'profile_picture' => $student->profile_picture
+    ? asset('storage/' . $student->profile_picture)
+    : null,
     ]);
 }
+
+
 
 public function confirmStudent(Student $student)
 {
@@ -112,10 +161,10 @@ public function destroy(Student $student)
     return redirect()->route('admin.students')
         ->with('success', 'Student deleted successfully.');
 }
-  public function newStudentsCount()
-    {
-        // Count students that are not yet confirmed (adjust column if needed)
-        $count = Student::where('is_confirmed', false)->count();
-        return response()->json(['count' => $count]);
-    }
+ public function newStudentsCount()
+{
+    $count = \App\Models\Student::where('is_confirmed', false)->count();
+    return response()->json(['count' => $count]);
+}
+
 }

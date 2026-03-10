@@ -19,7 +19,7 @@ class Student extends Model
         'semester',
     'school_year',
         'is_confirmed',
-        
+        'profile_picture',
     ];
     protected $casts = [
     'is_confirmed' => 'boolean',

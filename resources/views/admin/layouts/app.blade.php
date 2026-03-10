@@ -16,11 +16,14 @@
 
         /* Sidebar */
         .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
-            color: white;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-        }
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+    color: white;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
 
         .sidebar-header {
             padding: 1.5rem 1rem;
@@ -340,7 +343,7 @@
         }
 
         fetchNotificationCounts();
-        setInterval(fetchNotificationCounts, 30000); // refresh every 30 seconds
+        setInterval(fetchNotificationCounts, 5000); 
     });
     </script>
 </body>

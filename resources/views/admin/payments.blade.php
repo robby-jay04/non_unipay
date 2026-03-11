@@ -103,6 +103,43 @@
     </div>
 </div>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-2" id="confirmTitle"></h5>
+                <p class="text-muted mb-0" id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn rounded-pill px-4 fw-semibold" id="confirmActionBtn"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-2" id="resultTitle"></h5>
+                <p class="text-muted mb-0" id="resultMessage"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn rounded-pill px-5 fw-semibold" data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- View Payment Modal -->
 <div class="modal fade" id="viewPaymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -205,18 +242,63 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
+    // ── Modal helpers ────────────────────────────────────────────────────────
+
+    function showConfirm({ title, message, confirmText, confirmStyle, onConfirm }) {
+        document.getElementById('confirmTitle').textContent   = title;
+        document.getElementById('confirmMessage').textContent = message;
+
+        const iconWrap = document.getElementById('confirmIconWrap');
+        iconWrap.style.background = confirmStyle.iconBg;
+        iconWrap.innerHTML        = `<i class="${confirmStyle.icon}" style="font-size:1.6rem;color:${confirmStyle.iconColor};"></i>`;
+
+        // Clone button to remove old listeners
+        const oldBtn   = document.getElementById('confirmActionBtn');
+        const freshBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(freshBtn, oldBtn);
+        freshBtn.textContent      = confirmText;
+        freshBtn.style.background = confirmStyle.btnBg;
+        freshBtn.style.color      = 'white';
+
+        freshBtn.addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+            onConfirm();
+        });
+
+        new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+    }
+
+    function showResult({ type, title, message }) {
+        const palettes = {
+            success: { iconBg: 'rgba(76,175,80,0.12)',  icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
+            error:   { iconBg: 'rgba(220,53,69,0.12)',  icon: 'fas fa-times-circle', iconColor: '#a71d2a' },
+            info:    { iconBg: 'rgba(15,60,145,0.12)',  icon: 'fas fa-info-circle',  iconColor: '#0f3c91' },
+        };
+        const p = palettes[type] || palettes.info;
+
+        document.getElementById('resultTitle').textContent   = title;
+        document.getElementById('resultMessage').textContent = message;
+
+        const iconWrap = document.getElementById('resultIconWrap');
+        iconWrap.style.background = p.iconBg;
+        iconWrap.innerHTML        = `<i class="${p.icon}" style="font-size:1.6rem;color:${p.iconColor};"></i>`;
+
+        new bootstrap.Modal(document.getElementById('resultModal')).show();
+    }
+
+    // ── Button handlers ──────────────────────────────────────────────────────
+
     const handleViewButtons = () => {
         document.querySelectorAll('.viewPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', async function () {
                 const paymentId = this.dataset.id;
                 const modalBody = document.getElementById('viewPaymentBody');
-                modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border" style="color: #0f3c91;" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+                modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border" style="color:#0f3c91;" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
                 try {
                     const res = await fetch(`/admin/payments/${paymentId}`);
                     if (!res.ok) throw new Error('Failed to load');
-                    const html = await res.text();
-                    modalBody.innerHTML = html;
-                } catch(err) {
+                    modalBody.innerHTML = await res.text();
+                } catch {
                     modalBody.innerHTML = `<div class="alert alert-danger rounded-3">Error loading payment details.</div>`;
                 }
             });
@@ -225,100 +307,163 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const handleVerifyButtons = () => {
         document.querySelectorAll('.verifyPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', function () {
                 const paymentId = this.dataset.id;
-                if (!confirm('Are you sure you want to verify this payment as PAID?')) return;
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-                try {
-                    const res = await fetch(`/admin/payments/${paymentId}/verify`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        const badge = document.getElementById(`status-badge-${paymentId}`);
-                        badge.className = 'badge-paid';
-                        badge.textContent = 'Paid';
-                        document.getElementById(`verify-btn-${paymentId}`)?.remove();
-                        document.getElementById(`reject-btn-${paymentId}`)?.remove();
-                        alert('✅ Payment verified successfully!');
-                    } else {
-                        alert('❌ ' + (data.message || 'Failed to verify'));
-                        this.disabled = false;
-                        this.innerHTML = '<i class="fas fa-check"></i> Verify';
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert('❌ An error occurred');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-check"></i> Verify';
-                }
+                const self      = this;
+
+                showConfirm({
+                    title:       'Verify Payment',
+                    message:     'Are you sure you want to mark this payment as PAID?',
+                    confirmText: 'Yes, Verify',
+                    confirmStyle: {
+                        iconBg:    'rgba(76,175,80,0.12)',
+                        icon:      'fas fa-check-circle',
+                        iconColor: '#2e7d32',
+                        btnBg:     '#2e7d32',
+                    },
+                    onConfirm: async () => {
+                        self.disabled  = true;
+                        self.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        try {
+                            const res  = await fetch(`/admin/payments/${paymentId}/verify`, {
+                                method:  'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept':       'application/json'
+                                },
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                const badge = document.getElementById(`status-badge-${paymentId}`);
+                                badge.className   = 'badge-paid';
+                                badge.textContent = 'Paid';
+                                document.getElementById(`verify-btn-${paymentId}`)?.remove();
+                                document.getElementById(`reject-btn-${paymentId}`)?.remove();
+                                showResult({
+                                    type:    'success',
+                                    title:   'Payment Verified',
+                                    message: 'The payment has been marked as paid successfully.'
+                                });
+                            } else {
+                                showResult({
+                                    type:    'error',
+                                    title:   'Verification Failed',
+                                    message: data.message || 'Unable to verify this payment.'
+                                });
+                                self.disabled  = false;
+                                self.innerHTML = '<i class="fas fa-check"></i> Verify';
+                            }
+                        } catch {
+                            showResult({
+                                type:    'error',
+                                title:   'Error',
+                                message: 'An unexpected error occurred. Please try again.'
+                            });
+                            self.disabled  = false;
+                            self.innerHTML = '<i class="fas fa-check"></i> Verify';
+                        }
+                    },
+                });
             });
         });
     };
 
     const handleRejectButtons = () => {
         document.querySelectorAll('.rejectPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', function () {
                 const paymentId = this.dataset.id;
-                if (!confirm('Are you sure you want to reject this payment?')) return;
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
-                try {
-                    const res = await fetch(`/admin/payments/${paymentId}/reject`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        const badge = document.getElementById(`status-badge-${paymentId}`);
-                        badge.className = 'badge-failed';
-                        badge.textContent = 'Failed';
-                        document.getElementById(`verify-btn-${paymentId}`)?.remove();
-                        document.getElementById(`reject-btn-${paymentId}`)?.remove();
-                        alert('Payment rejected.');
-                    } else {
-                        alert('❌ ' + (data.message || 'Failed to reject'));
-                        this.disabled = false;
-                        this.innerHTML = '<i class="fas fa-times"></i> Reject';
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert('❌ An error occurred');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-times"></i> Reject';
-                }
+                const self      = this;
+
+                showConfirm({
+                    title:       'Reject Payment',
+                    message:     'Are you sure you want to reject this payment? This action cannot be undone.',
+                    confirmText: 'Yes, Reject',
+                    confirmStyle: {
+                        iconBg:    'rgba(220,53,69,0.12)',
+                        icon:      'fas fa-times-circle',
+                        iconColor: '#a71d2a',
+                        btnBg:     '#a71d2a',
+                    },
+                    onConfirm: async () => {
+                        self.disabled  = true;
+                        self.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        try {
+                            const res  = await fetch(`/admin/payments/${paymentId}/reject`, {
+                                method:  'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept':       'application/json'
+                                },
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                const badge = document.getElementById(`status-badge-${paymentId}`);
+                                badge.className   = 'badge-failed';
+                                badge.textContent = 'Failed';
+                                document.getElementById(`verify-btn-${paymentId}`)?.remove();
+                                document.getElementById(`reject-btn-${paymentId}`)?.remove();
+                                showResult({
+                                    type:    'info',
+                                    title:   'Payment Rejected',
+                                    message: 'The payment has been rejected successfully.'
+                                });
+                            } else {
+                                showResult({
+                                    type:    'error',
+                                    title:   'Rejection Failed',
+                                    message: data.message || 'Unable to reject this payment.'
+                                });
+                                self.disabled  = false;
+                                self.innerHTML = '<i class="fas fa-times"></i> Reject';
+                            }
+                        } catch {
+                            showResult({
+                                type:    'error',
+                                title:   'Error',
+                                message: 'An unexpected error occurred. Please try again.'
+                            });
+                            self.disabled  = false;
+                            self.innerHTML = '<i class="fas fa-times"></i> Reject';
+                        }
+                    },
+                });
             });
         });
+    };
+
+    // ── AJAX pagination & filter ─────────────────────────────────────────────
+
+    const rebindAll = () => {
+        handleViewButtons();
+        handleVerifyButtons();
+        handleRejectButtons();
     };
 
     const loadPayments = async (url) => {
         try {
             const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            if (!res.ok) throw new Error('Failed to load');
-            const html = await res.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newTbody = doc.getElementById('paymentsTableBody');
-            const newPagination = doc.getElementById('paymentsPagination');
-            if (newTbody) document.getElementById('paymentsTableBody').innerHTML = newTbody.innerHTML;
-            if (newPagination) document.getElementById('paymentsPagination').innerHTML = newPagination.innerHTML;
-            handleViewButtons();
-            handleVerifyButtons();
-            handleRejectButtons();
-        } catch(err) {
-            console.error(err);
-            alert('Failed to load payments.');
+            if (!res.ok) throw new Error();
+            const html  = await res.text();
+            const doc   = new DOMParser().parseFromString(html, 'text/html');
+            const tbody = doc.getElementById('paymentsTableBody');
+            const pager = doc.getElementById('paymentsPagination');
+            if (tbody) document.getElementById('paymentsTableBody').innerHTML  = tbody.innerHTML;
+            if (pager) document.getElementById('paymentsPagination').innerHTML = pager.innerHTML;
+            rebindAll();
+        } catch {
+            showResult({
+                type:    'error',
+                title:   'Load Error',
+                message: 'Failed to load payments. Please refresh the page.'
+            });
         }
     };
 
-    handleViewButtons();
-    handleVerifyButtons();
-    handleRejectButtons();
+    rebindAll();
 
-    const filterForm = document.getElementById('filterForm');
-    filterForm.addEventListener('submit', function(e) {
+    document.getElementById('filterForm').addEventListener('submit', function (e) {
         e.preventDefault();
         const status = document.getElementById('status').value;
         let url = '{{ route("admin.payments") }}';
@@ -327,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadPayments(url);
     });
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const link = e.target.closest('.pagination a');
         if (link && !link.classList.contains('disabled')) {
             e.preventDefault();

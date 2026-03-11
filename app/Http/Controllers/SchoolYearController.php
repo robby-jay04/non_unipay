@@ -61,7 +61,17 @@ public function setSemester(Request $request, SchoolYear $schoolYear)
 }
 public function apiIndex()
 {
-    $schoolYears = \App\Models\SchoolYear::orderBy('name', 'desc')->get(['id', 'name']);
-    return response()->json(['school_years' => $schoolYears]);
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get(['id', 'name', 'is_current']);
+
+    $currentSemester = Semester::where('is_current', 1)
+        ->whereHas('schoolYear', function ($q) {
+            $q->where('is_current', 1);
+        })
+        ->first(['id', 'name', 'is_current']);
+
+    return response()->json([
+        'school_years'     => $schoolYears,
+        'current_semester' => $currentSemester,
+    ]);
 }
 }

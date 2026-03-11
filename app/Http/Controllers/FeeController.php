@@ -4,199 +4,165 @@ namespace App\Http\Controllers;
 
 use App\Models\Fee;
 use Illuminate\Http\Request;
-use App\Http\Controllers\SemesterController;
 use App\Models\Semester;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentFee;
+
 class FeeController extends Controller
 {
-    /**
-     * Display a listing of fees for current school year
-     */
-  public function index()
-{
-    $current = \App\Models\SchoolYear::current();
+    const COURSES = ['BSIT', 'BEED', 'BSED', 'BSCRIM', 'BSOA', 'BSPOLSCI'];
 
-    return response()->json([
-        'current_school_year' => $current,
-    ]);
-}
+    public function index()
+    {
+        $current = SchoolYear::current();
+        return response()->json(['current_school_year' => $current]);
+    }
 
-    /**
-     * Get total of all fees
-     */
     public function getTotalFees()
     {
         $total = Fee::currentSchoolYear()->sum('amount');
-
         return response()->json([
-            'success' => true,
-            'total' => $total,
+            'success'   => true,
+            'total'     => $total,
             'formatted' => '₱' . number_format($total, 2),
         ]);
     }
 
-    /**
-     * Display specific fee
-     */
     public function show($id)
     {
         $fee = Fee::findOrFail($id);
-
-        return response()->json([
-            'success' => true,
-            'fee' => $fee,
-        ]);
+        return response()->json(['success' => true, 'fee' => $fee]);
     }
 
-    /**
-     * Get fees by type (tuition, miscellaneous, exam)
-     */
     public function getByType($type)
     {
-        $fees = Fee::currentSchoolYear()
-            ->byType($type)
-            ->get();
-
+        $fees  = Fee::currentSchoolYear()->byType($type)->get();
         $total = $fees->sum('amount');
-
         return response()->json([
             'success' => true,
-            'type' => $type,
-            'fees' => $fees,
-            'total' => $total,
+            'type'    => $type,
+            'fees'    => $fees,
+            'total'   => $total,
         ]);
     }
 
-    /**
-     * Store a new fee (Admin only)
-     */
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'amount' => 'required|numeric|min:0',
-        'type' => 'required|in:tuition,miscellaneous,exam',
-        'semester' => 'nullable|string',
-        'school_year' => 'required|string',
-    ]);
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'amount'      => 'required|numeric|min:0',
+            'type'        => 'required|in:tuition,miscellaneous,exam',
+            'semester'    => 'nullable|string',
+            'school_year' => 'required|string',
+            'course'      => 'nullable|string',
+        ]);
 
-    Fee::create($validated);
+        Fee::create($validated);
 
-    return redirect()->route('admin.fees.index')
-                     ->with('success', 'Fee created successfully!');
-}
+        return redirect()->route('admin.fees.index')
+                         ->with('success', 'Fee created successfully!');
+    }
 
-  public function create()
-{
-    // Get all school years ordered by name (or by creation)
-    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+    public function create()
+    {
+        $schoolYears        = SchoolYear::orderBy('name', 'desc')->get();
+        $currentSchoolYear  = SchoolYear::where('is_current', true)->first();
+        $courses            = self::COURSES;
 
-    // Find the current school year (if any)
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        return view('admin.fees.create', compact('schoolYears', 'currentSchoolYear', 'courses'));
+    }
 
-    return view('admin.fees.create', compact('schoolYears', 'currentSchoolYear'));
-}
-public function adminIndex()
-{
-    $fees = \App\Models\Fee::orderBy('school_year', 'desc')
-        ->orderBy('type')
-        ->get();
+    public function adminIndex()
+    {
+        $fees    = Fee::orderBy('school_year', 'desc')->orderBy('type')->get();
+        $courses = self::COURSES;
 
-    return view('admin.fees.index', compact('fees'));
-}
+        return view('admin.fees.index', compact('fees', 'courses'));
+    }
 
+    public function storeWeb(Request $request)
+    {
+        $validated = $request->validate([
+            'name'   => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'type'   => 'required|in:tuition,miscellaneous,exam',
+            'course' => 'nullable|string',
+        ]);
 
+        $currentSemester   = Semester::where('is_current', true)->first();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
-public function storeWeb(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'amount' => 'required|numeric|min:0',
-        'type' => 'required|in:tuition,miscellaneous,exam',
-    ]);
+        Fee::create([
+            'name'           => $validated['name'],
+            'amount'         => $validated['amount'],
+            'type'           => $validated['type'],
+            'course'         => $validated['course'] ?? null,
+            'school_year'    => $currentSchoolYear->name,
+            'semester'       => $currentSemester->name,
+            'semester_id'    => $currentSemester->id,
+            'school_year_id' => $currentSchoolYear->id,
+        ]);
 
-    $currentSemester = Semester::where('is_current', true)->first();
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        return redirect()->route('admin.fees.index')
+                         ->with('success', 'Fee created successfully.');
+    }
 
-    Fee::create([
-        'name' => $validated['name'],
-        'amount' => $validated['amount'],
-        'type' => $validated['type'],
-        'school_year' => $currentSchoolYear->name,
-            'semester' => $currentSemester->name,
-        'semester_id' => $currentSemester->id,
-        'school_year_id' => $currentSchoolYear->id,
-    ]);
+    public function edit(Fee $fee)
+    {
+        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $courses           = self::COURSES;
 
-    return redirect()
-        ->route('admin.fees.index')
-        ->with('success', 'Fee created successfully.');
-}
+        return view('admin.fees.edit', compact('fee', 'schoolYears', 'currentSchoolYear', 'courses'));
+    }
 
-public function edit(Fee $fee)
-{
-    // Get all school years ordered by name (latest first)
-    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+    public function updateWeb(Request $request, Fee $fee)
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'amount'      => 'required|numeric|min:0',
+            'type'        => 'required|in:tuition,miscellaneous,exam',
+            'semester'    => 'nullable|string',
+            'school_year' => 'required|string',
+            'course'      => 'nullable|string',
+        ]);
 
-    // Optional: get the current school year (if you want to highlight it)
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $semester   = Semester::where('name', $validated['semester'])->first();
+        $schoolYear = SchoolYear::where('name', $validated['school_year'])->first();
 
-    return view('admin.fees.edit', compact('fee', 'schoolYears', 'currentSchoolYear'));
-}
+        $fee->update([
+            'name'           => $validated['name'],
+            'amount'         => $validated['amount'],
+            'type'           => $validated['type'],
+            'semester'       => $validated['semester'],
+            'school_year'    => $validated['school_year'],
+            'semester_id'    => $semester?->id,
+            'school_year_id' => $schoolYear?->id,
+            'course'         => $validated['course'] ?? null,
+        ]);
 
+        return redirect()->route('admin.fees.index')
+                         ->with('success', 'Fee updated successfully.');
+    }
 
-public function updateWeb(Request $request, Fee $fee)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'amount' => 'required|numeric|min:0',
-        'type' => 'required|in:tuition,miscellaneous,exam',
-        'semester' => 'nullable|string',
-        'school_year' => 'required|string',
-    ]);
+    public function destroyWeb($fee)
+    {
+        Fee::findOrFail($fee)->delete();
+        return redirect()->route('admin.fees.index')
+                         ->with('success', 'Fee deleted successfully.');
+    }
 
-    // Look up the semester by name and get its ID
-    $semester = Semester::where('name', $validated['semester'])->first();
-    $schoolYear = SchoolYear::where('name', $validated['school_year'])->first();
-
-    $fee->update([
-        'name'           => $validated['name'],
-        'amount'         => $validated['amount'],
-        'type'           => $validated['type'],
-        'semester'       => $validated['semester'],
-        'school_year'    => $validated['school_year'],
-        'semester_id'    => $semester?->id,
-        'school_year_id' => $schoolYear?->id,
-    ]);
-
-    return redirect()
-        ->route('admin.fees.index')
-        ->with('success', 'Fee updated successfully.');
-}
-
-public function destroyWeb($fee)
-{
-    $fee = Fee::findOrFail($fee);
-    $fee->delete();
-
-    return redirect()->route('admin.fees.index')
-        ->with('success', 'Fee deleted successfully.');
-}
-    /**
-     * Update existing fee (Admin only)
-     */
     public function update(Request $request, $id)
     {
-        $fee = Fee::findOrFail($id);
-
+        $fee       = Fee::findOrFail($id);
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'amount' => 'sometimes|numeric|min:0',
-            'type' => 'sometimes|in:tuition,miscellaneous,exam',
-            'semester' => 'nullable|string',
+            'name'        => 'sometimes|string|max:255',
+            'amount'      => 'sometimes|numeric|min:0',
+            'type'        => 'sometimes|in:tuition,miscellaneous,exam',
+            'semester'    => 'nullable|string',
             'school_year' => 'sometimes|string',
+            'course'      => 'nullable|string',
         ]);
 
         $fee->update($validated);
@@ -204,95 +170,81 @@ public function destroyWeb($fee)
         return response()->json([
             'success' => true,
             'message' => 'Fee updated successfully',
-            'fee' => $fee,
+            'fee'     => $fee,
         ]);
     }
 
-    /**
-     * Delete fee (Admin only)
-     */
-   public function destroy(Fee $fee)
-{
-    $fee->delete();
-
-    return redirect()->route('admin.fees.index')
-                     ->with('success', 'Fee deleted successfully.');
-}
-/**
- * Get fees breakdown by type for the authenticated student (mobile app)
- */
-public function breakdown()
-{
-    $student = auth()->user()->student;
-
-    $currentSemester = Semester::where('is_current', true)->first();
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-
-    if (!$currentSemester || !$currentSchoolYear) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No active semester or school year set.'
-        ], 404);
+    public function destroy(Fee $fee)
+    {
+        $fee->delete();
+        return redirect()->route('admin.fees.index')
+                         ->with('success', 'Fee deleted successfully.');
     }
 
-    $fees = Fee::where('school_year_id', $currentSchoolYear->id)
-               ->where('semester_id', $currentSemester->id)
-               ->get();
+    public function breakdown()
+    {
+        $student           = auth()->user()->student;
+        $currentSemester   = Semester::where('is_current', true)->first();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
-    // ✅ If no fees exist yet for this semester, don't mark as cleared
-    if ($fees->isEmpty()) {
-        return response()->json([
-            'success' => true,
-            'breakdown' => [
-                'tuition'           => ['fees' => [], 'total' => 0],
-                'miscellaneous'     => ['fees' => [], 'total' => 0],
-                'exam'              => ['fees' => [], 'total' => 0],
-                'grand_total'       => 0,
-                'total_paid'        => 0,
-                'remaining_balance' => 0,
-                'status'            => 'no_fees', // ✅ distinct status
-            ],
-        ]);
-    }
-
-    $grandTotal = $fees->sum('amount');
-    $totalPaid = 0;
-
-    foreach ($fees as $fee) {
-        $paidForFee = $fee->payments()
-            ->where('student_id', $student->id)
-            ->where('status', 'paid')
-            ->sum('payments.total_amount');
-
-        $totalPaid += $paidForFee;
-    }
-
-    $remainingBalance = max($grandTotal - $totalPaid, 0);
-
-    // ✅ Only cleared if all fees are fully paid (and fees actually exist)
-    $status = 'cleared';
-    foreach ($fees as $fee) {
-        $paidForFee = $fee->payments()
-            ->where('student_id', $student->id)
-            ->where('status', 'paid')
-            ->sum('payments.total_amount');
-
-        if ($paidForFee < $fee->amount) {
-            $status = 'pending';
-            break;
+        if (!$currentSemester || !$currentSchoolYear) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active semester or school year set.',
+            ], 404);
         }
+
+        // Filter fees by course as well
+        $fees = Fee::where('school_year_id', $currentSchoolYear->id)
+                   ->where('semester_id', $currentSemester->id)
+                   ->where(function ($q) use ($student) {
+                       $q->where('course', $student->course)
+                         ->orWhereNull('course'); // fees with no course = apply to all
+                   })
+                   ->get();
+
+        if ($fees->isEmpty()) {
+            return response()->json([
+                'success'   => true,
+                'breakdown' => [
+                    'tuition'           => ['fees' => [], 'total' => 0],
+                    'miscellaneous'     => ['fees' => [], 'total' => 0],
+                    'exam'              => ['fees' => [], 'total' => 0],
+                    'grand_total'       => 0,
+                    'total_paid'        => 0,
+                    'remaining_balance' => 0,
+                    'status'            => 'no_fees',
+                ],
+            ]);
+        }
+
+        $grandTotal = $fees->sum('amount');
+        $totalPaid  = 0;
+        $status     = 'cleared';
+
+        foreach ($fees as $fee) {
+            $paidForFee = $fee->payments()
+                ->where('student_id', $student->id)
+                ->where('status', 'paid')
+                ->sum('payments.total_amount');
+
+            $totalPaid += $paidForFee;
+
+            if ($paidForFee < $fee->amount) {
+                $status = 'pending';
+            }
+        }
+
+        $breakdown = [
+            'tuition'           => ['fees' => $fees->where('type', 'tuition')->values(),      'total' => $fees->where('type', 'tuition')->sum('amount')],
+            'miscellaneous'     => ['fees' => $fees->where('type', 'miscellaneous')->values(), 'total' => $fees->where('type', 'miscellaneous')->sum('amount')],
+            'exam'              => ['fees' => $fees->where('type', 'exam')->values(),          'total' => $fees->where('type', 'exam')->sum('amount')],
+            'grand_total'       => $grandTotal,
+            'total_paid'        => $totalPaid,
+            'remaining_balance' => max($grandTotal - $totalPaid, 0),
+            'status'            => $status,
+        ];
+
+        return response()->json(['success' => true, 'breakdown' => $breakdown]);
     }
-
-    $breakdown = [
-        'tuition'           => ['fees' => $fees->where('type', 'tuition')->values(),       'total' => $fees->where('type', 'tuition')->sum('amount')],
-        'miscellaneous'     => ['fees' => $fees->where('type', 'miscellaneous')->values(),  'total' => $fees->where('type', 'miscellaneous')->sum('amount')],
-        'exam'              => ['fees' => $fees->where('type', 'exam')->values(),           'total' => $fees->where('type', 'exam')->sum('amount')],
-        'grand_total'       => $grandTotal,
-        'total_paid'        => $totalPaid,
-        'remaining_balance' => $remainingBalance,
-        'status'            => $status,
-    ];
-
-    return response()->json(['success' => true, 'breakdown' => $breakdown]);
-}
 }

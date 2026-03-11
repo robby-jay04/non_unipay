@@ -38,6 +38,7 @@
                     <tr>
                         <th class="px-4 py-3">Name</th>
                         <th class="py-3">Type</th>
+                        <th class="py-3">Course</th>
                         <th class="py-3">Amount</th>
                         <th class="py-3">Semester</th>
                         <th class="py-3">School Year</th>
@@ -60,12 +61,23 @@
                                 {{ ucfirst($fee->type) }}
                             </span>
                         </td>
+                        <td class="py-3">
+                            @if($fee->course)
+                                <span class="badge-course">
+                                    <i class="fas fa-book me-1"></i>{{ $fee->course }}
+                                </span>
+                            @else
+                                <span class="badge-all-courses">
+                                    <i class="fas fa-globe me-1"></i> All Courses
+                                </span>
+                            @endif
+                        </td>
                         <td class="py-3 fw-semibold" style="color: #0f3c91;">₱{{ number_format($fee->amount, 2) }}</td>
                         <td class="py-3">{{ $fee->semester ?? '—' }}</td>
                         <td class="py-3">{{ $fee->school_year }}</td>
                         <td class="py-3 pe-4">
                             <div class="d-flex gap-2">
-                                <a href="{{ route('admin.fees.edit', $fee) }}" 
+                                <a href="{{ route('admin.fees.edit', $fee) }}"
                                    class="btn-action edit-fee" title="Edit fee">
                                     <i class="fas fa-pencil-alt"></i>
                                 </a>
@@ -82,7 +94,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="fas fa-coins fa-4x" style="color: #d1d5db;"></i>
                                 <h6 class="fw-semibold mt-3" style="color: #1e293b;">No fees found</h6>
@@ -123,7 +135,6 @@
 
 @push('styles')
 <style>
-    /* Fee row hover effect */
     .fee-row {
         transition: all 0.2s ease;
     }
@@ -133,7 +144,6 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
 
-    /* Action buttons (circular) */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -159,7 +169,6 @@
         color: #dc3545;
     }
 
-    /* Add button */
     .btn-add-fee {
         background: #0f3c91;
         color: white;
@@ -177,7 +186,6 @@
         color: white;
     }
 
-    /* Badge styles for fee types */
     .badge-type {
         font-weight: 600;
         padding: 0.45rem 1rem;
@@ -199,7 +207,28 @@
         color: #2e7d32;
     }
 
-    /* Empty state */
+    /* Course badges */
+    .badge-course {
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        background: rgba(139, 92, 246, 0.12);
+        color: #6d28d9;
+    }
+    .badge-all-courses {
+        font-weight: 500;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        background: rgba(100, 116, 139, 0.1);
+        color: #64748b;
+    }
+
     .empty-state {
         padding: 2rem;
     }
@@ -215,7 +244,6 @@
         margin: 0 auto;
     }
 
-    /* Table */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
@@ -227,7 +255,6 @@
         border-bottom: 2px solid #e9ecef;
     }
 
-    /* Modal buttons */
     .btn-secondary {
         background: #e9ecef;
         border: none;

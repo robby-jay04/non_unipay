@@ -57,12 +57,7 @@
                     <i class="fas fa-check"></i>
                 </button>
 
-                <!-- Reject Button -->
-                <button class="btn-action rejectPaymentBtn" title="Reject payment"
-                        data-id="{{ $payment->id }}"
-                        id="reject-btn-{{ $payment->id }}">
-                    <i class="fas fa-times"></i>
-                </button>
+              
             @endif
         </div>
     </td>

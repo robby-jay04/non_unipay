@@ -5,7 +5,6 @@
     <h2 class="fw-bold" style="color: #0f3c91;">Add New Fee</h2>
 </div>
 
-<!-- Error Alert -->
 @if ($errors->any())
 <div class="alert alert-light d-flex align-items-start shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid #dc3545; background: white;">
     <i class="fas fa-exclamation-circle me-3 mt-1" style="color: #dc3545; font-size: 1.2rem;"></i>
@@ -19,7 +18,6 @@
 </div>
 @endif
 
-<!-- Add Fee Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white border-0 py-3 px-4">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">
@@ -59,9 +57,30 @@
                     </span>
                     <select name="type" class="form-select bg-light border-0 px-3 py-2" required>
                         <option value="" disabled selected>Select Type</option>
-                        <option value="tuition" {{ old('type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
+                        <option value="tuition"       {{ old('type') == 'tuition'       ? 'selected' : '' }}>Tuition</option>
                         <option value="miscellaneous" {{ old('type') == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                        <option value="exam" {{ old('type') == 'exam' ? 'selected' : '' }}>Exam</option>
+                        <option value="exam"          {{ old('type') == 'exam'          ? 'selected' : '' }}>Exam</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Course -->
+            <div class="mb-3">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-graduation-cap me-1" style="color: #0f3c91;"></i> Course
+                    <small class="text-muted ms-1">(leave blank to apply to all courses)</small>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-book" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="course" class="form-select bg-light border-0 px-3 py-2">
+                        <option value="">-- All Courses --</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course }}" {{ old('course') == $course ? 'selected' : '' }}>
+                                {{ $course }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -116,7 +135,8 @@
                         <option value="" disabled {{ old('school_year') ? '' : 'selected' }}>-- Select School Year --</option>
                         @foreach($schoolYears as $schoolYear)
                             <option value="{{ $schoolYear->name }}"
-                                {{ old('school_year') == $schoolYear->name ? 'selected' : ( !old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '' ) }}>
+                                {{ old('school_year') == $schoolYear->name ? 'selected' :
+                                   (!old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '') }}>
                                 {{ $schoolYear->name }}
                             </option>
                         @endforeach
@@ -140,7 +160,6 @@
 
 @push('styles')
 <style>
-    /* Input group styling */
     .input-group-text {
         border-top-right-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
@@ -156,8 +175,6 @@
         border-color: #0f3c91;
         box-shadow: 0 0 0 0.2rem rgba(15, 60, 145, 0.1);
     }
-
-    /* Buttons */
     .btn-primary {
         background: #0f3c91;
         border: none;
@@ -182,8 +199,6 @@
         color: #495057;
         transform: translateY(-2px);
     }
-
-    /* Labels */
     .form-label {
         margin-bottom: 0.5rem;
         font-size: 0.9rem;

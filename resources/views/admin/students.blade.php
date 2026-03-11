@@ -12,7 +12,7 @@
     <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Students</h5>
         <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
-            <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2" 
+            <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
                    placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
             <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
                 <i class="fas fa-search me-2"></i> Search
@@ -60,7 +60,7 @@
                             @endif
                         </td>
                         <td class="py-3 pe-4">
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 align-items-center">
                                 <!-- View Button -->
                                 <button class="btn-action view-student" title="View details"
                                         data-id="{{ $student->id }}">
@@ -69,15 +69,21 @@
 
                                 @if(!$student->is_confirmed)
                                     <!-- Confirm Button -->
-                                    <form action="{{ route('admin.students.confirm', $student) }}"
-                                          method="POST"
-                                          class="d-inline"
-                                          onsubmit="return confirm('Confirm this student account?')">
-                                        @csrf
-                                        <button type="submit" class="btn-action confirm-student" title="Confirm account">
-                                            <i class="fas fa-check-circle"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            class="btn-action confirm-student trigger-confirm"
+                                            title="Confirm account"
+                                            data-action="{{ route('admin.students.confirm', $student) }}"
+                                            data-method="POST"
+                                            data-type="confirm"
+                                            data-title="Confirm Student Account"
+                                            data-message="Are you sure you want to confirm this student account?"
+                                            data-confirm-text="Yes, Confirm"
+                                            data-icon-bg="rgba(15,60,145,0.12)"
+                                            data-icon="fas fa-check-circle"
+                                            data-icon-color="#0f3c91"
+                                            data-btn-bg="#0f3c91">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
                                 @else
                                     <span class="badge-confirmed">
                                         <i class="fas fa-check-circle me-1"></i> Confirmed
@@ -85,16 +91,21 @@
                                 @endif
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('admin.students.destroy', $student) }}"
-                                      method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action delete-student" title="Delete student">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn-action delete-student trigger-confirm"
+                                        title="Delete student"
+                                        data-action="{{ route('admin.students.destroy', $student) }}"
+                                        data-method="DELETE"
+                                        data-type="delete"
+                                        data-title="Delete Student"
+                                        data-message="Are you sure you want to delete this student? This action cannot be undone."
+                                        data-confirm-text="Yes, Delete"
+                                        data-icon-bg="rgba(220,53,69,0.12)"
+                                        data-icon="fas fa-trash-alt"
+                                        data-icon-color="#a71d2a"
+                                        data-btn-bg="#a71d2a">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -122,7 +133,44 @@
     </div>
 </div>
 
-<!-- Student Details Modal (unchanged, but kept for completeness) -->
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-2" id="confirmTitle"></h5>
+                <p class="text-muted mb-0" id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn rounded-pill px-4 fw-semibold" id="confirmActionBtn"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-2" id="resultTitle"></h5>
+                <p class="text-muted mb-0" id="resultMessage"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn rounded-pill px-5 fw-semibold" id="resultOkBtn" data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
 <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -185,7 +233,6 @@
 
 @push('styles')
 <style>
-    /* Student row hover effect */
     .student-row {
         transition: all 0.2s ease;
     }
@@ -195,7 +242,6 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
 
-    /* Student avatar */
     .student-avatar {
         transition: all 0.2s;
     }
@@ -204,7 +250,6 @@
         transform: scale(1.02);
     }
 
-    /* Action buttons (circular) */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -233,7 +278,6 @@
         color: #dc3545;
     }
 
-    /* Badges */
     .badge-paid, .badge-pending, .badge-confirmed {
         font-weight: 600;
         padding: 0.45rem 1rem;
@@ -255,7 +299,6 @@
         color: #0f3c91;
     }
 
-    /* Empty state */
     .empty-state {
         padding: 2rem;
     }
@@ -271,7 +314,6 @@
         margin: 0 auto;
     }
 
-    /* Table */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
@@ -283,7 +325,6 @@
         border-bottom: 2px solid #e9ecef;
     }
 
-    /* Pagination (Bootstrap 5 styling is fine, but ensure our custom buttons don't interfere) */
     .pagination .page-link {
         border: none;
         color: #64748b;
@@ -307,7 +348,6 @@
         background: transparent;
     }
 
-    /* Search input */
     .form-control:focus {
         box-shadow: none;
         border-color: #0f3c91;
@@ -317,12 +357,133 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken  = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
+
+    // ── Modal helpers ────────────────────────────────────────────────────────
+
+    function showConfirm({ title, message, confirmText, confirmStyle, onConfirm }) {
+        document.getElementById('confirmTitle').textContent   = title;
+        document.getElementById('confirmMessage').textContent = message;
+
+        const iconWrap = document.getElementById('confirmIconWrap');
+        iconWrap.style.background = confirmStyle.iconBg;
+        iconWrap.innerHTML        = `<i class="${confirmStyle.icon}" style="font-size:1.6rem;color:${confirmStyle.iconColor};"></i>`;
+
+        const oldBtn   = document.getElementById('confirmActionBtn');
+        const freshBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(freshBtn, oldBtn);
+        freshBtn.textContent      = confirmText;
+        freshBtn.style.background = confirmStyle.btnBg;
+        freshBtn.style.color      = 'white';
+
+        freshBtn.addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+            onConfirm();
+        });
+
+        new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+    }
+
+    function showResult({ type, title, message, onOk }) {
+        const palettes = {
+            success: { iconBg: 'rgba(76,175,80,0.12)',  icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
+            error:   { iconBg: 'rgba(220,53,69,0.12)',  icon: 'fas fa-times-circle', iconColor: '#a71d2a' },
+            info:    { iconBg: 'rgba(15,60,145,0.12)',  icon: 'fas fa-info-circle',  iconColor: '#0f3c91' },
+        };
+        const p = palettes[type] || palettes.info;
+
+        document.getElementById('resultTitle').textContent   = title;
+        document.getElementById('resultMessage').textContent = message;
+
+        const iconWrap = document.getElementById('resultIconWrap');
+        iconWrap.style.background = p.iconBg;
+        iconWrap.innerHTML        = `<i class="${p.icon}" style="font-size:1.6rem;color:${p.iconColor};"></i>`;
+
+        const oldOkBtn   = document.getElementById('resultOkBtn');
+        const freshOkBtn = oldOkBtn.cloneNode(true);
+        oldOkBtn.parentNode.replaceChild(freshOkBtn, oldOkBtn);
+        if (onOk) freshOkBtn.addEventListener('click', onOk);
+
+        new bootstrap.Modal(document.getElementById('resultModal')).show();
+    }
+
+    // ── AJAX submission helper ───────────────────────────────────────────────
+
+    async function submitFormAjax(action, method) {
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        if (method === 'DELETE') formData.append('_method', 'DELETE');
+        return await fetch(action, { method: 'POST', body: formData });
+    }
+
+    // ── Action button handlers ───────────────────────────────────────────────
+
+    function attachActionHandlers() {
+        document.querySelectorAll('.trigger-confirm').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const action      = this.dataset.action;
+                const method      = this.dataset.method;
+                const type        = this.dataset.type;
+                const title       = this.dataset.title;
+                const message     = this.dataset.message;
+                const confirmText = this.dataset.confirmText;
+                const iconBg      = this.dataset.iconBg;
+                const icon        = this.dataset.icon;
+                const iconColor   = this.dataset.iconColor;
+                const btnBg       = this.dataset.btnBg;
+                const row         = this.closest('tr');
+
+                showConfirm({
+                    title,
+                    message,
+                    confirmText,
+                    confirmStyle: { iconBg, icon, iconColor, btnBg },
+                    onConfirm: async () => {
+                        try {
+                            const res = await submitFormAjax(action, method);
+                            if (res.ok) {
+                                if (type === 'delete') {
+                                    row?.remove();
+                                    showResult({
+                                        type:    'success',
+                                        title:   'Student Deleted',
+                                        message: 'The student account has been permanently removed.',
+                                    });
+                                } else {
+                                    showResult({
+                                        type:    'success',
+                                        title:   'Account Confirmed',
+                                        message: 'The student account has been confirmed successfully.',
+                                        onOk:    () => window.location.reload(),
+                                    });
+                                }
+                            } else {
+                                showResult({
+                                    type:    'error',
+                                    title:   'Action Failed',
+                                    message: 'Something went wrong. Please try again.',
+                                });
+                            }
+                        } catch {
+                            showResult({
+                                type:    'error',
+                                title:   'Error',
+                                message: 'An unexpected error occurred. Please try again.',
+                            });
+                        }
+                    },
+                });
+            });
+        });
+    }
+
+    // ── View student handler ─────────────────────────────────────────────────
 
     function attachViewHandlers() {
         document.querySelectorAll('.view-student').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const studentId = this.dataset.id;
                 fetch(`/admin/students/${studentId}/json`)
                     .then(res => res.json())
@@ -334,27 +495,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('modalStudentCourse').textContent  = data.course;
                         document.getElementById('modalStudentYear').textContent    = `Year ${data.year_level}`;
 
-                        // Profile picture
-                        const avatar = document.getElementById('modalStudentAvatar');
+                        const avatar   = document.getElementById('modalStudentAvatar');
                         const fallback = document.getElementById('modalStudentAvatarFallback');
                         if (data.profile_picture) {
-                            avatar.src = data.profile_picture;
-                            avatar.style.display = 'block';
+                            avatar.src             = data.profile_picture;
+                            avatar.style.display   = 'block';
                             fallback.style.display = 'none';
                         } else {
-                            avatar.style.display = 'none';
+                            avatar.style.display   = 'none';
                             fallback.style.display = 'flex';
                         }
 
-                        // Account confirmed badge
-                        const confirmed = document.getElementById('modalStudentConfirmed');
-                        confirmed.innerHTML = data.is_confirmed
+                        document.getElementById('modalStudentConfirmed').innerHTML = data.is_confirmed
                             ? '<span style="background:rgba(15,60,145,0.1);color:#0f3c91;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-check-circle me-1"></i>Confirmed</span>'
                             : '<span style="background:rgba(244,180,20,0.15);color:#b26a00;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-clock me-1"></i>Pending Approval</span>';
 
-                        // Clearance badge
-                        const status = document.getElementById('modalStudentStatus');
-                        status.innerHTML = data.clearance_status === 'cleared'
+                        document.getElementById('modalStudentStatus').innerHTML = data.clearance_status === 'cleared'
                             ? '<span style="background:rgba(76,175,80,0.15);color:#2e7d32;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-shield-alt me-1"></i>Cleared</span>'
                             : '<span style="background:rgba(220,53,69,0.15);color:#a71d2a;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-times-circle me-1"></i>Not Cleared</span>';
 
@@ -365,58 +521,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── AJAX load students ───────────────────────────────────────────────────
+
     function loadStudents(url) {
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(res => res.text())
             .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newTbody = doc.getElementById('students-table-body');
+                const doc           = new DOMParser().parseFromString(html, 'text/html');
+                const newTbody      = doc.getElementById('students-table-body');
                 const newPagination = doc.getElementById('students-pagination');
-                if (newTbody) document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
+                if (newTbody)      document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
                 if (newPagination) document.getElementById('students-pagination').innerHTML = newPagination.innerHTML;
                 attachViewHandlers();
+                attachActionHandlers();
             })
             .catch(err => console.error(err));
     }
 
+    // ── Init ─────────────────────────────────────────────────────────────────
+
     attachViewHandlers();
+    attachActionHandlers();
 
     // Poll for new unconfirmed students
     let lastUnconfirmedCount = null;
-
     function pollForNewStudents() {
         fetch('/admin/api/new-students-count')
             .then(res => res.json())
             .then(data => {
-                if (lastUnconfirmedCount === null) {
-                    lastUnconfirmedCount = data.count;
-                } else if (data.count > lastUnconfirmedCount) {
-                    lastUnconfirmedCount = data.count;
+                if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
                     loadStudents(window.location.href);
-                } else {
-                    lastUnconfirmedCount = data.count;
                 }
+                lastUnconfirmedCount = data.count;
             })
             .catch(err => console.error('Poll error:', err));
     }
-
     setInterval(pollForNewStudents, 5000);
     pollForNewStudents();
 
     // Search
-    const searchForm = document.getElementById('searchForm');
-    searchForm.addEventListener('submit', function(e) {
+    document.getElementById('searchForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const search = new FormData(searchForm).get('search');
         const url = new URL(window.location.href);
-        url.searchParams.set('search', search);
+        url.searchParams.set('search', new FormData(this).get('search'));
         url.searchParams.delete('page');
         loadStudents(url.toString());
     });
 
     // Pagination
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const link = e.target.closest('.pagination a');
         if (link && !link.classList.contains('disabled')) {
             e.preventDefault();

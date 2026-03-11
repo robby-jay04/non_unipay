@@ -59,9 +59,30 @@
                         <i class="fas fa-list" style="color: #0f3c91;"></i>
                     </span>
                     <select name="type" class="form-select bg-light border-0 px-3 py-2" required>
-                        <option value="tuition" {{ old('type', $fee->type) == 'tuition' ? 'selected' : '' }}>Tuition</option>
+                        <option value="tuition"       {{ old('type', $fee->type) == 'tuition'       ? 'selected' : '' }}>Tuition</option>
                         <option value="miscellaneous" {{ old('type', $fee->type) == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                        <option value="exam" {{ old('type', $fee->type) == 'exam' ? 'selected' : '' }}>Exam</option>
+                        <option value="exam"          {{ old('type', $fee->type) == 'exam'          ? 'selected' : '' }}>Exam</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Course -->
+            <div class="mb-3">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-graduation-cap me-1" style="color: #0f3c91;"></i> Course
+                    <small class="text-muted ms-1">(leave blank to apply to all courses)</small>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-book" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="course" class="form-select bg-light border-0 px-3 py-2">
+                        <option value="" {{ old('course', $fee->course) == '' ? 'selected' : '' }}>-- All Courses --</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course }}" {{ old('course', $fee->course) == $course ? 'selected' : '' }}>
+                                {{ $course }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -140,7 +161,6 @@
 
 @push('styles')
 <style>
-    /* Input group styling */
     .input-group-text {
         border-top-right-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
@@ -156,8 +176,6 @@
         border-color: #0f3c91;
         box-shadow: 0 0 0 0.2rem rgba(15, 60, 145, 0.1);
     }
-
-    /* Buttons */
     .btn-primary {
         background: #0f3c91;
         border: none;
@@ -182,8 +200,6 @@
         color: #495057;
         transform: translateY(-2px);
     }
-
-    /* Labels */
     .form-label {
         margin-bottom: 0.5rem;
         font-size: 0.9rem;

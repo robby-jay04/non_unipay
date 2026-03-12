@@ -123,26 +123,26 @@
             </div>
 
             <!-- School Year -->
-            <div class="mb-4">
-                <label class="form-label fw-medium text-secondary">
-                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
-                        <i class="fas fa-calendar" style="color: #0f3c91;"></i>
-                    </span>
-                    <select name="school_year" class="form-select bg-light border-0 px-3 py-2" required>
-                        <option value="" disabled {{ old('school_year') ? '' : 'selected' }}>-- Select School Year --</option>
-                        @foreach($schoolYears as $schoolYear)
-                            <option value="{{ $schoolYear->name }}"
-                                {{ old('school_year') == $schoolYear->name ? 'selected' :
-                                   (!old('school_year') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '') }}>
-                                {{ $schoolYear->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+<div class="mb-4">
+    <label class="form-label fw-medium text-secondary">
+        <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
+    </label>
+    <div class="input-group">
+        <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+            <i class="fas fa-calendar" style="color: #0f3c91;"></i>
+        </span>
+        <select name="school_year_id" class="form-select bg-light border-0 px-3 py-2" required>
+            <option value="" disabled {{ old('school_year_id') ? '' : 'selected' }}>-- Select School Year --</option>
+            @foreach($schoolYears as $schoolYear)
+                <option value="{{ $schoolYear->id }}"
+                    {{ old('school_year_id') == $schoolYear->id ? 'selected' :
+                       (!old('school_year_id') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '') }}>
+                    {{ $schoolYear->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+</div>
 
             <!-- Buttons -->
             <div class="d-flex gap-3">

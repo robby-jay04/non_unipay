@@ -52,53 +52,53 @@ class Student extends Model
 
 public function getClearanceStatus()
 {
-    // Get current semester and school year by is_current flag
     $currentSemester = \App\Models\Semester::where('is_current', true)->first();
     $currentSchoolYear = \App\Models\SchoolYear::where('is_current', true)->first();
 
-    // If no active semester/school year is set, always return pending
     if (!$currentSemester || !$currentSchoolYear) {
         return [
-            'status'    => 'pending',
+            'status'     => 'pending',
             'total_paid' => 0,
-            'required'  => 0,
-            'remaining' => 0,
+            'required'   => 0,
+            'remaining'  => 0,
         ];
     }
 
-    // Query fees using IDs, not string fields
-    $requiredAmount = \App\Models\Fee::where('school_year_id', $currentSchoolYear->id)
+    // Get only fees applicable to this student's course OR all courses (NULL)
+    $applicableFees = \App\Models\Fee::where('school_year_id', $currentSchoolYear->id)
         ->where('semester_id', $currentSemester->id)
-        ->sum('amount');
-
-    // If no fees exist yet for this semester, never show as cleared
-    if ($requiredAmount <= 0) {
-        return [
-            'status'    => 'pending',
-            'total_paid' => 0,
-            'required'  => 0,
-            'remaining' => 0,
-        ];
-    }
-
-    // Get payments for fees in the current period only
-    $fees = \App\Models\Fee::where('school_year_id', $currentSchoolYear->id)
-        ->where('semester_id', $currentSemester->id)
+        ->where(function ($query) {
+            $query->where('course', $this->course)
+                  ->orWhereNull('course');
+        })
         ->get();
 
+    $requiredAmount = $applicableFees->sum('amount');
+
+    if ($requiredAmount <= 0) {
+        return [
+            'status'     => 'pending',
+            'total_paid' => 0,
+            'required'   => 0,
+            'remaining'  => 0,
+        ];
+    }
+
     $totalPaid = 0;
-    foreach ($fees as $fee) {
+    foreach ($applicableFees as $fee) {
         $totalPaid += $fee->payments()
             ->where('student_id', $this->id)
             ->where('status', 'paid')
             ->sum('payments.total_amount');
     }
 
+    $remaining = max($requiredAmount - $totalPaid, 0);
+
     return [
-        'status'    => $totalPaid >= $requiredAmount ? 'cleared' : 'pending',
+        'status'     => $totalPaid >= $requiredAmount ? 'cleared' : 'pending',
         'total_paid' => $totalPaid,
-        'required'  => $requiredAmount,
-        'remaining' => max($requiredAmount - $totalPaid, 0),
+        'required'   => $requiredAmount,
+        'remaining'  => $remaining,
     ];
 }
 

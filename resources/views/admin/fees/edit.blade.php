@@ -5,7 +5,6 @@
     <h2 class="fw-bold" style="color: #0f3c91;">Edit Fee</h2>
 </div>
 
-<!-- Error Alert -->
 @if ($errors->any())
 <div class="alert alert-light d-flex align-items-start shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid #dc3545; background: white;">
     <i class="fas fa-exclamation-circle me-3 mt-1" style="color: #dc3545; font-size: 1.2rem;"></i>
@@ -19,7 +18,6 @@
 </div>
 @endif
 
-<!-- Edit Fee Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white border-0 py-3 px-4">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">
@@ -107,25 +105,8 @@
                 </div>
             </div>
 
-            <!-- Semester -->
-            <div class="mb-3">
-                <label class="form-label fw-medium text-secondary">
-                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> Semester
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
-                        <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
-                    </span>
-                    <select name="semester" class="form-select bg-light border-0 px-3 py-2" required>
-                        <option value="" disabled>-- Select Semester --</option>
-                        <option value="1st Semester" {{ old('semester', $fee->semester) == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
-                        <option value="2nd Semester" {{ old('semester', $fee->semester) == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
-                    </select>
-                </div>
-            </div>
-
             <!-- School Year -->
-            <div class="mb-4">
+            <div class="mb-3">
                 <label class="form-label fw-medium text-secondary">
                     <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
                 </label>
@@ -133,12 +114,34 @@
                     <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
                         <i class="fas fa-calendar" style="color: #0f3c91;"></i>
                     </span>
-                    <select name="school_year" class="form-select bg-light border-0 px-3 py-2" required>
+                    <select name="school_year_id" id="school_year_id" class="form-select bg-light border-0 px-3 py-2" required>
                         <option value="" disabled>-- Select School Year --</option>
                         @foreach($schoolYears as $schoolYear)
-                            <option value="{{ $schoolYear->name }}"
-                                {{ old('school_year', $fee->school_year) == $schoolYear->name ? 'selected' : '' }}>
+                            <option value="{{ $schoolYear->id }}"
+                                {{ old('school_year_id', $fee->school_year_id) == $schoolYear->id ? 'selected' : '' }}>
                                 {{ $schoolYear->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Semester — dynamically loaded based on school year -->
+            <div class="mb-4">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> Semester
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="semester_id" id="semester_id" class="form-select bg-light border-0 px-3 py-2" required>
+                        <option value="" disabled>-- Select Semester --</option>
+                        {{-- Pre-populate with current fee's school year semesters --}}
+                        @foreach($semesters as $semester)
+                            <option value="{{ $semester->id }}"
+                                {{ old('semester_id', $fee->semester_id) == $semester->id ? 'selected' : '' }}>
+                                {{ $semester->name }}
                             </option>
                         @endforeach
                     </select>
@@ -205,4 +208,41 @@
         font-size: 0.9rem;
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const schoolYearSelect  = document.getElementById('school_year_id');
+    const semesterSelect    = document.getElementById('semester_id');
+    const currentSemesterId = semesterSelect.dataset.current || null;
+
+    schoolYearSelect.addEventListener('change', function () {
+        const schoolYearId = this.value;
+        if (!schoolYearId) return;
+
+        semesterSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+        fetch(`/admin/api/semesters/${schoolYearId}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch');
+                return res.json();
+            })
+            .then(data => {
+                semesterSelect.innerHTML = '<option value="" disabled>-- Select Semester --</option>';
+                data.forEach(sem => {
+                    const selected = currentSemesterId && sem.id == currentSemesterId ? 'selected' : '';
+                    semesterSelect.innerHTML += `<option value="${sem.id}" ${selected}>${sem.name}</option>`;
+                });
+
+                if (data.length === 1) {
+                    semesterSelect.value = data[0].id;
+                }
+            })
+            .catch(() => {
+                semesterSelect.innerHTML = '<option value="" disabled>Failed to load semesters</option>';
+            });
+    });
+});
+</script>
 @endpush

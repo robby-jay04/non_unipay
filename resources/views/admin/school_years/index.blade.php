@@ -12,7 +12,13 @@
 </div>
 @endif
 
-{{-- ✅ Current School Year & Semester Banner --}}
+@if(session('error'))
+<div class="alert alert-light d-flex align-items-center shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid #dc3545; background: white;">
+    <i class="fas fa-exclamation-circle me-2" style="color: #dc3545;"></i>
+    {{ session('error') }}
+</div>
+@endif
+
 @php
     $currentYear     = $years->firstWhere('is_current', true);
     $currentSemester = $currentYear?->semesters->firstWhere('is_current', true);
@@ -108,11 +114,20 @@
                                         </button>
                                     </form>
                                 @endif
+
                                 <button type="button" class="btn-action set-semester" title="Set semester"
                                         data-bs-toggle="modal" data-bs-target="#semesterModal"
                                         data-year-id="{{ $year->id }}" data-year-name="{{ $year->name }}">
                                     <i class="fas fa-calendar-alt"></i>
                                 </button>
+
+                                @if(!$year->is_current)
+                                    <button type="button" class="btn-action delete-year" title="Delete school year"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            data-year-id="{{ $year->id }}" data-year-name="{{ $year->name }}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -133,7 +148,7 @@
     </div>
 </div>
 
-<!-- Semester Modal (updated to match other modals) -->
+<!-- Semester Modal -->
 <div class="modal fade" id="semesterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -161,11 +176,39 @@
         </div>
     </div>
 </div>
+
+<!-- ✅ Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fas fa-trash-alt me-2"></i> Delete School Year</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #dc3545;"></i>
+                <p class="mb-1">Are you sure you want to delete</p>
+                <p class="fw-bold fs-5 mb-1" id="deleteYearName"></p>
+                <p class="text-muted small">This will also delete all associated semesters and fees.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-3">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">
+                        <i class="fas fa-trash-alt me-2"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('styles')
 <style>
-    /* School year row hover */
     .school-year-row {
         transition: all 0.2s ease;
     }
@@ -174,8 +217,6 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
-
-    /* Action buttons (circular) */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -203,8 +244,10 @@
         background: rgba(15,60,145,0.1);
         color: #0f3c91;
     }
-
-    /* Submit button (Add School Year) */
+    .btn-action.delete-year:hover {
+        background: rgba(220,53,69,0.1);
+        color: #dc3545;
+    }
     .btn-action-submit {
         background: #0f3c91;
         color: white;
@@ -217,8 +260,6 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(15,60,145,0.2);
     }
-
-    /* Current badge */
     .badge-current {
         background: rgba(40, 167, 69, 0.15);
         color: #28a745;
@@ -229,80 +270,50 @@
         align-items: center;
         font-size: 0.85rem;
     }
-
-    /* Empty state */
-    .empty-state {
-        padding: 2rem;
-    }
-    .empty-state i {
-        opacity: 0.7;
-    }
-    .empty-state h6 {
-        font-size: 1.1rem;
-    }
-    .empty-state p {
-        font-size: 0.9rem;
-        max-width: 300px;
-        margin: 0 auto;
-    }
-
-    /* Table */
-    .table td {
-        border-bottom: 1px solid #f0f2f5;
-        color: #334155;
-        vertical-align: middle;
-    }
-    .table th {
-        font-weight: 600;
-        color: #475569;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-    /* Form elements */
-    .form-control:focus, .form-select:focus {
-        box-shadow: none;
-        border-color: #0f3c91;
-    }
-
-    /* Modal buttons (reuse from other pages) */
-    .btn-primary {
-        background: #0f3c91;
-        border: none;
-        padding: 0.6rem 1.5rem;
-        border-radius: 30px;
-        font-weight: 500;
-    }
-    .btn-primary:hover {
-        background: #1a4da8;
-    }
-    .btn-secondary {
-        background: #e9ecef;
-        border: none;
-        color: #495057;
-        padding: 0.6rem 1.5rem;
-        border-radius: 30px;
-        font-weight: 500;
-    }
-    .btn-secondary:hover {
-        background: #d3d8de;
-    }
+    .empty-state { padding: 2rem; }
+    .empty-state i { opacity: 0.7; }
+    .empty-state h6 { font-size: 1.1rem; }
+    .empty-state p { font-size: 0.9rem; max-width: 300px; margin: 0 auto; }
+    .table td { border-bottom: 1px solid #f0f2f5; color: #334155; vertical-align: middle; }
+    .table th { font-weight: 600; color: #475569; border-bottom: 2px solid #e9ecef; }
+    .form-control:focus, .form-select:focus { box-shadow: none; border-color: #0f3c91; }
+    .btn-primary { background: #0f3c91; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
+    .btn-primary:hover { background: #1a4da8; }
+    .btn-secondary { background: #e9ecef; border: none; color: #495057; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
+    .btn-secondary:hover { background: #d3d8de; }
+    .btn-danger { background: #dc3545; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
+    .btn-danger:hover { background: #c82333; }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Semester modal — fix stale URL on repeated opens
     const semesterModal = document.getElementById('semesterModal');
     if (semesterModal) {
-        semesterModal.addEventListener('show.bs.modal', function(event) {
+        const semesterForm = document.getElementById('semesterForm');
+        const baseAction = semesterForm.action;
+        semesterModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
-            const yearId = button.getAttribute('data-year-id');
-            const yearName = button.getAttribute('data-year-name');
-            const form = document.getElementById('semesterForm');
-            form.action = form.action.replace(':yearId', yearId);
-            document.getElementById('yearName').textContent = yearName;
+            semesterForm.action = baseAction.replace(':yearId', button.getAttribute('data-year-id'));
+            document.getElementById('yearName').textContent = button.getAttribute('data-year-name');
         });
     }
+
+    // Delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const yearId   = button.getAttribute('data-year-id');
+            const yearName = button.getAttribute('data-year-name');
+            document.getElementById('deleteYearName').textContent = yearName;
+            document.getElementById('deleteForm').action = `/admin/school-years/${yearId}`;
+        });
+    }
+
 });
 </script>
 @endpush

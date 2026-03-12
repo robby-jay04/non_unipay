@@ -64,14 +64,18 @@ class FeeController extends Controller
                          ->with('success', 'Fee created successfully!');
     }
 
-    public function create()
-    {
-        $schoolYears        = SchoolYear::orderBy('name', 'desc')->get();
-        $currentSchoolYear  = SchoolYear::where('is_current', true)->first();
-        $courses            = self::COURSES;
+   public function create()
+{
+    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $semesters         = Semester::all();                                    // ✅ add
+    $currentSemester   = Semester::where('is_current', true)->first();      // ✅ add
+    $courses           = self::COURSES;
 
-        return view('admin.fees.create', compact('schoolYears', 'currentSchoolYear', 'courses'));
-    }
+    return view('admin.fees.create', compact(
+        'schoolYears', 'currentSchoolYear', 'semesters', 'currentSemester', 'courses'
+    ));
+}
 
     public function adminIndex()
     {
@@ -82,63 +86,77 @@ class FeeController extends Controller
     }
 
     public function storeWeb(Request $request)
-    {
-        $validated = $request->validate([
-            'name'   => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'type'   => 'required|in:tuition,miscellaneous,exam',
-            'course' => 'nullable|string',
-        ]);
+{
+    $validated = $request->validate([
+        'name'           => 'required|string|max:255',
+        'amount'         => 'required|numeric|min:0',
+        'type'           => 'required|in:tuition,miscellaneous,exam',
+        'course'         => 'nullable|string',
+        'semester_id'    => 'nullable|exists:semesters,id',
+        'semester'       => 'nullable|string', // ✅ accept name string as fallback
+        'school_year_id' => 'required|exists:school_years,id',
+    ]);
 
-        $currentSemester   = Semester::where('is_current', true)->first();
-        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $schoolYear = SchoolYear::find($validated['school_year_id']);
 
-        Fee::create([
-            'name'           => $validated['name'],
-            'amount'         => $validated['amount'],
-            'type'           => $validated['type'],
-            'course'         => $validated['course'] ?? null,
-            'school_year'    => $currentSchoolYear->name,
-            'semester'       => $currentSemester->name,
-            'semester_id'    => $currentSemester->id,
-            'school_year_id' => $currentSchoolYear->id,
-        ]);
-
-        return redirect()->route('admin.fees.index')
-                         ->with('success', 'Fee created successfully.');
+    // ✅ Resolve semester — try ID first, fallback to name string
+    $semester = null;
+    if (!empty($validated['semester_id'])) {
+        $semester = Semester::find($validated['semester_id']);
+    } elseif (!empty($validated['semester'])) {
+        $semester = Semester::where('name', $validated['semester'])
+                            ->whereHas('schoolYear', fn($q) => $q->where('id', $schoolYear->id))
+                            ->first();
     }
 
+    Fee::create([
+        'name'           => $validated['name'],
+        'amount'         => $validated['amount'],
+        'type'           => $validated['type'],
+        'course'         => $validated['course'] ?? null,
+        'school_year'    => $schoolYear->name,
+        'semester'       => $semester?->name,
+        'semester_id'    => $semester?->id,
+        'school_year_id' => $schoolYear->id,
+    ]);
+
+    return redirect()->route('admin.fees.index')
+                     ->with('success', 'Fee created successfully.');
+}
+
+    // ✅ Fixed: pass semesters to view
     public function edit(Fee $fee)
-    {
-        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-        $courses           = self::COURSES;
+{
+    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+    $semesters         = Semester::where('school_year_id', $fee->school_year_id)->get(); // ✅ only for this fee's school year
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $courses           = self::COURSES;
 
-        return view('admin.fees.edit', compact('fee', 'schoolYears', 'currentSchoolYear', 'courses'));
-    }
-
+    return view('admin.fees.edit', compact('fee', 'schoolYears', 'semesters', 'currentSchoolYear', 'courses'));
+}
+    // ✅ Fixed: lookup by ID not by name string
     public function updateWeb(Request $request, Fee $fee)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'amount'      => 'required|numeric|min:0',
-            'type'        => 'required|in:tuition,miscellaneous,exam',
-            'semester'    => 'nullable|string',
-            'school_year' => 'required|string',
-            'course'      => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'amount'         => 'required|numeric|min:0',
+            'type'           => 'required|in:tuition,miscellaneous,exam',
+            'semester_id'    => 'nullable|exists:semesters,id',
+            'school_year_id' => 'required|exists:school_years,id',
+            'course'         => 'nullable|string',
         ]);
 
-        $semester   = Semester::where('name', $validated['semester'])->first();
-        $schoolYear = SchoolYear::where('name', $validated['school_year'])->first();
+        $semester   = Semester::find($validated['semester_id']);
+        $schoolYear = SchoolYear::find($validated['school_year_id']);
 
         $fee->update([
             'name'           => $validated['name'],
             'amount'         => $validated['amount'],
             'type'           => $validated['type'],
-            'semester'       => $validated['semester'],
-            'school_year'    => $validated['school_year'],
+            'semester'       => $semester?->name,
+            'school_year'    => $schoolYear->name,
             'semester_id'    => $semester?->id,
-            'school_year_id' => $schoolYear?->id,
+            'school_year_id' => $schoolYear->id,
             'course'         => $validated['course'] ?? null,
         ]);
 
@@ -194,12 +212,11 @@ class FeeController extends Controller
             ], 404);
         }
 
-        // Filter fees by course as well
         $fees = Fee::where('school_year_id', $currentSchoolYear->id)
                    ->where('semester_id', $currentSemester->id)
                    ->where(function ($q) use ($student) {
                        $q->where('course', $student->course)
-                         ->orWhereNull('course'); // fees with no course = apply to all
+                         ->orWhereNull('course');
                    })
                    ->get();
 

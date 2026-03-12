@@ -37,42 +37,60 @@ public function show(Request $request)
         return response()->json(['message' => 'Student not found'], 404);
     }
 
-    $currentSemester = Semester::where('is_current', true)->first();
+    $currentSemester   = Semester::where('is_current', true)->first();
     $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
     if (!$currentSemester || !$currentSchoolYear) {
         return response()->json([
-            'status' => 'pending',
-            'message' => 'No active semester or school year set.',
+            'status'      => 'no_fees',
+            'message'     => 'No active semester or school year set.',
             'exam_period' => null,
+            'total_fees'  => 0,
+            'total_paid'  => 0,
+            'remaining'   => 0,
         ]);
     }
 
-    // Get total fees for current period using IDs
-    $totalFees = Fee::where('school_year_id', $currentSchoolYear->id)
-                    ->where('semester_id', $currentSemester->id)
-                    ->sum('amount');
+    // ✅ Only get fees for this student's course OR fees that apply to all (NULL course)
+    $applicableFees = Fee::where('school_year_id', $currentSchoolYear->id)
+        ->where('semester_id', $currentSemester->id)
+        ->where(function ($query) use ($student) {
+            $query->where('course', $student->course)
+                  ->orWhereNull('course');
+        })
+        ->get();
 
-    // Get total paid by this student for fees in the current period
-    // This assumes a many-to-many relationship with a pivot table 'fee_payment'
-    $paidFees = Fee::where('school_year_id', $currentSchoolYear->id)
-                   ->where('semester_id', $currentSemester->id)
-                   ->get();
+    $totalFees = $applicableFees->sum('amount');
 
+    // No fees configured for this student's course in current period
+    if ($totalFees <= 0) {
+        return response()->json([
+            'status'      => 'no_fees',
+            'message'     => 'No fees assigned for this period.',
+            'exam_period' => $currentSemester->name,
+            'total_fees'  => 0,
+            'total_paid'  => 0,
+            'remaining'   => 0,
+        ]);
+    }
+
+    // ✅ Sum payments made by this student for applicable fees only
     $totalPaid = 0;
-    foreach ($paidFees as $fee) {
-        $paidForFee = $fee->payments()
+    foreach ($applicableFees as $fee) {
+        $totalPaid += $fee->payments()
             ->where('student_id', $student->id)
             ->where('status', 'paid')
             ->sum('payments.total_amount');
-        $totalPaid += $paidForFee;
     }
 
-    $isCleared = ($totalPaid >= $totalFees);
+    $isCleared = $totalPaid >= $totalFees;
 
     return response()->json([
-        'status' => $isCleared ? 'cleared' : 'pending',
+        'status'      => $isCleared ? 'cleared' : 'pending',
         'exam_period' => $currentSemester->name,
+        'total_fees'  => $totalFees,
+        'total_paid'  => $totalPaid,
+        'remaining'   => max($totalFees - $totalPaid, 0),
     ]);
 }
    public function updateClearance($studentId)

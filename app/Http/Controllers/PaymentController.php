@@ -76,28 +76,56 @@ class PaymentController extends Controller
         'fee_ids'        => $request->fee_ids,
     ]);
 
-    // ✅ Only block if BOTH IDs are known and a PAID record exists
-    if ($semesterId && $schoolYearId) {
-        $existingPaid = Payment::where('student_id', $student->id)
-            ->where('semester_id', $semesterId)
-            ->where('school_year_id', $schoolYearId)
-            ->where('status', 'paid')
-            ->exists();
+    
+    // ✅ Only block if BOTH IDs are known
+if ($semesterId && $schoolYearId) {
 
-        if ($existingPaid) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already paid for this semester.',
-            ], 400);
-        }
+    // Sum of ALL fees for this semester
+    $semesterTotal = Fee::where('semester_id', $semesterId)
+        ->where('school_year_id', $schoolYearId)
+        ->sum('amount');
 
-        // ✅ Cancel only active pending/processing for same semester
-        Payment::where('student_id', $student->id)
-            ->where('semester_id', $semesterId)
-            ->where('school_year_id', $schoolYearId)
-            ->whereIn('status', ['pending', 'processing'])
-            ->update(['status' => 'cancelled']);
+    // Total already paid by this student for this semester
+    $totalPaid = Payment::where('student_id', $student->id)
+        ->where('semester_id', $semesterId)
+        ->where('school_year_id', $schoolYearId)
+        ->where('status', 'paid')
+        ->sum('total_amount');
+
+    $remainingBalance = $semesterTotal - $totalPaid;
+
+    Log::info('Payment balance check', [
+        'semester_total'    => $semesterTotal,
+        'total_paid'        => $totalPaid,
+        'remaining_balance' => $remainingBalance,
+        'requested_amount'  => $amountPesos,
+    ]);
+
+    // Block only if fully paid
+    if ($remainingBalance <= 0) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You have already fully paid for this semester.',
+        ], 400);
     }
+
+    // Block overpayment
+    if ($amountPesos > $remainingBalance + 0.01) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment of ₱' . number_format($amountPesos, 2) .
+                         ' exceeds your remaining balance of ₱' . number_format($remainingBalance, 2) . '.',
+        ], 400);
+    }
+
+    // Cancel only stale pending/processing payments (older than 30 mins)
+    Payment::where('student_id', $student->id)
+        ->where('semester_id', $semesterId)
+        ->where('school_year_id', $schoolYearId)
+        ->whereIn('status', ['pending', 'processing'])
+        ->where('created_at', '<', now()->subMinutes(30))
+        ->update(['status' => 'cancelled']);
+}
 
     $payment = Payment::create([
         'student_id'     => $student->id,

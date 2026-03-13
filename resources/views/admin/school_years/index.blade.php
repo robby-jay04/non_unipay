@@ -148,6 +148,31 @@
     </div>
 </div>
 
+<!-- Current Exam Period Card (NEW) -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-0 py-3 px-4">
+        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Current Exam Period</h5>
+    </div>
+    <div class="card-body p-4">
+        @if($currentSemester)
+            @php
+                $currentExamPeriod = $currentSemester->examPeriods()->where('is_current', true)->first();
+            @endphp
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <p class="mb-1 text-muted">For {{ $currentSemester->name }} ({{ $currentYear->name }})</p>
+                    <h4 class="fw-bold mb-0">{{ $currentExamPeriod->name ?? 'Not set' }}</h4>
+                </div>
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#examPeriodModal">
+                    <i class="fas fa-edit me-2"></i> Set Exam Period
+                </button>
+            </div>
+        @else
+            <p class="text-muted mb-0">No active semester to set exam period.</p>
+        @endif
+    </div>
+</div>
+
 <!-- Semester Modal -->
 <div class="modal fade" id="semesterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -177,7 +202,41 @@
     </div>
 </div>
 
-<!-- ✅ Delete Confirmation Modal -->
+<!-- Exam Period Modal (NEW) -->
+<div class="modal fade" id="examPeriodModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fas fa-calendar-alt me-2"></i> Set Current Exam Period</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ route('admin.exam-periods.setCurrent') }}" id="examPeriodForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Select Exam Period</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach(['Prelim', 'Midterm', 'Semi-Final', 'Finals'] as $period)
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exam_period" id="period{{ $loop->index }}" value="{{ $period }}" required>
+                                <label class="form-check-label" for="period{{ $loop->index }}">
+                                    {{ $period }}
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Update Exam Period</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -314,6 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // (Optional) Exam period modal – no dynamic URL needed
 });
 </script>
 @endpush

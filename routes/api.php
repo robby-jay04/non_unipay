@@ -10,7 +10,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\NotificationController; // <-- ADD THIS
-
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ExamPeriodController;
 // Public Routes
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -50,6 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{id}', [FeeController::class, 'destroy']);
         });
     });
+
+    // Exam Period
+Route::get('/current-exam-period', [App\Http\Controllers\Admin\ExamPeriodController::class, 'current']);
+
 
     // Payment Routes
     Route::prefix('payments')->group(function () {

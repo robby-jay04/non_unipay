@@ -19,4 +19,8 @@ class Semester extends Model
     {
         return $this->belongsTo(SchoolYear::class);
     }
+   public function examPeriods()
+{
+    return $this->hasMany(ExamPeriod::class);
+}
 }

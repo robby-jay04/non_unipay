@@ -42,6 +42,7 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping
             'Student Name',
             'Student No',
             'Amount',
+                'Payment Method',
             'Status',
             'Reference No',
             'Payment Date',
@@ -49,17 +50,18 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
-    public function map($payment): array
-    {
-        return [
-            $payment->id,
-            $payment->student->user->name,
-            $payment->student->student_no,
-            $payment->total_amount,
-            ucfirst($payment->status),
-            $payment->transaction->reference_no ?? 'N/A',
-            $payment->payment_date ? $payment->payment_date->format('Y-m-d H:i:s') : 'N/A',
-            $payment->created_at->format('Y-m-d H:i:s'),
-        ];
-    }
+   public function map($payment): array
+{
+    return [
+        $payment->id,
+        $payment->student->user->name ?? 'N/A',
+        $payment->student->student_no ?? 'N/A',
+        $payment->total_amount,
+        $payment->payment_method ?? 'N/A', 
+        ucfirst($payment->status),// Use transaction reference if available, otherwise fallback to payment referenc
+        $payment->reference_no ?? 'N/A',        
+        $payment->payment_date ? $payment->payment_date->format('Y-m-d H:i:s') : 'N/A',
+        $payment->created_at->format('Y-m-d H:i:s'),
+    ];
+}
 }

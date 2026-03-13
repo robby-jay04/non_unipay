@@ -32,10 +32,10 @@ class User extends Authenticatable
         return $this->hasOne(Student::class);
     }
 
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
+    public function isAdmin(): bool
+{
+    return in_array($this->role, ['admin', 'superadmin']);
+}
 
     public function isStudent()
     {

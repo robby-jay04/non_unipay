@@ -9,6 +9,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SchoolYearController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\Admin\SuperAdminController;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -84,11 +85,18 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])->name('fees.update');
         Route::delete('/fees/{fee}', [FeeController::class, 'destroyWeb'])->name('fees.destroy');
 
-        // ✅ Dynamic semester loader for fee edit form
+        // Dynamic semester loader
         Route::get('/api/semesters/{schoolYearId}', function ($schoolYearId) {
             $semesters = \App\Models\Semester::where('school_year_id', $schoolYearId)
                             ->get(['id', 'name']);
             return response()->json($semesters);
         })->name('api.semesters');
-    });
-});
+
+        // SUPER ADMIN ONLY
+        Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
+            Route::resource('admins', SuperAdminController::class);
+        });
+
+    }); // closes admin middleware
+
+}); // closes auth middleware

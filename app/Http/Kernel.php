@@ -3,8 +3,10 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use Illuminate\Routing\Middleware\ThrottleRequests; // <-- add this
-
+use Illuminate\Routing\Middleware\ThrottleRequests; 
+use Illuminate\Http\Middleware\Middleware; 
+use App\Http\Middleware\AdminMiddleware; 
+use App\Http\Middleware\SuperAdminMiddleware; 
 class Kernel extends HttpKernel
 {
     /**
@@ -48,5 +50,6 @@ class Kernel extends HttpKernel
         'student' => \App\Http\Middleware\StudentMiddleware::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
     ];
 }

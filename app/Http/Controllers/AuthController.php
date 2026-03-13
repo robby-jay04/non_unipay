@@ -26,32 +26,32 @@ class AuthController extends Controller
     // Students cannot log in via web
     // -------------------------------
     public function loginWeb(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
 
-            $user = Auth::user();
+        $user = Auth::user();
 
-            // Only allow admins to log in via web
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
-            } elseif ($user->role === 'student') {
-                Auth::logout(); // Log them out immediately
-                return back()->withErrors([
-                    'email' => 'Students are not allowed to log in via web. Please use the mobile app.',
-                ])->onlyInput('email');
-            }
+        // Allow both admin and superadmin to log in via web
+        if ($user->role === 'admin' || $user->role === 'superadmin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->role === 'student') {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Students are not allowed to log in via web. Please use the mobile app.',
+            ])->onlyInput('email');
         }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
     }
+
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->onlyInput('email');
+}
 
     // -------------------------------
     // Web Logout

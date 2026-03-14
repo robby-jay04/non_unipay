@@ -207,7 +207,7 @@ class FeeController extends Controller
 public function breakdown()
 {
     $student = auth()->user()->student;
-    $currentSemester = Semester::where('is_current', true)->first();
+    $currentSemester   = Semester::where('is_current', true)->first();
     $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
     if (!$currentSemester || !$currentSchoolYear) {
@@ -241,40 +241,48 @@ public function breakdown()
     }
 
     $grandTotal = $fees->sum('amount');
+    $feeIds     = $fees->pluck('id');
 
-    // Total paid = sum of allocated amounts from pivot table for this student's paid payments
+    // ✅ FIX: scope total_paid only to fees in the current semester/school year
     $totalPaid = DB::table('fee_payment')
         ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
         ->where('payments.student_id', $student->id)
         ->where('payments.status', 'paid')
+        ->whereIn('fee_payment.fee_id', $feeIds)   // ← was missing this scope
         ->sum('fee_payment.amount');
 
-    // Determine status by checking each fee's coverage
-    $status = 'cleared';
-    foreach ($fees as $fee) {
-        $paidForFee = DB::table('fee_payment')
-            ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
-            ->where('payments.student_id', $student->id)
-            ->where('payments.status', 'paid')
-            ->where('fee_payment.fee_id', $fee->id)
-            ->sum('fee_payment.amount');
+    $remainingBalance = max($grandTotal - $totalPaid, 0);
 
-        if ($paidForFee < $fee->amount) {
-            $status = 'pending';
-            // break; // optional: you can break early once pending is found
-        }
+    // ✅ FIX: determine status from the computed balance, not per-fee loop
+    // A student is only "cleared" when they have fully paid all current fees.
+    if ($totalPaid <= 0) {
+        $status = 'pending';
+    } elseif ($remainingBalance <= 0) {
+        $status = 'cleared';
+    } else {
+        $status = 'partial';   // partially paid — also not cleared
     }
 
     $breakdown = [
-        'tuition'           => ['fees' => $fees->where('type', 'tuition')->values(),      'total' => $fees->where('type', 'tuition')->sum('amount')],
-        'miscellaneous'     => ['fees' => $fees->where('type', 'miscellaneous')->values(), 'total' => $fees->where('type', 'miscellaneous')->sum('amount')],
-        'exam'              => ['fees' => $fees->where('type', 'exam')->values(),          'total' => $fees->where('type', 'exam')->sum('amount')],
+        'tuition'           => [
+            'fees'  => $fees->where('type', 'tuition')->values(),
+            'total' => $fees->where('type', 'tuition')->sum('amount'),
+        ],
+        'miscellaneous'     => [
+            'fees'  => $fees->where('type', 'miscellaneous')->values(),
+            'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
+        ],
+        'exam'              => [
+            'fees'  => $fees->where('type', 'exam')->values(),
+            'total' => $fees->where('type', 'exam')->sum('amount'),
+        ],
         'grand_total'       => $grandTotal,
         'total_paid'        => $totalPaid,
-        'remaining_balance' => max($grandTotal - $totalPaid, 0),
+        'remaining_balance' => $remainingBalance,
         'status'            => $status,
     ];
 
     return response()->json(['success' => true, 'breakdown' => $breakdown]);
 }
+
 }

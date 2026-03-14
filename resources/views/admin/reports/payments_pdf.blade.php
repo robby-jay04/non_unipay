@@ -170,7 +170,8 @@
     {{-- ── SUMMARY CARDS ── --}}
     @php
         $total    = $payments->sum('total_amount');
-        $approved = $payments->where('status', 'approved')->sum('total_amount');
+        // Include both 'approved' and 'paid' as approved
+        $approved = $payments->whereIn('status', ['approved', 'paid'])->sum('total_amount');
         $pending  = $payments->where('status', 'pending')->count();
         $rejected = $payments->where('status', 'rejected')->count();
     @endphp
@@ -184,7 +185,15 @@
             <td class="summary-card">
                 <div class="card-label">Total Amount</div>
                 <div class="card-value">₱{{ number_format($total, 2) }}</div>
-            
+            </td>
+            <td class="summary-card">
+                <div class="card-label">Approved</div>
+                <div class="card-value green">₱{{ number_format($approved, 2) }}</div>
+            </td>
+            <td class="summary-card">
+                <div class="card-label">Pending</div>
+                <div class="card-value orange">{{ $pending }}</div>
+            </td>
         </tr>
     </table>
 
@@ -212,9 +221,10 @@
                     $stuNo       = $student->student_no  ?? '—';
                     $course      = $student->course      ?? '—';
                     $year        = $student->year_level  ?? '—';
+                    // Map both 'approved' and 'paid' to green
                     $statusClass = match(strtolower($payment->status)) {
-                        'approved' => 'status-approved',
-                        'pending'  => 'status-pending',
+                        'approved', 'paid' => 'status-approved',
+                        'pending' => 'status-pending',
                         'rejected' => 'status-rejected',
                         default    => 'status-pending',
                     };

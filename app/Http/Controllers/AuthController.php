@@ -196,6 +196,32 @@ public function register(Request $request)
     ], 201);
 }
 
+public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'new_password'     => 'required|min:8|confirmed',
+    ]);
+ 
+    $user = $request->user();
+ 
+    // Handle accounts that were imported without a real password
+    if ($user->password && !Hash::check($request->current_password, $user->password)) {
+        return response()->json([
+            'message' => 'The current password is incorrect.',
+            'errors'  => ['current_password' => ['The current password is incorrect.']],
+        ], 422);
+    }
+ 
+    $user->update([
+        'password' => Hash::make($request->new_password),
+    ]);
+ 
+    return response()->json([
+        'message' => 'Password changed successfully.',
+    ]);
+}
+
       // -------------------------------
     // Get Authenticated User
     // -------------------------------

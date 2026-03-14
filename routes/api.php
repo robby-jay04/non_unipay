@@ -30,11 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/student/profile/picture', [App\Http\Controllers\StudentController::class, 'uploadProfilePicture']);
 
     // Student Routes
-    Route::middleware('student')->prefix('student')->group(function () {
-        Route::get('/profile', [StudentController::class, 'profile']);
-        Route::put('/profile', [StudentController::class, 'updateProfile']);
-        Route::get('/payments', [StudentController::class, 'paymentHistory']);
-    });
+Route::middleware('student')->prefix('student')->group(function () {
+    Route::get('/profile', [StudentController::class, 'profile']);
+    Route::put('/profile', [StudentController::class, 'updateProfile']);
+    Route::get('/payments', [StudentController::class, 'paymentHistory']);
+    Route::put('/change-password', [AuthController::class, 'changePassword']); // ← ADD THIS
+});
 
     // Fee Routes (Both Admin & Student)
     Route::prefix('fees')->group(function () {

@@ -12,6 +12,7 @@ use App\Models\Student;
 use App\Models;
 use App\Models\Clearance;
 use App\Models\Semester;
+use App\Models\Fee;
 class ReportController extends Controller
 {
     public function index()
@@ -57,28 +58,61 @@ public function exportPDF()
         );
     }
 
-    public function clearances()
+   public function clearances(Request $request)
 {
-    // Get the current semester (the one marked as current)
     $currentSemester = Semester::where('is_current', true)->first();
+    $currentSchoolYear = $currentSemester?->schoolYear;
 
-    // Get all students with their user and payments (adjust as needed)
-    $students = Student::with(['user', 'payments'])->get();
+    // Base query for all students (with relationships)
+    $allStudentsQuery = Student::with(['user', 'payments']);
 
-    // Filter students who have paid the required amount (cleared)
-    $clearances = $students->filter(function ($student) {
-        $requiredAmount = \App\Models\Fee::where('school_year', $student->school_year)
-            ->where('semester', $student->semester)
+    // Apply search if provided
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $allStudentsQuery->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', "%{$search}%");
+            })->orWhere('student_no', 'like', "%{$search}%");
+        });
+    }
+
+    $allStudents = $allStudentsQuery->get();
+    $totalStudents = $allStudents->count();
+
+    // Determine which students are cleared
+    $clearedIds = [];
+    foreach ($allStudents as $student) {
+        $requiredAmount = Fee::where('school_year', $currentSchoolYear?->name)
+            ->where('semester', $currentSemester?->name)
+            ->where(function ($q) use ($student) {
+                $q->where('course', $student->course)
+                  ->orWhereNull('course');
+            })
             ->sum('amount');
 
         $totalPaid = $student->payments
             ->where('status', 'paid')
             ->sum('total_amount');
 
-        return $totalPaid >= $requiredAmount;
-    });
+        if ($totalPaid >= $requiredAmount) {
+            $clearedIds[] = $student->id;
+        }
+    }
 
-    return view('admin.reports.clearances', compact('clearances', 'currentSemester'));
+    // Paginate the cleared students (10 per page)
+    $clearedStudents = Student::with(['user', 'payments'])
+        ->whereIn('id', $clearedIds)
+        ->orderBy('id', 'desc')
+        ->paginate(10)
+        ->appends($request->query()); // keep search/filter parameters
+
+    $pendingCount = $totalStudents - $clearedStudents->total(); // use total() for paginator
+
+    return view('admin.reports.clearances', [
+        'clearances'      => $clearedStudents,   // now a paginator instance
+        'pendingCount'    => $pendingCount,
+        'currentSemester' => $currentSemester,
+    ]);
 }
 
  public function downloadPdf()

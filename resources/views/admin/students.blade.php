@@ -127,7 +127,7 @@
         <!-- Pagination -->
         @if($students->hasPages())
         <div class="d-flex justify-content-center py-4" id="students-pagination">
-            {{ $students->links('pagination::bootstrap-5') }}
+            {{ $students->links('pagination::no-summary') }}
         </div>
         @endif
     </div>

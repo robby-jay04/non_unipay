@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Non-UniPay Admin</title>
+
+    {{-- ── Favicon (browser tab icon) ── --}}
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -79,12 +84,43 @@
             background: white; border-radius: 24px;
             padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
-        @media (max-width: 767.98px) {
-            .main-content { border-radius: 0; padding: 1rem; }
+
+        /* ── Mobile navbar ── */
+        .mobile-navbar {
+            background: white;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-navbar-logo {
+            width: 38px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #0f3c91;
+            padding: 2px;
+            background: white;
+        }
+        .mobile-navbar-title {
+            font-weight: 700;
+            color: #0f3c91;
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+        .mobile-navbar-subtitle {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            line-height: 1;
         }
         .navbar-toggle {
             background: #0f3c91; border: none; color: white;
-            font-size: 1.5rem; padding: 0.5rem 1rem; border-radius: 10px; margin-bottom: 1rem;
+            font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px;
+        }
+
+        @media (max-width: 767.98px) {
+            .main-content { border-radius: 0; padding: 1rem; }
         }
         .modal-content { border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .modal-header {
@@ -112,14 +148,27 @@
 </head>
 <body>
 
-    <!-- Mobile navbar -->
-    <nav class="d-md-none p-3" style="background: white;">
+    {{-- ── Mobile Navbar with logo ── --}}
+    <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
-            <button class="navbar-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas">
+            <button class="navbar-toggle" type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#sidebarOffcanvas"
+                aria-controls="sidebarOffcanvas">
                 <i class="fas fa-bars"></i>
             </button>
-            <span class="fw-bold" style="color: #0f3c91;">Non-UniPay Admin</span>
-            <div style="width: 40px;"></div>
+
+            {{-- Logo + title centered --}}
+            <div class="d-flex align-items-center gap-2">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo" class="mobile-navbar-logo">
+                <div>
+                    <div class="mobile-navbar-title">Non-UniPay</div>
+                    <div class="mobile-navbar-subtitle">Admin Panel</div>
+                </div>
+            </div>
+
+            {{-- Spacer to balance the hamburger --}}
+            <div style="width: 44px;"></div>
         </div>
     </nav>
 

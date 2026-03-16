@@ -12,6 +12,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\NotificationController; // <-- ADD THIS
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
+use App\Http\Controllers\ChatbotController;
 // Public Routes
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -35,7 +36,11 @@ Route::middleware('student')->prefix('student')->group(function () {
     Route::put('/profile', [StudentController::class, 'updateProfile']);
     Route::get('/payments', [StudentController::class, 'paymentHistory']);
     Route::put('/change-password', [AuthController::class, 'changePassword']); // ← ADD THIS
+
 });
+
+    // Chatbot Route
+Route::post('/chatbot', [ChatbotController::class, 'chat']);
 
     // Fee Routes (Both Admin & Student)
     Route::prefix('fees')->group(function () {

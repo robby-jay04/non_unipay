@@ -17,19 +17,19 @@
     <td class="py-3">
         @if($payment->status == 'paid')
             <span class="badge-paid" id="status-badge-{{ $payment->id }}">
-                <i class="fas fa-check-circle me-1"></i> Paid
+                <i class="fas fa-check-circle"></i> Paid
             </span>
         @elseif($payment->status == 'processing')
             <span class="badge-processing" id="status-badge-{{ $payment->id }}">
-                <i class="fas fa-sync-alt me-1"></i> Processing
+                <i class="fas fa-sync-alt"></i> Processing
             </span>
         @elseif($payment->status == 'pending')
             <span class="badge-pending" id="status-badge-{{ $payment->id }}">
-                <i class="fas fa-clock me-1"></i> Pending
+                <i class="fas fa-clock"></i> Pending
             </span>
         @else
             <span class="badge-failed" id="status-badge-{{ $payment->id }}">
-                <i class="fas fa-times-circle me-1"></i> Failed
+                <i class="fas fa-times-circle"></i> Failed
             </span>
         @endif
     </td>
@@ -41,23 +41,18 @@
     </td>
     <td class="py-3 pe-4">
         <div class="d-flex gap-2">
-            <!-- View Button -->
             <button class="btn-action viewPaymentBtn" title="View details"
                     data-id="{{ $payment->id }}"
                     data-bs-toggle="modal"
                     data-bs-target="#viewPaymentModal">
                 <i class="fas fa-eye"></i>
             </button>
-
             @if($payment->status === 'pending' || $payment->status === 'processing')
-                <!-- Verify Button -->
                 <button class="btn-action verifyPaymentBtn" title="Verify payment"
                         data-id="{{ $payment->id }}"
                         id="verify-btn-{{ $payment->id }}">
                     <i class="fas fa-check"></i>
                 </button>
-
-              
             @endif
         </div>
     </td>
@@ -68,14 +63,14 @@
         <div class="empty-state">
             <i class="fas fa-inbox fa-4x" style="color: #d1d5db;"></i>
             <h6 class="fw-semibold mt-3" style="color: #1e293b;">No payments found</h6>
-            <p class="text-muted small">When students make payments, they’ll appear here.</p>
+            <p class="text-muted small">When students make payments, they'll appear here.</p>
         </div>
     </td>
 </tr>
 @endforelse
+
 @push('styles')
 <style>
-/* Payment rows */
 .payment-row {
     transition: all 0.2s ease;
 }
@@ -84,8 +79,6 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.02);
 }
-
-/* Student avatar */
 .student-avatar {
     transition: all 0.2s;
 }
@@ -93,8 +86,6 @@
     background: rgba(15,60,145,0.15) !important;
     transform: scale(1.02);
 }
-
-/* Action buttons */
 .btn-action {
     width: 36px;
     height: 36px;
@@ -121,63 +112,36 @@
     background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
 }
+.empty-state { padding: 2rem; }
+.empty-state i { opacity: 0.7; }
+.empty-state h6 { font-size: 1.1rem; }
+.empty-state p { font-size: 0.9rem; max-width: 300px; margin: 0 auto; }
 
-/* Empty state */
-.empty-state {
-    padding: 2rem;
-}
-.empty-state i {
-    opacity: 0.7;
-}
-.empty-state h6 {
-    font-size: 1.1rem;
-}
-.empty-state p {
-    font-size: 0.9rem;
-    max-width: 300px;
-    margin: 0 auto;
-}
-
-/* Refined badges */
-.badge-paid {
-    background: rgba(76, 175, 80, 0.15);
-    color: #2e7d32;
-    font-weight: 600;
-    padding: 0.45rem 1rem;
-    border-radius: 30px;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.85rem;
-}
-.badge-pending {
-    background: rgba(244, 180, 20, 0.15);
-    color: #b26a00;
-    font-weight: 600;
-    padding: 0.45rem 1rem;
-    border-radius: 30px;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.85rem;
-}
-.badge-processing {
-    background: rgba(13, 110, 253, 0.15);
-    color: #0a58ca;
-    font-weight: 600;
-    padding: 0.45rem 1rem;
-    border-radius: 30px;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.85rem;
-}
+/* ── Badges — consistent across table, modal, and JS updates ── */
+.badge-paid,
+.badge-pending,
+.badge-processing,
 .badge-failed {
-    background: rgba(220, 53, 69, 0.15);
-    color: #a71d2a;
     font-weight: 600;
     padding: 0.45rem 1rem;
     border-radius: 30px;
     display: inline-flex;
     align-items: center;
+    gap: 0.35rem;
     font-size: 0.85rem;
+    white-space: nowrap;
+    min-width: 100px;
+    justify-content: center;
+}
+.badge-paid       { background: rgba(76, 175, 80, 0.15);  color: #2e7d32; }
+.badge-pending    { background: rgba(244, 180, 20, 0.15); color: #b26a00; }
+.badge-processing { background: rgba(13, 110, 253, 0.15); color: #0a58ca; }
+.badge-failed     { background: rgba(220, 53, 69, 0.15);  color: #a71d2a; }
+.badge-paid i, .badge-pending i,
+.badge-processing i, .badge-failed i {
+    font-size: 0.85rem;
+    line-height: 1;
+    flex-shrink: 0;
 }
 </style>
 @endpush

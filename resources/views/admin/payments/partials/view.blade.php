@@ -1,5 +1,6 @@
 <div class="row g-3">
-    <!-- Student Info -->
+
+    {{-- Student Info --}}
     <div class="col-12">
         <div class="p-3 rounded-3" style="background: rgba(15, 60, 145, 0.05);">
             <h6 class="fw-bold mb-3" style="color: #0f3c91;">
@@ -26,7 +27,7 @@
         </div>
     </div>
 
-    <!-- Payment Info -->
+    {{-- Payment Info --}}
     <div class="col-12">
         <div class="p-3 rounded-3" style="background: rgba(15, 60, 145, 0.05);">
             <h6 class="fw-bold mb-3" style="color: #0f3c91;">
@@ -53,13 +54,21 @@
                     <small class="text-muted">Status</small>
                     <p class="mb-0">
                         @if($payment->status === 'paid')
-                            <span class="badge-paid">Paid</span>
+                            <span class="badge-paid">
+                                <i class="fas fa-check-circle"></i> Paid
+                            </span>
                         @elseif($payment->status === 'processing')
-                            <span class="badge-pending">Processing</span>
+                            <span class="badge-processing">
+                                <i class="fas fa-sync-alt"></i> Processing
+                            </span>
                         @elseif($payment->status === 'pending')
-                            <span class="badge-pending">Pending</span>
+                            <span class="badge-pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
                         @else
-                            <span class="badge-failed">Failed</span>
+                            <span class="badge-failed">
+                                <i class="fas fa-times-circle"></i> Failed
+                            </span>
                         @endif
                     </p>
                 </div>
@@ -67,7 +76,7 @@
         </div>
     </div>
 
-    <!-- Fees Breakdown -->
+    {{-- Fees Breakdown --}}
     @if($payment->fees && $payment->fees->count())
     <div class="col-12">
         <div class="p-3 rounded-3" style="background: rgba(15, 60, 145, 0.05);">
@@ -104,7 +113,7 @@
     </div>
     @endif
 
-    <!-- Proof of Payment -->
+    {{-- Proof of Payment --}}
     @if($payment->proof_of_payment)
     <div class="col-12">
         <div class="p-3 rounded-3" style="background: rgba(15, 60, 145, 0.05);">
@@ -118,4 +127,5 @@
         </div>
     </div>
     @endif
+
 </div>

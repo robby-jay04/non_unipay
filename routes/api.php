@@ -9,38 +9,38 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\PasswordResetController;
-use App\Http\Controllers\NotificationController; // <-- ADD THIS
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
 use App\Http\Controllers\ChatbotController;
-// Public Routes
 
+// Public Routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/password/reset-request', [PasswordResetController::class, 'sendResetLink']);
-Route::get('/school-years', [App\Http\Controllers\SchoolYearController::class, 'apiIndex']); // ✅ Add this
+Route::get('/school-years', [App\Http\Controllers\SchoolYearController::class, 'apiIndex']);
 
 // PayMongo Webhook (Public - no auth required)
 Route::post('/webhooks/paymongo', [PaymentController::class, 'webhook'])->name('paymongo.webhook');
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
+
     // Auth Routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/student/profile/picture', [App\Http\Controllers\StudentController::class, 'uploadProfilePicture']);
+    Route::post('/student/profile/picture', [StudentController::class, 'uploadProfilePicture']);
 
     // Student Routes
-Route::middleware('student')->prefix('student')->group(function () {
-    Route::get('/profile', [StudentController::class, 'profile']);
-    Route::put('/profile', [StudentController::class, 'updateProfile']);
-    Route::get('/payments', [StudentController::class, 'paymentHistory']);
-    Route::put('/change-password', [AuthController::class, 'changePassword']); // ← ADD THIS
-
-});
+    Route::middleware('student')->prefix('student')->group(function () {
+        Route::get('/profile', [StudentController::class, 'profile']);
+        Route::put('/profile', [StudentController::class, 'updateProfile']);
+        Route::get('/payments', [StudentController::class, 'paymentHistory']);
+        Route::put('/change-password', [AuthController::class, 'changePassword']);
+    });
 
     // Chatbot Route
-Route::post('/chatbot', [ChatbotController::class, 'chat']);
+    Route::post('/chatbot', [ChatbotController::class, 'chat']);
 
     // Fee Routes (Both Admin & Student)
     Route::prefix('fees')->group(function () {
@@ -49,7 +49,7 @@ Route::post('/chatbot', [ChatbotController::class, 'chat']);
         Route::get('/breakdown', [FeeController::class, 'breakdown']);
         Route::get('/type/{type}', [FeeController::class, 'getByType']);
         Route::get('/{id}', [FeeController::class, 'show']);
-        
+
         // Admin only - Fee management
         Route::middleware('admin')->group(function () {
             Route::post('/', [FeeController::class, 'store']);
@@ -58,9 +58,11 @@ Route::post('/chatbot', [ChatbotController::class, 'chat']);
         });
     });
 
-    // Exam Period
-Route::get('/current-exam-period', [App\Http\Controllers\Admin\ExamPeriodController::class, 'current']);
-
+    // Exam Period — both routes point to the same controller method
+    // /current-exam-period  → kept for backward compatibility
+    // /exam-period/current  → used by HomeScreen
+    Route::get('/current-exam-period', [ExamPeriodController::class, 'current']);
+    Route::get('/exam-period/current', [ExamPeriodController::class, 'current']); // ← NEW
 
     // Payment Routes
     Route::prefix('payments')->group(function () {
@@ -75,29 +77,28 @@ Route::get('/current-exam-period', [App\Http\Controllers\Admin\ExamPeriodControl
     Route::get('/clearance', [ClearanceController::class, 'show']);
     Route::get('/clearance/{studentId}', [ClearanceController::class, 'checkClearance']);
 
-    // ======================== NOTIFICATION ROUTES ========================
-   Route::prefix('notifications')->group(function () {
-    Route::get('/', [NotificationController::class, 'index']);
-    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-    Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::delete('/clear-all', [NotificationController::class, 'clearAll']); // ✅ removed extra /notifications/
-    Route::delete('/{id}', [NotificationController::class, 'destroy']);
-});
-    // =======================================================================
+    // Notification Routes
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::delete('/clear-all', [NotificationController::class, 'clearAll']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    });
 
     // Admin Routes
     Route::middleware('admin')->prefix('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'apiStats']);
-        
+
         // Payments Management
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::get('/payments/{id}', [PaymentController::class, 'show']);
-        
+
         // Clearance Management
         Route::post('/clearance/{studentId}/update', [ClearanceController::class, 'updateClearance']);
-        
+
         // Reports
         Route::prefix('reports')->group(function () {
             Route::get('/payments', [ReportController::class, 'paymentReport']);
@@ -105,4 +106,5 @@ Route::get('/current-exam-period', [App\Http\Controllers\Admin\ExamPeriodControl
             Route::get('/export/excel', [ReportController::class, 'exportExcel']);
         });
     });
+
 });

@@ -40,8 +40,9 @@
                         <th class="py-3">Type</th>
                         <th class="py-3">Course</th>
                         <th class="py-3">Amount</th>
-                        <th class="py-3">Semester</th>
                         <th class="py-3">School Year</th>
+                        <th class="py-3">Semester</th>
+                        <th class="py-3">Exam Period</th>
                         <th class="py-3 pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -73,8 +74,19 @@
                             @endif
                         </td>
                         <td class="py-3 fw-semibold" style="color: #0f3c91;">₱{{ number_format($fee->amount, 2) }}</td>
-                        <td class="py-3">{{ $fee->semester ?? '—' }}</td>
                         <td class="py-3">{{ $fee->school_year }}</td>
+                        <td class="py-3">{{ $fee->semester ?? '—' }}</td>
+                        <td class="py-3">
+                            @if($fee->exam_period)
+                                <span class="badge-exam-period">
+                                    <i class="fas fa-clock me-1"></i>{{ $fee->exam_period }}
+                                </span>
+                            @else
+                                <span class="badge-all-periods">
+                                    <i class="fas fa-infinity me-1"></i> All Periods
+                                </span>
+                            @endif
+                        </td>
                         <td class="py-3 pe-4">
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.fees.edit', $fee) }}"
@@ -94,7 +106,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="8" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="fas fa-coins fa-4x" style="color: #d1d5db;"></i>
                                 <h6 class="fw-semibold mt-3" style="color: #1e293b;">No fees found</h6>
@@ -207,7 +219,6 @@
         color: #2e7d32;
     }
 
-    /* Course badges */
     .badge-course {
         font-weight: 600;
         padding: 0.45rem 1rem;
@@ -229,20 +240,32 @@
         color: #64748b;
     }
 
-    .empty-state {
-        padding: 2rem;
+    /* Exam period badges */
+    .badge-exam-period {
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        background: rgba(234, 88, 12, 0.12);
+        color: #c2410c;
     }
-    .empty-state i {
-        opacity: 0.7;
+    .badge-all-periods {
+        font-weight: 500;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        background: rgba(100, 116, 139, 0.1);
+        color: #64748b;
     }
-    .empty-state h6 {
-        font-size: 1.1rem;
-    }
-    .empty-state p {
-        font-size: 0.9rem;
-        max-width: 300px;
-        margin: 0 auto;
-    }
+
+    .empty-state { padding: 2rem; }
+    .empty-state i { opacity: 0.7; }
+    .empty-state h6 { font-size: 1.1rem; }
+    .empty-state p { font-size: 0.9rem; max-width: 300px; margin: 0 auto; }
 
     .table td {
         border-bottom: 1px solid #f0f2f5;
@@ -261,17 +284,13 @@
         color: #495057;
         font-weight: 500;
     }
-    .btn-secondary:hover {
-        background: #d3d8de;
-    }
+    .btn-secondary:hover { background: #d3d8de; }
     .btn-danger {
         background: #dc3545;
         border: none;
         font-weight: 500;
     }
-    .btn-danger:hover {
-        background: #b02a37;
-    }
+    .btn-danger:hover { background: #b02a37; }
 </style>
 @endpush
 
@@ -282,9 +301,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
-            const feeId = button.getAttribute('data-id');
-            const form = document.getElementById('deleteForm');
-            form.action = "{{ route('admin.fees.destroy', ':id') }}".replace(':id', feeId);
+            const feeId  = button.getAttribute('data-id');
+            const form   = document.getElementById('deleteForm');
+            form.action  = "{{ route('admin.fees.destroy', ':id') }}".replace(':id', feeId);
         });
     }
 });

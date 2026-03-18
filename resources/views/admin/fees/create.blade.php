@@ -105,6 +105,28 @@
                 </div>
             </div>
 
+            <!-- School Year -->
+            <div class="mb-3">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-calendar" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="school_year_id" id="school_year_id" class="form-select bg-light border-0 px-3 py-2" required>
+                        <option value="" disabled {{ old('school_year_id') ? '' : 'selected' }}>-- Select School Year --</option>
+                        @foreach($schoolYears as $schoolYear)
+                            <option value="{{ $schoolYear->id }}"
+                                {{ old('school_year_id') == $schoolYear->id ? 'selected' :
+                                   (!old('school_year_id') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '') }}>
+                                {{ $schoolYear->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <!-- Semester -->
             <div class="mb-3">
                 <label class="form-label fw-medium text-secondary">
@@ -114,35 +136,41 @@
                     <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
                         <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
                     </span>
-                    <select name="semester" class="form-select bg-light border-0 px-3 py-2">
-                        <option value="" selected>-- Select Semester --</option>
-                        <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
-                        <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
+                    <select name="semester_id" id="semester_id" class="form-select bg-light border-0 px-3 py-2">
+                        <option value="">-- Select Semester --</option>
+                        @foreach($semesters as $semester)
+                            <option value="{{ $semester->id }}"
+                                {{ old('semester_id') == $semester->id
+                                    ? 'selected'
+                                    : (!old('semester_id') && $currentSemester && $currentSemester->id == $semester->id ? 'selected' : '') }}>
+                                {{ $semester->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>
 
-            <!-- School Year -->
-<div class="mb-4">
-    <label class="form-label fw-medium text-secondary">
-        <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> School Year
-    </label>
-    <div class="input-group">
-        <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
-            <i class="fas fa-calendar" style="color: #0f3c91;"></i>
-        </span>
-        <select name="school_year_id" class="form-select bg-light border-0 px-3 py-2" required>
-            <option value="" disabled {{ old('school_year_id') ? '' : 'selected' }}>-- Select School Year --</option>
-            @foreach($schoolYears as $schoolYear)
-                <option value="{{ $schoolYear->id }}"
-                    {{ old('school_year_id') == $schoolYear->id ? 'selected' :
-                       (!old('school_year_id') && $currentSchoolYear && $currentSchoolYear->id == $schoolYear->id ? 'selected' : '') }}>
-                    {{ $schoolYear->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-</div>
+            <!-- Exam Period -->
+            <div class="mb-4">
+                <label class="form-label fw-medium text-secondary">
+                    <i class="fas fa-file-alt me-1" style="color: #0f3c91;"></i> Exam Period
+                    <small class="text-muted ms-1">(leave blank to apply to all exam periods)</small>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
+                        <i class="fas fa-clock" style="color: #0f3c91;"></i>
+                    </span>
+                    <select name="exam_period_id" id="exam_period_id" class="form-select bg-light border-0 px-3 py-2">
+                        <option value="">-- All Exam Periods --</option>
+                        @foreach($examPeriods as $period)
+                            <option value="{{ $period->id }}"
+                                {{ old('exam_period_id') == $period->id ? 'selected' : '' }}>
+                                {{ $period->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
             <!-- Buttons -->
             <div class="d-flex gap-3">
@@ -204,4 +232,60 @@
         font-size: 0.9rem;
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const schoolYearSelect = document.getElementById('school_year_id');
+    const semesterSelect   = document.getElementById('semester_id');
+    const examPeriodSelect = document.getElementById('exam_period_id');
+
+    // When school year changes → reload semesters, clear exam periods
+    schoolYearSelect.addEventListener('change', function () {
+        const schoolYearId = this.value;
+        semesterSelect.innerHTML = '<option value="">Loading...</option>';
+        examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
+
+        fetch(`/admin/api/semesters/${schoolYearId}`)
+            .then(res => res.json())
+            .then(data => {
+                semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
+                data.forEach(sem => {
+                    semesterSelect.innerHTML += `<option value="${sem.id}">${sem.name}</option>`;
+                });
+                if (data.length === 1) {
+                    semesterSelect.value = data[0].id;
+                    semesterSelect.dispatchEvent(new Event('change'));
+                }
+            })
+            .catch(() => {
+                semesterSelect.innerHTML = '<option value="">Failed to load semesters</option>';
+            });
+    });
+
+    // When semester changes → reload exam periods
+    semesterSelect.addEventListener('change', function () {
+        const semId = this.value;
+        if (!semId) {
+            examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
+            return;
+        }
+
+        examPeriodSelect.innerHTML = '<option value="">Loading...</option>';
+
+        fetch(`/admin/api/exam-periods/${semId}`)
+            .then(res => res.json())
+            .then(data => {
+                examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
+                data.forEach(p => {
+                    examPeriodSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                });
+            })
+            .catch(() => {
+                examPeriodSelect.innerHTML = '<option value="">Failed to load exam periods</option>';
+            });
+    });
+});
+</script>
 @endpush

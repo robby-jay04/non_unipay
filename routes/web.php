@@ -69,17 +69,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('reports');
         Route::get('/reports/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
         Route::get('/reports/excel', [ReportController::class, 'exportExcel'])->name('reports.excel');
-        Route::get('/reports/clearances', [ReportController::class, 'clearances'])->name('reports.clearances'); 
+        Route::get('/reports/clearances', [ReportController::class, 'clearances'])->name('reports.clearances');
 
-// SCHOOL YEARS
-Route::get('/school-years', [SchoolYearController::class, 'index'])->name('school-years.index');
-Route::post('/school-years', [SchoolYearController::class, 'store'])->name('school-years.store');
-Route::post('/school-years/{schoolYear}/set-current', [SchoolYearController::class, 'setCurrent'])->name('school-years.setCurrent');
-Route::post('/school-years/{schoolYear}/set-semester', [SchoolYearController::class, 'setSemester'])->name('school-years.setSemester');
-Route::delete('/school-years/{id}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
+        // SCHOOL YEARS
+        Route::get('/school-years', [SchoolYearController::class, 'index'])->name('school-years.index');
+        Route::post('/school-years', [SchoolYearController::class, 'store'])->name('school-years.store');
+        Route::post('/school-years/{schoolYear}/set-current', [SchoolYearController::class, 'setCurrent'])->name('school-years.setCurrent');
+        Route::post('/school-years/{schoolYear}/set-semester', [SchoolYearController::class, 'setSemester'])->name('school-years.setSemester');
+        Route::delete('/school-years/{id}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
 
-// EXAM PERIODS
-Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurrent'])->name('exam-periods.setCurrent');
+        // EXAM PERIODS
+        Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurrent'])->name('exam-periods.setCurrent');
 
         // FEE MANAGEMENT
         Route::get('/fees', [FeeController::class, 'adminIndex'])->name('fees.index');
@@ -89,12 +89,19 @@ Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurre
         Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])->name('fees.update');
         Route::delete('/fees/{fee}', [FeeController::class, 'destroyWeb'])->name('fees.destroy');
 
-        // Dynamic semester loader
+        // Dynamic API loaders
         Route::get('/api/semesters/{schoolYearId}', function ($schoolYearId) {
             $semesters = \App\Models\Semester::where('school_year_id', $schoolYearId)
                             ->get(['id', 'name']);
             return response()->json($semesters);
         })->name('api.semesters');
+
+        // ✅ NEW — dynamic exam periods loader (used by create/edit fee forms)
+        Route::get('/api/exam-periods/{semesterId}', function ($semesterId) {
+            $periods = \App\Models\ExamPeriod::where('semester_id', $semesterId)
+                            ->get(['id', 'name', 'is_current']);
+            return response()->json($periods);
+        })->name('api.exam-periods');
 
         // SUPER ADMIN ONLY
         Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {

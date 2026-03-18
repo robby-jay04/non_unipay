@@ -17,6 +17,8 @@ class Fee extends Model
         'school_year',
         'semester_id',
         'school_year_id',
+        'exam_period',
+        'exam_period_id',
         'course',
     ];
 
@@ -58,5 +60,10 @@ class Fee extends Model
     public function schoolYear()
     {
         return $this->belongsTo(SchoolYear::class);
+    }
+
+    public function examPeriod()
+    {
+        return $this->belongsTo(ExamPeriod::class);
     }
 }

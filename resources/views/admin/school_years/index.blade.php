@@ -20,19 +20,21 @@
 @endif
 
 @php
-    $currentYear     = $years->firstWhere('is_current', true);
-    $currentSemester = $currentYear?->semesters->firstWhere('is_current', true);
+    $currentYear       = $years->firstWhere('is_current', true);
+    $currentSemester   = $currentYear?->semesters->firstWhere('is_current', true);
+    $currentExamPeriod = $currentSemester?->examPeriods->firstWhere('is_current', true);
 @endphp
 
+{{-- ── Active Academic Period Banner ── --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
     <div class="card-body p-4">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="rounded-circle d-flex align-items-center justify-content-center"
                  style="width:52px; height:52px; background: rgba(255,255,255,0.15); flex-shrink:0;">
                 <i class="fas fa-calendar-check fa-lg text-white"></i>
             </div>
-            <div>
-                <p class="mb-0 text-white-50" style="font-size:13px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">
+            <div class="flex-grow-1">
+                <p class="mb-1 text-white-50" style="font-size:13px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">
                     Active Academic Period
                 </p>
                 @if($currentYear)
@@ -44,23 +46,46 @@
                             <span class="text-white-50" style="font-size:16px; font-weight:400;">— No semester set</span>
                         @endif
                     </h4>
+                    {{-- Exam Period shown in banner --}}
+                    @if($currentExamPeriod)
+                        <div class="mt-2">
+                            <span class="exam-period-banner-badge">
+                                <i class="fas fa-clock me-1"></i> {{ $currentExamPeriod->name }}
+                            </span>
+                        </div>
+                    @else
+                        <div class="mt-2">
+                            <span class="exam-period-banner-badge exam-period-unset">
+                                <i class="fas fa-exclamation-circle me-1"></i> No exam period set
+                            </span>
+                        </div>
+                    @endif
                 @else
                     <h4 class="mb-0 text-white fw-bold">No active school year set</h4>
                 @endif
             </div>
             @if($currentYear)
-                <div class="ms-auto">
+                <div class="ms-auto d-flex flex-column align-items-end gap-2">
                     <span class="badge rounded-pill px-3 py-2"
                           style="background: rgba(255,255,255,0.2); color: #fff; font-size:12px;">
                         <i class="fas fa-circle me-1" style="font-size:8px; color: #4caf50;"></i> Active
                     </span>
+                    @if($currentSemester)
+                        <button type="button"
+                                class="btn btn-sm rounded-pill px-3"
+                                style="background: rgba(255,255,255,0.2); color:#fff; border: 1px solid rgba(255,255,255,0.3); font-size:12px;"
+                                data-bs-toggle="modal" data-bs-target="#examPeriodModal">
+                            <i class="fas fa-edit me-1"></i>
+                            {{ $currentExamPeriod ? 'Change' : 'Set' }} Exam Period
+                        </button>
+                    @endif
                 </div>
             @endif
         </div>
     </div>
 </div>
 
-<!-- Add School Year Card -->
+{{-- ── Add School Year ── --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-4">
         <form action="{{ route('admin.school-years.store') }}" method="POST" class="d-flex gap-3">
@@ -76,8 +101,8 @@
     </div>
 </div>
 
-<!-- School Years Table Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+{{-- ── School Years Table ── --}}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="card-header bg-white border-0 py-3 px-4">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All School Years</h5>
     </div>
@@ -87,14 +112,32 @@
                 <thead class="bg-light">
                     <tr>
                         <th class="px-4 py-3">School Year</th>
-                        <th class="py-3">Current</th>
+                        <th class="py-3">Semester</th>
+                        <th class="py-3">Exam Period</th>
+                        <th class="py-3">Status</th>
                         <th class="py-3 pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($years as $year)
+                    @php
+                        $activeSem = $year->semesters->firstWhere('is_current', true);
+                        $activeEp  = $activeSem?->examPeriods->firstWhere('is_current', true);
+                    @endphp
                     <tr class="school-year-row">
                         <td class="px-4 py-3 fw-medium">{{ $year->name }}</td>
+                        <td class="py-3">
+                            {{ $activeSem?->name ?? '—' }}
+                        </td>
+                        <td class="py-3">
+                            @if($activeEp)
+                                <span class="badge-exam-period">
+                                    <i class="fas fa-clock me-1"></i>{{ $activeEp->name }}
+                                </span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td class="py-3">
                             @if($year->is_current)
                                 <span class="badge-current">
@@ -133,7 +176,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="fas fa-calendar-times fa-4x" style="color: #d1d5db;"></i>
                                 <h6 class="fw-semibold mt-3" style="color: #1e293b;">No school years found</h6>
@@ -148,37 +191,70 @@
     </div>
 </div>
 
-<!-- Current Exam Period Card (NEW) -->
+{{-- ── Current Exam Period Card ── --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-header bg-white border-0 py-3 px-4">
-        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Current Exam Period</h5>
+    <div class="card-header bg-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">
+            <i class="fas fa-clock me-2"></i> Current Exam Period
+        </h5>
     </div>
     <div class="card-body p-4">
         @if($currentSemester)
-            @php
-                $currentExamPeriod = $currentSemester->examPeriods()->where('is_current', true)->first();
-            @endphp
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <p class="mb-1 text-muted">For {{ $currentSemester->name }} ({{ $currentYear->name }})</p>
-                    <h4 class="fw-bold mb-0">{{ $currentExamPeriod->name ?? 'Not set' }}</h4>
+                    <p class="mb-1 text-muted small">
+                        <i class="fas fa-school me-1"></i>
+                        {{ $currentYear->name }} &mdash; {{ $currentSemester->name }}
+                    </p>
+                    @if($currentExamPeriod)
+                        <h3 class="fw-bold mb-0" style="color: #0f3c91;">
+                            <i class="fas fa-clock me-2" style="color: #f4b414;"></i>
+                            {{ $currentExamPeriod->name }}
+                        </h3>
+                    @else
+                        <h4 class="fw-bold mb-0 text-muted">Not set</h4>
+                        <p class="text-warning mb-0 mt-1 small">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Students will not see fees until an exam period is set.
+                        </p>
+                    @endif
                 </div>
-                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#examPeriodModal">
-                    <i class="fas fa-edit me-2"></i> Set Exam Period
-                </button>
+
+                {{-- Period quick-select buttons --}}
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    @foreach(['Prelim', 'Midterm', 'Semi-Final', 'Finals'] as $period)
+                        <form method="POST" action="{{ route('admin.exam-periods.setCurrent') }}">
+                            @csrf
+                            <input type="hidden" name="exam_period" value="{{ $period }}">
+                            <button type="submit"
+                                    class="btn rounded-pill px-3 py-1
+                                           {{ $currentExamPeriod?->name === $period
+                                               ? 'btn-period-active'
+                                               : 'btn-period-inactive' }}">
+                                {{ $period }}
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
             </div>
         @else
-            <p class="text-muted mb-0">No active semester to set exam period.</p>
+            <p class="text-muted mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                No active semester. Set a school year and semester first.
+            </p>
         @endif
     </div>
 </div>
 
-<!-- Semester Modal -->
+{{-- ── Semester Modal ── --}}
 <div class="modal fade" id="semesterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title fw-bold"><i class="fas fa-calendar-alt me-2"></i> <span id="yearName"></span> – Set Semester</h5>
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    <span id="yearName"></span> – Set Semester
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ route('admin.school-years.setSemester', ['schoolYear' => ':yearId']) }}" id="semesterForm">
@@ -192,6 +268,10 @@
                             <option value="2nd Semester">2nd Semester</option>
                         </select>
                     </div>
+                    <div class="alert alert-warning rounded-3 py-2 px-3 mb-0" style="font-size:13px;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Changing the semester will reset the current exam period. Remember to set a new one.
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
@@ -202,41 +282,49 @@
     </div>
 </div>
 
-<!-- Exam Period Modal (NEW) -->
+{{-- ── Exam Period Modal (quick set via modal, kept for banner button) ── --}}
 <div class="modal fade" id="examPeriodModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title fw-bold"><i class="fas fa-calendar-alt me-2"></i> Set Current Exam Period</h5>
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-clock me-2"></i> Set Current Exam Period
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ route('admin.exam-periods.setCurrent') }}" id="examPeriodForm">
+            <form method="POST" action="{{ route('admin.exam-periods.setCurrent') }}">
                 @csrf
                 <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Select Exam Period</label>
-                        <div class="d-flex flex-wrap gap-3">
-                            @foreach(['Prelim', 'Midterm', 'Semi-Final', 'Finals'] as $period)
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="exam_period" id="period{{ $loop->index }}" value="{{ $period }}" required>
-                                <label class="form-check-label" for="period{{ $loop->index }}">
-                                    {{ $period }}
-                                </label>
-                            </div>
-                            @endforeach
+                    <p class="text-muted small mb-3">
+                        For: <strong>{{ $currentYear?->name }}</strong> &mdash; <strong>{{ $currentSemester?->name ?? 'No semester set' }}</strong>
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach(['Prelim', 'Midterm', 'Semi-Final', 'Finals'] as $period)
+                        <div class="form-check period-radio-card">
+                            <input class="form-check-input visually-hidden" type="radio"
+                                   name="exam_period" id="modal_period{{ $loop->index }}"
+                                   value="{{ $period }}"
+                                   {{ $currentExamPeriod?->name === $period ? 'checked' : '' }}
+                                   required>
+                            <label class="form-check-label period-label" for="modal_period{{ $loop->index }}">
+                                {{ $period }}
+                            </label>
                         </div>
+                        @endforeach
                     </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Update Exam Period</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-check me-1"></i> Set Period
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+{{-- ── Delete Confirmation Modal ── --}}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -248,7 +336,7 @@
                 <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #dc3545;"></i>
                 <p class="mb-1">Are you sure you want to delete</p>
                 <p class="fw-bold fs-5 mb-1" id="deleteYearName"></p>
-                <p class="text-muted small">This will also delete all associated semesters and fees.</p>
+                <p class="text-muted small">This will also delete all associated semesters, exam periods, and fees.</p>
             </div>
             <div class="modal-footer border-0 justify-content-center gap-3">
                 <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
@@ -268,74 +356,92 @@
 
 @push('styles')
 <style>
-    .school-year-row {
-        transition: all 0.2s ease;
-    }
+    .school-year-row { transition: all 0.2s ease; }
     .school-year-row:hover {
         background-color: rgba(15, 60, 145, 0.02) !important;
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
     .btn-action {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        cursor: pointer;
-        background: transparent;
-        color: #64748b;
-        padding: 0;
+        width: 36px; height: 36px; border-radius: 50%; border: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; cursor: pointer; background: transparent;
+        color: #64748b; padding: 0;
     }
-    .btn-action:hover {
-        background: rgba(15,60,145,0.1);
-        color: #0f3c91;
-        transform: scale(1.1);
-    }
-    .btn-action.set-current:hover {
-        background: rgba(244,180,20,0.1);
-        color: #b26a00;
-    }
-    .btn-action.set-semester:hover {
-        background: rgba(15,60,145,0.1);
-        color: #0f3c91;
-    }
-    .btn-action.delete-year:hover {
-        background: rgba(220,53,69,0.1);
-        color: #dc3545;
-    }
+    .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
+    .btn-action.set-current:hover  { background: rgba(244,180,20,0.1); color: #b26a00; }
+    .btn-action.set-semester:hover { background: rgba(15,60,145,0.1);  color: #0f3c91; }
+    .btn-action.delete-year:hover  { background: rgba(220,53,69,0.1);  color: #dc3545; }
+
     .btn-action-submit {
-        background: #0f3c91;
-        color: white;
-        border: none;
-        font-weight: 500;
-        transition: all 0.2s;
+        background: #0f3c91; color: white; border: none;
+        font-weight: 500; transition: all 0.2s;
     }
     .btn-action-submit:hover {
-        background: #1a4da8;
-        transform: translateY(-2px);
+        background: #1a4da8; transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(15,60,145,0.2);
     }
+
     .badge-current {
-        background: rgba(40, 167, 69, 0.15);
-        color: #28a745;
-        font-weight: 600;
-        padding: 0.45rem 1rem;
-        border-radius: 30px;
-        display: inline-flex;
-        align-items: center;
-        font-size: 0.85rem;
+        background: rgba(40, 167, 69, 0.15); color: #28a745;
+        font-weight: 600; padding: 0.45rem 1rem; border-radius: 30px;
+        display: inline-flex; align-items: center; font-size: 0.85rem;
     }
+
+    /* Exam period badge in table */
+    .badge-exam-period {
+        font-weight: 600; padding: 0.35rem 0.85rem; border-radius: 30px;
+        display: inline-flex; align-items: center; font-size: 0.8rem;
+        background: rgba(234, 88, 12, 0.12); color: #c2410c;
+    }
+
+    /* Exam period pill in banner */
+    .exam-period-banner-badge {
+        display: inline-flex; align-items: center;
+        background: rgba(255,255,255,0.2); color: #fff;
+        padding: 0.3rem 0.85rem; border-radius: 20px;
+        font-size: 12px; font-weight: 600;
+    }
+    .exam-period-banner-badge.exam-period-unset {
+        background: rgba(251, 191, 36, 0.25); color: #fef08a;
+    }
+
+    /* Quick-set period buttons in the exam period card */
+    .btn-period-active {
+        background: #0f3c91; color: #fff; border: 2px solid #0f3c91;
+        font-weight: 600; font-size: 13px; transition: all 0.2s;
+    }
+    .btn-period-active:hover { background: #1a4da8; border-color: #1a4da8; color: #fff; }
+    .btn-period-inactive {
+        background: #f1f5f9; color: #475569;
+        border: 2px solid #e2e8f0; font-size: 13px; transition: all 0.2s;
+    }
+    .btn-period-inactive:hover {
+        background: #e2e8f0; border-color: #cbd5e1; color: #1e293b;
+    }
+
+    /* Modal period radio cards */
+    .period-radio-card { margin: 0; }
+    .period-label {
+        display: inline-block; padding: 0.5rem 1.25rem; border-radius: 30px;
+        border: 2px solid #e2e8f0; background: #f8fafc;
+        cursor: pointer; font-weight: 500; font-size: 14px;
+        transition: all 0.15s; color: #475569;
+    }
+    .form-check-input:checked + .period-label {
+        background: #0f3c91; border-color: #0f3c91; color: #fff; font-weight: 600;
+    }
+    .period-label:hover { border-color: #0f3c91; color: #0f3c91; background: #eff6ff; }
+
     .empty-state { padding: 2rem; }
     .empty-state i { opacity: 0.7; }
     .empty-state h6 { font-size: 1.1rem; }
     .empty-state p { font-size: 0.9rem; max-width: 300px; margin: 0 auto; }
+
     .table td { border-bottom: 1px solid #f0f2f5; color: #334155; vertical-align: middle; }
     .table th { font-weight: 600; color: #475569; border-bottom: 2px solid #e9ecef; }
     .form-control:focus, .form-select:focus { box-shadow: none; border-color: #0f3c91; }
+
     .btn-primary { background: #0f3c91; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
     .btn-primary:hover { background: #1a4da8; }
     .btn-secondary { background: #e9ecef; border: none; color: #495057; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
@@ -349,11 +455,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Semester modal — fix stale URL on repeated opens
+    // Semester modal — inject correct year ID into form action
     const semesterModal = document.getElementById('semesterModal');
     if (semesterModal) {
         const semesterForm = document.getElementById('semesterForm');
-        const baseAction = semesterForm.action;
+        const baseAction   = semesterForm.action;
         semesterModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             semesterForm.action = baseAction.replace(':yearId', button.getAttribute('data-year-id'));
@@ -365,15 +471,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
+            const button   = event.relatedTarget;
             const yearId   = button.getAttribute('data-year-id');
             const yearName = button.getAttribute('data-year-name');
             document.getElementById('deleteYearName').textContent = yearName;
             document.getElementById('deleteForm').action = `/admin/school-years/${yearId}`;
         });
     }
-
-    // (Optional) Exam period modal – no dynamic URL needed
 });
 </script>
 @endpush

@@ -59,34 +59,34 @@ class ReportController extends Controller
     }
 
     public function downloadPdf(Request $request)
-{
-    $query = Payment::with('student.user')
-        ->whereNotNull('payment_date')
-        ->orderBy('payment_date', 'asc');
+    {
+        $query = Payment::with('student.user')
+            ->whereNotNull('payment_date')
+            ->orderBy('payment_date', 'asc');
 
-    if ($request->filled('from_date')) {
-        $query->whereDate('payment_date', '>=', $request->from_date);
+        if ($request->filled('from_date')) {
+            $query->whereDate('payment_date', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('payment_date', '<=', $request->to_date);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $payments = $query->get();
+
+        $groupedPayments = $payments->groupBy(function ($payment) {
+            return $payment->payment_date->format('Y-m-d');
+        })->sortKeys();
+
+        $pdf = Pdf::loadView('admin.reports.payments_pdf', compact('payments', 'groupedPayments'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download('payment-report-' . now()->format('Y-m-d') . '.pdf');
     }
-
-    if ($request->filled('to_date')) {
-        $query->whereDate('payment_date', '<=', $request->to_date);
-    }
-
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    $payments = $query->get();
-
-    $groupedPayments = $payments->groupBy(function ($payment) {
-        return $payment->payment_date->format('Y-m-d');
-    })->sortKeys();
-
-    $pdf = Pdf::loadView('admin.reports.payments_pdf', compact('payments', 'groupedPayments'))
-              ->setPaper('a4', 'portrait');
-
-    return $pdf->download('payment-report-' . now()->format('Y-m-d') . '.pdf');
-}
 
     public function downloadExcel()
     {
@@ -100,49 +100,27 @@ class ReportController extends Controller
 
     public function clearances(Request $request)
     {
-        $currentSemester   = Semester::where('is_current', true)->first();
-        $currentSchoolYear = $currentSemester?->schoolYear;
+        $currentSemester = Semester::where('is_current', true)->first();
 
-        $allStudentsQuery = Student::with(['user', 'payments']);
+        // ✅ Read directly from clearance_status column — no more loop recomputation
+        $query = Student::with(['user', 'payments'])
+            ->where('clearance_status', 'cleared');
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $allStudentsQuery->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->whereHas('user', function ($userQuery) use ($search) {
                     $userQuery->where('name', 'like', "%{$search}%");
                 })->orWhere('student_no', 'like', "%{$search}%");
             });
         }
 
-        $allStudents   = $allStudentsQuery->get();
-        $totalStudents = $allStudents->count();
-
-        $clearedIds = [];
-        foreach ($allStudents as $student) {
-            $requiredAmount = Fee::where('school_year', $currentSchoolYear?->name)
-                ->where('semester', $currentSemester?->name)
-                ->where(function ($q) use ($student) {
-                    $q->where('course', $student->course)
-                      ->orWhereNull('course');
-                })
-                ->sum('amount');
-
-            $totalPaid = $student->payments
-                ->where('status', 'paid')
-                ->sum('total_amount');
-
-            if ($totalPaid >= $requiredAmount) {
-                $clearedIds[] = $student->id;
-            }
-        }
-
-        $clearedStudents = Student::with(['user', 'payments'])
-            ->whereIn('id', $clearedIds)
-            ->orderBy('id', 'desc')
+        $clearedStudents = $query->orderBy('updated_at', 'desc')
             ->paginate(10)
             ->appends($request->query());
 
-        $pendingCount = $totalStudents - $clearedStudents->total();
+        $totalStudents = Student::count();
+        $pendingCount  = $totalStudents - Student::where('clearance_status', 'cleared')->count();
 
         return view('admin.reports.clearances', [
             'clearances'      => $clearedStudents,

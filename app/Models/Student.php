@@ -17,16 +17,17 @@ class Student extends Model
         'year_level',
         'contact',
         'semester',
-    'school_year',
+        'school_year',
         'is_confirmed',
         'profile_picture',
         'last_profile_update',
-
         'last_picture_update',
+        'clearance_status', // ✅ added
     ];
+
     protected $casts = [
-    'is_confirmed' => 'boolean',
-];
+        'is_confirmed' => 'boolean',
+    ];
 
     public function user()
     {
@@ -50,65 +51,8 @@ class Student extends Model
             ->exists();
     }
 
-public function getClearanceStatus()
-{
-    $currentSemester = \App\Models\Semester::where('is_current', true)->first();
-    $currentSchoolYear = \App\Models\SchoolYear::where('is_current', true)->first();
-
-    if (!$currentSemester || !$currentSchoolYear) {
-        return [
-            'status'     => 'pending',
-            'total_paid' => 0,
-            'required'   => 0,
-            'remaining'  => 0,
-        ];
+    public function notifications()
+    {
+        return $this->hasMany(\App\Models\Notification::class);
     }
-
-    // Get only fees applicable to this student's course OR all courses (NULL)
-    $applicableFees = \App\Models\Fee::where('school_year_id', $currentSchoolYear->id)
-        ->where('semester_id', $currentSemester->id)
-        ->where(function ($query) {
-            $query->where('course', $this->course)
-                  ->orWhereNull('course');
-        })
-        ->get();
-
-    $requiredAmount = $applicableFees->sum('amount');
-
-    if ($requiredAmount <= 0) {
-        return [
-            'status'     => 'pending',
-            'total_paid' => 0,
-            'required'   => 0,
-            'remaining'  => 0,
-        ];
-    }
-
-    $totalPaid = 0;
-    foreach ($applicableFees as $fee) {
-        $totalPaid += $fee->payments()
-            ->where('student_id', $this->id)
-            ->where('status', 'paid')
-            ->sum('payments.total_amount');
-    }
-
-    $remaining = max($requiredAmount - $totalPaid, 0);
-
-    return [
-        'status'     => $totalPaid >= $requiredAmount ? 'cleared' : 'pending',
-        'total_paid' => $totalPaid,
-        'required'   => $requiredAmount,
-        'remaining'  => $remaining,
-    ];
-}
-
-public function getClearanceStatusAttribute()
-{
-    return $this->getClearanceStatus()['status'];
-}
-
-public function notifications()
-{
-    return $this->hasMany(\App\Models\Notification::class);
-}
 }

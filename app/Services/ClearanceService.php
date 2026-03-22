@@ -67,12 +67,16 @@ class ClearanceService
 
     private function setStatus(Student $student, string $status): Clearance
     {
+        // ✅ students table uses 'cleared' / 'not_cleared'
         $student->clearance_status = $status;
         $student->save();
 
+        // ✅ clearances ENUM only accepts 'cleared' / 'pending' — map not_cleared → pending
+        $clearanceStatus = $status === 'not_cleared' ? 'pending' : $status;
+
         $clearance = Clearance::updateOrCreate(
             ['student_id' => $student->id],
-            ['status'     => $status]
+            ['status'     => $clearanceStatus]
         );
 
         Log::info('Clearance synced', [

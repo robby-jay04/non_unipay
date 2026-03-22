@@ -69,7 +69,7 @@ class DashboardController extends Controller
         'total_students'    => Student::count(),
         'recent_payments'   => Payment::with('student.user')
                                     ->latest()
-                                    ->take(10)
+                                    ->take(5)
                                     ->get(),
         'monthly_revenue'   => Payment::paid()
                                     ->whereMonth('payment_date', now()->month)

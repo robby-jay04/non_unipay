@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- Semester -->
+            <!-- Semester — populated via AJAX only -->
             <div class="mb-3">
                 <label class="form-label fw-medium text-secondary">
                     <i class="fas fa-calendar-alt me-1" style="color: #0f3c91;"></i> Semester
@@ -136,38 +136,26 @@
                     <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
                         <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
                     </span>
+                    {{-- ✅ Empty on load — filled by JS based on selected school year --}}
                     <select name="semester_id" id="semester_id" class="form-select bg-light border-0 px-3 py-2">
-                        <option value="">-- Select Semester --</option>
-                        @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}"
-                                {{ old('semester_id') == $semester->id
-                                    ? 'selected'
-                                    : (!old('semester_id') && $currentSemester && $currentSemester->id == $semester->id ? 'selected' : '') }}>
-                                {{ $semester->name }}
-                            </option>
-                        @endforeach
+                        <option value="">-- Select School Year First --</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Exam Period -->
+            <!-- Exam Period — populated via AJAX only -->
             <div class="mb-4">
                 <label class="form-label fw-medium text-secondary">
                     <i class="fas fa-file-alt me-1" style="color: #0f3c91;"></i> Exam Period
-                    <small class="text-muted ms-1">(leave blank to apply to all exam periods)</small>
+                    <small class="text-muted ms-1">(select semester first || leave blank to apply to all exam periods)</small>
                 </label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-0 rounded-start-3 px-3">
                         <i class="fas fa-clock" style="color: #0f3c91;"></i>
                     </span>
+                    {{-- ✅ Empty on load — filled by JS based on selected semester --}}
                     <select name="exam_period_id" id="exam_period_id" class="form-select bg-light border-0 px-3 py-2">
                         <option value="">-- All Exam Periods --</option>
-                        @foreach($examPeriods as $period)
-                            <option value="{{ $period->id }}"
-                                {{ old('exam_period_id') == $period->id ? 'selected' : '' }}>
-                                {{ $period->name }}
-                            </option>
-                        @endforeach
                     </select>
                 </div>
             </div>
@@ -241,9 +229,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const semesterSelect   = document.getElementById('semester_id');
     const examPeriodSelect = document.getElementById('exam_period_id');
 
-    // When school year changes → reload semesters, clear exam periods
-    schoolYearSelect.addEventListener('change', function () {
-        const schoolYearId = this.value;
+    // Pre-selected values from old() input (for validation re-renders)
+    const oldSemesterId   = "{{ old('semester_id') }}";
+    const oldExamPeriodId = "{{ old('exam_period_id') }}";
+
+    // ── Load semesters for a given school year ───────────────────────────────
+    function loadSemesters(schoolYearId, preselectId = null) {
+        if (!schoolYearId) {
+            semesterSelect.innerHTML = '<option value="">-- Select School Year First --</option>';
+            examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
+            return;
+        }
+
         semesterSelect.innerHTML = '<option value="">Loading...</option>';
         examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
 
@@ -252,40 +249,59 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
                 data.forEach(sem => {
-                    semesterSelect.innerHTML += `<option value="${sem.id}">${sem.name}</option>`;
+                    const selected = preselectId
+                        ? sem.id == preselectId
+                        : sem.is_current;
+                    semesterSelect.innerHTML += `<option value="${sem.id}" ${selected ? 'selected' : ''}>${sem.name}</option>`;
                 });
-                if (data.length === 1) {
-                    semesterSelect.value = data[0].id;
-                    semesterSelect.dispatchEvent(new Event('change'));
+
+                // If a semester got selected, load its exam periods
+                if (semesterSelect.value) {
+                    loadExamPeriods(semesterSelect.value, oldExamPeriodId || null);
                 }
             })
             .catch(() => {
                 semesterSelect.innerHTML = '<option value="">Failed to load semesters</option>';
             });
-    });
+    }
 
-    // When semester changes → reload exam periods
-    semesterSelect.addEventListener('change', function () {
-        const semId = this.value;
-        if (!semId) {
+    // ── Load exam periods for a given semester ───────────────────────────────
+    function loadExamPeriods(semesterId, preselectId = null) {
+        if (!semesterId) {
             examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
             return;
         }
 
         examPeriodSelect.innerHTML = '<option value="">Loading...</option>';
 
-        fetch(`/admin/api/exam-periods/${semId}`)
+        fetch(`/admin/api/exam-periods/${semesterId}`)
             .then(res => res.json())
             .then(data => {
                 examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
                 data.forEach(p => {
-                    examPeriodSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                    const selected = preselectId && p.id == preselectId;
+                    examPeriodSelect.innerHTML += `<option value="${p.id}" ${selected ? 'selected' : ''}>${p.name}</option>`;
                 });
             })
             .catch(() => {
                 examPeriodSelect.innerHTML = '<option value="">Failed to load exam periods</option>';
             });
+    }
+
+    // ── On school year change ────────────────────────────────────────────────
+    schoolYearSelect.addEventListener('change', function () {
+        loadSemesters(this.value);
     });
+
+    // ── On semester change ───────────────────────────────────────────────────
+    semesterSelect.addEventListener('change', function () {
+        loadExamPeriods(this.value);
+    });
+
+    // ── On page load — auto-load semesters for the currently selected school year ──
+    if (schoolYearSelect.value) {
+        loadSemesters(schoolYearSelect.value, oldSemesterId || null);
+    }
 });
 </script>
 @endpush

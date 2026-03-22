@@ -9,13 +9,20 @@ use App\Models\Semester;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentFee;
-
+use App\Services\ClearanceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class FeeController extends Controller
 {
     const COURSES = ['BSIT', 'BEED', 'BSED', 'BSCRIM', 'BSOA', 'BSPOLSCI'];
+
+    protected $clearanceService;
+
+    public function __construct(ClearanceService $clearanceService)
+    {
+        $this->clearanceService = $clearanceService;
+    }
 
     public function index()
     {
@@ -72,17 +79,14 @@ class FeeController extends Controller
     {
         $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
         $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-        $semesters         = Semester::all();
         $currentSemester   = Semester::where('is_current', true)->first();
-        $examPeriods       = $currentSemester
-                                ? ExamPeriod::where('semester_id', $currentSemester->id)->get()
-                                : collect();
         $courses           = self::COURSES;
 
         return view('admin.fees.create', compact(
-            'schoolYears', 'currentSchoolYear',
-            'semesters', 'currentSemester',
-            'examPeriods', 'courses'
+            'schoolYears',
+            'currentSchoolYear',
+            'currentSemester',
+            'courses'
         ));
     }
 
@@ -106,15 +110,18 @@ class FeeController extends Controller
             'exam_period_id' => 'nullable|exists:exam_periods,id',
         ]);
 
+        $semesterId   = !empty($validated['semester_id'])    ? $validated['semester_id']    : null;
+        $examPeriodId = !empty($validated['exam_period_id']) ? $validated['exam_period_id'] : null;
+
         $schoolYear = SchoolYear::find($validated['school_year_id']);
-        $semester   = Semester::find($validated['semester_id'] ?? null);
-        $examPeriod = ExamPeriod::find($validated['exam_period_id'] ?? null);
+        $semester   = $semesterId   ? Semester::find($semesterId)     : null;
+        $examPeriod = $examPeriodId ? ExamPeriod::find($examPeriodId) : null;
 
         Fee::create([
             'name'           => $validated['name'],
             'amount'         => $validated['amount'],
             'type'           => $validated['type'],
-            'course'         => $validated['course'] ?? null,
+            'course'         => !empty($validated['course']) ? $validated['course'] : null,
             'school_year'    => $schoolYear->name,
             'semester'       => $semester?->name,
             'semester_id'    => $semester?->id,
@@ -123,6 +130,9 @@ class FeeController extends Controller
             'exam_period_id' => $examPeriod?->id,
         ]);
 
+        // ✅ Re-sync all clearances since a new fee was added
+        $this->clearanceService->bulkUpdateClearances();
+
         return redirect()->route('admin.fees.index')
                          ->with('success', 'Fee created successfully.');
     }
@@ -130,16 +140,14 @@ class FeeController extends Controller
     public function edit(Fee $fee)
     {
         $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-        $semesters         = Semester::where('school_year_id', $fee->school_year_id)->get();
-        $examPeriods       = $fee->semester_id
-                                ? ExamPeriod::where('semester_id', $fee->semester_id)->get()
-                                : collect();
         $currentSchoolYear = SchoolYear::where('is_current', true)->first();
         $courses           = self::COURSES;
 
         return view('admin.fees.edit', compact(
-            'fee', 'schoolYears', 'semesters',
-            'examPeriods', 'currentSchoolYear', 'courses'
+            'fee',
+            'schoolYears',
+            'currentSchoolYear',
+            'courses'
         ));
     }
 
@@ -155,9 +163,12 @@ class FeeController extends Controller
             'course'         => 'nullable|string',
         ]);
 
-        $semester   = Semester::find($validated['semester_id']);
+        $semesterId   = !empty($validated['semester_id'])    ? $validated['semester_id']    : null;
+        $examPeriodId = !empty($validated['exam_period_id']) ? $validated['exam_period_id'] : null;
+
+        $semester   = $semesterId   ? Semester::find($semesterId)     : null;
         $schoolYear = SchoolYear::find($validated['school_year_id']);
-        $examPeriod = ExamPeriod::find($validated['exam_period_id'] ?? null);
+        $examPeriod = $examPeriodId ? ExamPeriod::find($examPeriodId) : null;
 
         $fee->update([
             'name'           => $validated['name'],
@@ -169,8 +180,11 @@ class FeeController extends Controller
             'school_year_id' => $schoolYear->id,
             'exam_period'    => $examPeriod?->name,
             'exam_period_id' => $examPeriod?->id,
-            'course'         => $validated['course'] ?? null,
+            'course'         => !empty($validated['course']) ? $validated['course'] : null,
         ]);
+
+        // ✅ Re-sync all clearances since a fee was changed
+        $this->clearanceService->bulkUpdateClearances();
 
         return redirect()->route('admin.fees.index')
                          ->with('success', 'Fee updated successfully.');
@@ -179,6 +193,10 @@ class FeeController extends Controller
     public function destroyWeb($fee)
     {
         Fee::findOrFail($fee)->delete();
+
+        // ✅ Re-sync all clearances since a fee was deleted
+        $this->clearanceService->bulkUpdateClearances();
+
         return redirect()->route('admin.fees.index')
                          ->with('success', 'Fee deleted successfully.');
     }
@@ -233,23 +251,9 @@ class FeeController extends Controller
                    ->where('semester_id', $currentSemester->id)
                    ->where(function ($q) use ($currentExamPeriod) {
                        if ($currentExamPeriod) {
-                           /*
-                            * ✅ FIXED:
-                            * Only include a fee if:
-                            *   (A) exam_period_id IS NULL  → applies to ALL periods always
-                            *   (B) exam_period_id = current exam period's ID exactly
-                            *
-                            * A fee pinned to "Semi-Final" will NOT appear during "Finals".
-                            * A fee with no exam period set will ALWAYS appear.
-                            */
                            $q->whereNull('exam_period_id')
                              ->orWhere('exam_period_id', $currentExamPeriod->id);
                        } else {
-                           /*
-                            * No exam period is active.
-                            * Only show fees with no exam period restriction.
-                            * Period-specific fees are hidden until their period is activated.
-                            */
                            $q->whereNull('exam_period_id');
                        }
                    })

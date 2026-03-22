@@ -61,6 +61,28 @@
         .card-value.orange { color: #d97706; }
         .card-value.red    { color: #dc2626; }
 
+        /* ── Date Group Header ── */
+        .date-group-header {
+            background: #e8eef9;
+            border-left: 4px solid #0f3c91;
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #0f3c91;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0;
+        }
+        .date-group-subtotal {
+            background: #f0f4ff;
+            font-size: 9.5px;
+            color: #374151;
+            padding: 4px 10px;
+            text-align: right;
+            border-bottom: 1px solid #dce3f5;
+            margin-bottom: 12px;
+        }
+
         /* ── Section Title ── */
         .section-title {
             font-size: 10px;
@@ -77,7 +99,7 @@
         table.main-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 4px;
         }
         .main-table thead tr { background: #0f3c91; color: white; }
         .main-table thead th {
@@ -96,7 +118,18 @@
             font-size: 10.5px;
             vertical-align: middle;
         }
-        .main-table tbody tr:last-child td { border-bottom: 2px solid #0f3c91; }
+        .main-table tbody tr:last-child td { border-bottom: 1px solid #dce3f5; }
+
+        /* ── Day Subtotal Row ── */
+        .day-subtotal-row td {
+            background: #e8eef9 !important;
+            color: #0f3c91 !important;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 6px 10px;
+            border-top: 1px solid #dce3f5 !important;
+            border-bottom: 2px solid #0f3c91 !important;
+        }
 
         /* ── Status Pills ── */
         .status-pill {
@@ -111,8 +144,9 @@
         .status-approved { background: #dcfce7; color: #15803d; }
         .status-pending  { background: #fef9c3; color: #92400e; }
         .status-rejected { background: #fee2e2; color: #b91c1c; }
+        .status-failed   { background: #fee2e2; color: #b91c1c; }
 
-        /* ── Total Row ── */
+        /* ── Grand Total Row ── */
         .total-row td {
             background: #0f3c91 !important;
             color: white !important;
@@ -146,7 +180,7 @@
     <div class="header">
         <div class="header-top">
             <div class="header-top-left">
-                <div class="org-name">NON-UNIPAY</div>
+                <div class="org-name">UNIPAY</div>
                 <div class="org-sub">Payment Management System</div>
             </div>
             <div class="header-top-right">
@@ -170,10 +204,15 @@
     {{-- ── SUMMARY CARDS ── --}}
     @php
         $total    = $payments->sum('total_amount');
-        // Include both 'approved' and 'paid' as approved
         $approved = $payments->whereIn('status', ['approved', 'paid'])->sum('total_amount');
         $pending  = $payments->where('status', 'pending')->count();
-        $rejected = $payments->where('status', 'rejected')->count();
+        $failed   = $payments->whereIn('status', ['failed', 'rejected'])->count();
+
+        // Group by payment_date day, fallback to created_at
+        $groupedPayments = $payments->groupBy(function ($payment) {
+            $date = $payment->payment_date ?? $payment->created_at;
+            return \Carbon\Carbon::parse($date)->format('Y-m-d');
+        })->sortKeys();
     @endphp
 
     <table class="summary-table">
@@ -187,65 +226,100 @@
                 <div class="card-value">₱{{ number_format($total, 2) }}</div>
             </td>
             <td class="summary-card">
-                <div class="card-label">Approved</div>
+                <div class="card-label">Total Paid</div>
                 <div class="card-value green">₱{{ number_format($approved, 2) }}</div>
             </td>
             <td class="summary-card">
-                <div class="card-label">Pending</div>
-                <div class="card-value orange">{{ $pending }}</div>
+                <div class="card-label">Pending / Failed</div>
+                <div class="card-value orange">{{ $pending + $failed }}</div>
             </td>
         </tr>
     </table>
 
-    {{-- ── TABLE ── --}}
-    <div class="section-title">Transaction Details</div>
+    {{-- ── TRANSACTIONS GROUPED BY DAY ── --}}
+    <div class="section-title">Transaction Details — Sorted by Payment Date</div>
 
-    <table class="main-table">
-        <thead>
-            <tr>
-                <th style="width:4%;">#</th>
-                <th style="width:25%;">Student Name</th>
-                <th style="width:15%;">Student No.</th>
-                <th style="width:14%;">Course</th>
-                <th style="width:10%;">Year Level</th>
-                <th style="width:13%; text-align:right;">Amount</th>
-                <th style="width:10%; text-align:center;">Status</th>
-                <th style="width:13%;">Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($payments as $index => $payment)
-                @php
-                    $student     = $payment->student ?? null;
-                    $name        = optional($student?->user)->name ?? 'N/A';
-                    $stuNo       = $student->student_no  ?? '—';
-                    $course      = $student->course      ?? '—';
-                    $year        = $student->year_level  ?? '—';
-                    // Map both 'approved' and 'paid' to green
-                    $statusClass = match(strtolower($payment->status)) {
-                        'approved', 'paid' => 'status-approved',
-                        'pending' => 'status-pending',
-                        'rejected' => 'status-rejected',
-                        default    => 'status-pending',
-                    };
-                @endphp
+    @php $grandTotal = 0; $rowCounter = 0; @endphp
+
+    @foreach($groupedPayments as $date => $dayPayments)
+        @php
+            $dayTotal      = $dayPayments->sum('total_amount');
+            $grandTotal   += $dayTotal;
+            $formattedDate = \Carbon\Carbon::parse($date)->format('F d, Y - l');
+        @endphp
+
+        {{-- Day header --}}
+        <div class="date-group-header">
+            📅 {{ $formattedDate }}
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            {{ $dayPayments->count() }} transaction(s)
+        </div>
+
+        <table class="main-table">
+            <thead>
                 <tr>
-                    <td style="text-align:center; color:#6b7280;">{{ $index + 1 }}</td>
-                    <td><strong>{{ $name }}</strong></td>
-                    <td>{{ $stuNo }}</td>
-                    <td>{{ $course }}</td>
-                    <td style="text-align:center;">{{ $year }}</td>
-                    <td style="text-align:right; font-weight:bold;">₱{{ number_format($payment->total_amount, 2) }}</td>
-                    <td style="text-align:center;">
-                        <span class="status-pill {{ $statusClass }}">{{ ucfirst($payment->status) }}</span>
-                    </td>
-                    <td>{{ $payment->created_at->format('M d, Y') }}</td>
+                    <th style="width:4%;">#</th>
+                    <th style="width:24%;">Student Name</th>
+                    <th style="width:13%;">Student No.</th>
+                    <th style="width:13%;">Course</th>
+                    <th style="width:8%; text-align:center;">Year</th>
+                    <th style="width:12%; text-align:right;">Amount</th>
+                    <th style="width:10%; text-align:center;">Status</th>
+                    <th style="width:16%;">Payment Method</th>
                 </tr>
-            @endforeach
+            </thead>
+            <tbody>
+                @foreach($dayPayments as $payment)
+                    @php
+                        $rowCounter++;
+                        $student     = $payment->student ?? null;
+                        $name        = optional($student?->user)->name ?? 'N/A';
+                        $stuNo       = $student->student_no  ?? '—';
+                        $course      = $student->course      ?? '—';
+                        $year        = $student->year_level  ?? '—';
+                        $statusClass = match(strtolower($payment->status)) {
+                            'approved', 'paid' => 'status-approved',
+                            'pending'          => 'status-pending',
+                            'rejected',
+                            'failed'           => 'status-failed',
+                            default            => 'status-pending',
+                        };
+                    @endphp
+                    <tr>
+                        <td style="text-align:center; color:#6b7280;">{{ $rowCounter }}</td>
+                        <td><strong>{{ $name }}</strong></td>
+                        <td>{{ $stuNo }}</td>
+                        <td>{{ $course }}</td>
+                        <td style="text-align:center;">{{ $year }}</td>
+                        <td style="text-align:right; font-weight:bold;">₱{{ number_format($payment->total_amount, 2) }}</td>
+                        <td style="text-align:center;">
+                            <span class="status-pill {{ $statusClass }}">{{ ucfirst($payment->status) }}</span>
+                        </td>
+                        <td>{{ ucfirst($payment->payment_method ?? 'N/A') }}</td>
+                    </tr>
+                @endforeach
 
+                {{-- Day subtotal row --}}
+                <tr class="day-subtotal-row">
+                    <td colspan="5" style="text-align:right;">
+                        Daily Total ({{ $dayPayments->count() }} transaction(s))
+                    </td>
+                    <td style="text-align:right;">₱{{ number_format($dayTotal, 2) }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br>
+    @endforeach
+
+    {{-- ── GRAND TOTAL ── --}}
+    <table class="main-table">
+        <tbody>
             <tr class="total-row">
-                <td colspan="5" style="text-align:right;">GRAND TOTAL</td>
-                <td style="text-align:right;">₱{{ number_format($total, 2) }}</td>
+                <td style="width:4%;"></td>
+                <td colspan="4" style="text-align:right;">GRAND TOTAL — {{ $payments->count() }} Transactions</td>
+                <td style="text-align:right;">₱{{ number_format($grandTotal, 2) }}</td>
                 <td colspan="2"></td>
             </tr>
         </tbody>
@@ -271,7 +345,7 @@
 
     {{-- ── FOOTER ── --}}
     <div class="footer">
-        This document is system-generated by <strong>Non-UniPay</strong> &mdash; {{ now()->format('F d, Y \a\t h:i A') }}.
+        This document is system-generated by <strong>UniPay</strong> &mdash; {{ now()->format('F d, Y \a\t h:i A') }}.
         This report is for official use only.
     </div>
 

@@ -110,11 +110,20 @@ Clearance updates automatically after payment. Pull to refresh if it doesn't upd
 
 ---
 
+## PROFILE & ACCOUNT SETTINGS
+- **Edit Profile** — You can update your profile details (contact, course, year level, email) once every **3 days**. If you try before the cooldown is over, the app will show how many days are left before you can update again.
+- **Change Profile Picture** — You can change your profile photo once every **7 days**. Make sure to allow camera and gallery permissions in your phone settings.
+- **Why the cooldown?** — These limits are in place to keep student records accurate and prevent frequent unnecessary changes.
+
+---
+
 ## COMMON ISSUES
 - **Still PENDING after paying?** → Wait 30 seconds, pull to refresh. Check Payment History for status.
 - **Fees not showing?** → The admin may not have set an exam period yet. Contact your school.
 - **Can't log in?** → Use credentials provided by your school. Contact IT support if locked out.
 - **Profile picture not updating?** → Allow camera/gallery permissions in your phone settings.
+- **Can't edit profile?** → You may be within the 3-day cooldown period. Check the app for the next allowed update date.
+- **Can't change profile picture?** → You may be within the 7-day cooldown period. Check the app for the next allowed update date.
 
 ---
 
@@ -122,6 +131,19 @@ Clearance updates automatically after payment. Pull to refresh if it doesn't upd
 - Payment issues → school cashier
 - Profile/enrollment → registrar
 - Login/technical → school IT support
+
+---
+
+## ABOUT THE DEVELOPERS
+UniPay was developed by a dedicated team:
+- **Robby Jay Ibale** — Programmer (developed the UniPay system)
+- **James Cuso** — Tester (handled quality assurance and testing)
+- **Ricianin Bontog** — Documentation
+- **Novy Mapute** — Documentation
+- **Khey Marie Jardenero** — Documentation
+
+If a student asks who made the app, who the developer is, or who built UniPay, answer using the information above. Keep the answer friendly and brief.
+
 PROMPT;
     }
 }

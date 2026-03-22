@@ -3,8 +3,12 @@
 namespace App\Services;
 
 use App\Models\Clearance;
-use App\Models\Payment;
 use App\Models\Student;
+use App\Models\Fee;
+use App\Models\Semester;
+use App\Models\SchoolYear;
+use App\Models\ExamPeriod;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ClearanceService
@@ -13,33 +17,68 @@ class ClearanceService
     {
         $student = Student::findOrFail($studentId);
 
-        // Check if student has paid all required fees
-        $hasPaid = Payment::where('student_id', $studentId)
-            ->where('status', 'paid')
-            ->exists();
+        $currentSemester   = Semester::where('is_current', true)->first();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
 
-        if ($hasPaid) {
-            $clearance = Clearance::updateOrCreate(
-                ['student_id' => $studentId],
-                [
-                    'status' => 'cleared',
-                    'exam_period' => config('app.current_exam_period', now()->format('Y-m')),
-                ]
-            );
-
-            Log::info('Clearance updated to cleared', [
-                'student_id' => $studentId,
-                'clearance_id' => $clearance->id,
-            ]);
-
-            return $clearance;
+        if (!$currentSemester || !$currentSchoolYear) {
+            return $this->setStatus($student, 'not_cleared');
         }
 
-        // If not paid, set to pending
+        $currentExamPeriod = ExamPeriod::where('semester_id', $currentSemester->id)
+                                       ->where('is_current', true)
+                                       ->first();
+
+        $applicableFees = Fee::where('school_year_id', $currentSchoolYear->id)
+            ->where('semester_id', $currentSemester->id)
+            ->where(function ($q) use ($currentExamPeriod) {
+                if ($currentExamPeriod) {
+                    $q->whereNull('exam_period_id')
+                      ->orWhere('exam_period_id', $currentExamPeriod->id);
+                } else {
+                    $q->whereNull('exam_period_id');
+                }
+            })
+            ->where(function ($q) use ($student) {
+                $q->where('course', $student->course)
+                  ->orWhereNull('course');
+            })
+            ->get();
+
+        $totalFees = $applicableFees->sum('amount');
+
+        if ($totalFees <= 0) {
+            return $this->setStatus($student, 'not_cleared');
+        }
+
+        $feeIds = $applicableFees->pluck('id');
+
+        $totalPaid = DB::table('fee_payment')
+            ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
+            ->where('payments.student_id', $student->id)
+            ->where('payments.status', 'paid')
+            ->whereIn('fee_payment.fee_id', $feeIds)
+            ->sum('fee_payment.amount');
+
+        $isCleared = $totalPaid >= $totalFees;
+        $status    = $isCleared ? 'cleared' : 'not_cleared';
+
+        return $this->setStatus($student, $status);
+    }
+
+    private function setStatus(Student $student, string $status): Clearance
+    {
+        $student->clearance_status = $status;
+        $student->save();
+
         $clearance = Clearance::updateOrCreate(
-            ['student_id' => $studentId],
-            ['status' => 'pending']
+            ['student_id' => $student->id],
+            ['status'     => $status]
         );
+
+        Log::info('Clearance synced', [
+            'student_id' => $student->id,
+            'status'     => $status,
+        ]);
 
         return $clearance;
     }
@@ -48,33 +87,19 @@ class ClearanceService
     {
         $clearance = Clearance::where('student_id', $studentId)->first();
 
-        if (!$clearance) {
-            return [
-                'status' => 'pending',
-                'message' => 'No clearance record found',
-            ];
-        }
-
-        return [
-            'status' => $clearance->status,
-            'exam_period' => $clearance->exam_period,
-            'updated_at' => $clearance->updated_at,
-        ];
+        return $clearance
+            ? ['status' => $clearance->status, 'updated_at' => $clearance->updated_at]
+            : ['status' => 'not_cleared', 'message' => 'No clearance record found'];
     }
 
     public function bulkUpdateClearances()
     {
-        $paidStudents = Payment::paid()
-            ->pluck('student_id')
-            ->unique();
+        $students = Student::all();
 
-        foreach ($paidStudents as $studentId) {
-            $this->updateClearance($studentId);
+        foreach ($students as $student) {
+            $this->updateClearance($student->id);
         }
 
-        return [
-            'updated' => $paidStudents->count(),
-            'message' => 'Clearances updated successfully',
-        ];
+        return ['updated' => $students->count(), 'message' => 'Clearances updated successfully'];
     }
 }

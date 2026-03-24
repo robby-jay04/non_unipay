@@ -12,6 +12,7 @@ use Luigel\Paymongo\Facades\Paymongo;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Models\Fee;
+use App\Models\ExamPeriod; // <-- Added for exam period retrieval
 
 class PaymentController extends Controller
 {
@@ -40,10 +41,12 @@ class PaymentController extends Controller
     }
 
     public function show($id)
-    {
-        $payment = Payment::with(['student.user', 'fees'])->findOrFail($id);
-        return view('admin.payments.partials.view', compact('payment'));
-    }
+{
+    $payment = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
+              ->findOrFail($id);
+
+    return view('admin.payments.partials.view', compact('payment'));
+}
 
     public function initiate(Request $request)
     {
@@ -72,6 +75,15 @@ class PaymentController extends Controller
             ?? optional(\App\Models\Semester::where('is_current', true)->first())->id;
         $schoolYearId = $firstFee->school_year_id
             ?? optional(\App\Models\SchoolYear::where('is_current', true)->first())->id;
+
+        // --- NEW: Get the current exam period for this semester (if any) ---
+        $currentExamPeriod = null;
+        if ($semesterId) {
+            $currentExamPeriod = ExamPeriod::where('semester_id', $semesterId)
+                                ->where('is_current', true)
+                                ->first();
+        }
+        // --- End of new code ---
 
         Log::info('Initiate payment debug', [
             'student_id'     => $student->id,
@@ -131,6 +143,7 @@ class PaymentController extends Controller
             'reference_no'   => 'PAY-' . strtoupper(Str::random(10)),
             'semester_id'    => $semesterId,
             'school_year_id' => $schoolYearId,
+            'exam_period_id' => $currentExamPeriod ? $currentExamPeriod->id : null, // <-- Store the exam period
         ]);
 
         foreach ($selectedFees as $fee) {

@@ -19,8 +19,16 @@ class Semester extends Model
     {
         return $this->belongsTo(SchoolYear::class);
     }
-   public function examPeriods()
+  /**
+ * Get the exam periods associated with this semester.
+ */
+public function examPeriods()
 {
     return $this->hasMany(ExamPeriod::class);
+}
+
+public function currentExamPeriod()
+{
+    return $this->examPeriods()->where('is_current', true)->first();
 }
 }

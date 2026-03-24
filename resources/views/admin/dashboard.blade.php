@@ -232,6 +232,7 @@
 
 @push('styles')
 <style>
+    /* Base styles (unchanged) */
     .stat-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         cursor: pointer;
@@ -266,6 +267,84 @@
     a.stat-card:hover {
         color: inherit;
     }
+
+    /* Enhanced hover effects (previous) */
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: #0f3c91;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.12) !important;
+    }
+    .stat-icon {
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover .stat-icon {
+        transform: scale(1.05);
+    }
+
+    /* NEW: Blue hover color effect */
+    .stat-card:hover {
+        background-color: #eef4ff !important; /* Light blue background on hover */
+        transition: background-color 0.3s ease;
+    }
+    /* Make the icon circle background a deeper blue on hover */
+    .stat-card:hover .stat-icon {
+        background: rgba(15, 60, 145, 0.2) !important;
+    }
+    /* Force all icons to become the primary blue color on hover */
+    .stat-card:hover .stat-icon i {
+        color: #0f3c91 !important;
+    }
+    /* Optional: subtle blue border glow instead of shadow */
+    .stat-card:hover {
+        box-shadow: 0 8px 20px rgba(15, 60, 145, 0.2) !important;
+        border-color: rgba(15, 60, 145, 0.2);
+    }
+    /* Hover effects for mini stat cards (second row) */
+.row.g-4.mb-5 .col-md-3 .bg-white {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    
+}
+.row.g-4.mb-5 .col-md-3 .bg-white:hover {
+    transform: translateY(-4px);
+    background-color: #eef4ff !important;
+    box-shadow: 0 8px 20px rgba(15, 60, 145, 0.15) !important;
+}
+.row.g-4.mb-5 .col-md-3 .bg-white:hover .rounded-circle {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+.row.g-4.mb-5 .col-md-3 .bg-white:hover .rounded-circle i {
+    color: #0f3c91 !important;
+}
+/* Hover effects for chart cards */
+.card.border-0.shadow-sm.rounded-4 {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+}
+.card.border-0.shadow-sm.rounded-4:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(15, 60, 145, 0.15) !important;
+    background-color: #fafcff;
+}
 </style>
 @endpush
 

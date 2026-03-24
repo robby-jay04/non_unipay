@@ -21,6 +21,7 @@ class Payment extends Model
         'payment_date',
         'semester_id',
     'school_year_id',
+    'exam_period_id', 
     ];
 
     protected $casts = [
@@ -80,6 +81,28 @@ class Payment extends Model
     return $this->belongsToMany(Fee::class, 'fee_payment')
                 ->withPivot('amount')
                 ->withTimestamps();
+}
+/**
+ * Get the semester associated with this payment.
+ */
+public function semester()
+{
+    return $this->belongsTo(Semester::class);
+}
+
+/**
+ * Get the school year associated with this payment.
+ */
+public function schoolYear()
+{
+    return $this->belongsTo(SchoolYear::class, 'school_year_id');
+}
+
+// app/Models/Payment.php
+
+public function examPeriod()
+{
+    return $this->belongsTo(ExamPeriod::class);
 }
 
 }

@@ -24,11 +24,39 @@ class FeeController extends Controller
         $this->clearanceService = $clearanceService;
     }
 
-    public function index()
-    {
-        $current = SchoolYear::current();
-        return response()->json(['current_school_year' => $current]);
+    public function index(Request $request)
+{
+    $query = Fee::query();
+
+    // Apply filters
+    if ($request->filled('school_year')) {
+        $query->where('school_year_id', $request->school_year);
     }
+
+    if ($request->filled('semester')) {
+        $query->where('semester_id', $request->semester);
+    }
+
+    if ($request->filled('exam_period')) {
+        $query->where('exam_period', $request->exam_period);
+    }
+
+    $fees = $query->orderBy('school_year_id', 'desc')
+                  ->orderBy('type', 'asc')
+                  ->get();
+
+    // ✅ FIX HERE: filter semesters by selected school year
+    $semesters = Semester::when($request->school_year, function ($q) use ($request) {
+            $q->where('school_year_id', $request->school_year);
+        })
+        ->orderBy('name')
+        ->get();
+
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+
+    return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
+}
 
     public function getTotalFees()
     {
@@ -90,13 +118,39 @@ class FeeController extends Controller
         ));
     }
 
-    public function adminIndex()
-    {
-        $fees    = Fee::orderBy('school_year', 'desc')->orderBy('type')->get();
-        $courses = self::COURSES;
+public function adminIndex(Request $request)
+{
+    $query = Fee::with(['schoolYear', 'semester']);
 
-        return view('admin.fees.index', compact('fees', 'courses'));
+    // Apply filters
+    if ($request->filled('school_year')) {
+        $query->where('school_year_id', $request->school_year);
     }
+
+    if ($request->filled('semester')) {
+        $query->where('semester_id', $request->semester);
+    }
+
+    if ($request->filled('exam_period')) {
+        $query->where('exam_period', $request->exam_period);
+    }
+
+    $fees = $query->orderBy('school_year_id', 'desc')
+                  ->orderBy('type', 'asc')
+                  ->get();
+
+    // ✅ FIX HERE ALSO
+    $semesters = Semester::when($request->school_year, function ($q) use ($request) {
+            $q->where('school_year_id', $request->school_year);
+        })
+        ->orderBy('name')
+        ->get();
+
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+
+    return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
+}
 
     public function storeWeb(Request $request)
     {

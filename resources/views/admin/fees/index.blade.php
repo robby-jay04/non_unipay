@@ -19,6 +19,55 @@
 </div>
 @endif
 
+<!-- Filter Section -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+        <form method="GET" action="{{ route('admin.fees.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="school_year" class="form-label fw-semibold small text-muted">School Year</label>
+                <select name="school_year" id="school_year" class="form-select rounded-pill border-0 bg-light px-4 py-2">
+                    <option value="">All School Years</option>
+                    @foreach($schoolYears as $year)
+                        <option value="{{ $year->id }}" {{ request('school_year') == $year->id ? 'selected' : '' }}>
+                            {{ $year->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="semester" class="form-label fw-semibold small text-muted">Semester</label>
+                <select name="semester" id="semester" class="form-select rounded-pill border-0 bg-light px-4 py-2">
+                    <option value="">All Semesters</option>
+                    @foreach($semesters as $sem)
+                        <option value="{{ $sem->id }}" {{ request('semester') == $sem->id ? 'selected' : '' }}>
+                            {{ $sem->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="exam_period" class="form-label fw-semibold small text-muted">Exam Period</label>
+                <select name="exam_period" id="exam_period" class="form-select rounded-pill border-0 bg-light px-4 py-2">
+                    <option value="">All Exam Periods</option>
+                    @foreach($examPeriods as $period)
+                        <option value="{{ $period }}" {{ request('exam_period') == $period ? 'selected' : '' }}>
+                            {{ $period }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 flex-grow-1">
+                    <i class="fas fa-filter me-2"></i> Apply Filters
+                </button>
+                <a href="{{ route('admin.fees.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                    <i class="fas fa-undo-alt me-2"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Add Fee Button -->
 <div class="mb-4">
     <a href="{{ route('admin.fees.create') }}" class="btn-add-fee rounded-pill px-4 py-2">
@@ -35,7 +84,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    <tr>
+                    32
                         <th class="px-4 py-3">Name</th>
                         <th class="py-3">Type</th>
                         <th class="py-3">Course</th>
@@ -110,7 +159,7 @@
                             <div class="empty-state">
                                 <i class="fas fa-coins fa-4x" style="color: #d1d5db;"></i>
                                 <h6 class="fw-semibold mt-3" style="color: #1e293b;">No fees found</h6>
-                                <p class="text-muted small">Add a fee to get started.</p>
+                                <p class="text-muted small">Try adjusting your filters or add a new fee.</p>
                             </div>
                         </td>
                     </tr>
@@ -147,6 +196,7 @@
 
 @push('styles')
 <style>
+    /* Existing styles... (unchanged) */
     .fee-row {
         transition: all 0.2s ease;
     }
@@ -240,7 +290,6 @@
         color: #64748b;
     }
 
-    /* Exam period badges */
     .badge-exam-period {
         font-weight: 600;
         padding: 0.45rem 1rem;
@@ -291,6 +340,39 @@
         font-weight: 500;
     }
     .btn-danger:hover { background: #b02a37; }
+
+    /* Filter form styles */
+    .form-select, .form-control {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    .form-select:focus, .form-control:focus {
+        border-color: #0f3c91;
+        box-shadow: 0 0 0 2px rgba(15,60,145,0.1);
+        background-color: #fff;
+    }
+    label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        color: #475569;
+    }
+    .btn-primary {
+        background: #0f3c91;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #1a4da8;
+    }
+    .btn-outline-secondary {
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+    .btn-outline-secondary:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+    }
 </style>
 @endpush
 

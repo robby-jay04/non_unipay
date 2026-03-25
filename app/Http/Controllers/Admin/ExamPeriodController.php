@@ -6,38 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Semester;
 use App\Models\ExamPeriod;
 use Illuminate\Http\Request;
-
+use App\Services\ClearanceService;
 class ExamPeriodController extends Controller
 {
-    public function setCurrent(Request $request)
-    {
-        $request->validate([
-            'exam_period' => 'required|in:Prelim,Midterm,Semi-Final,Finals',
-        ]);
+   public function setCurrent(Request $request)
+{
+    $currentSemester = Semester::where('is_current', true)->first();
 
-        // Get the current semester
-        $currentSemester = Semester::where('is_current', true)->first();
+    $currentSemester->examPeriods()->update(['is_current' => false]);
 
-        if (!$currentSemester) {
-            return back()->with('error', 'No active semester found.');
-        }
+    $examPeriod = $currentSemester->examPeriods()->firstOrCreate([
+        'name' => $request->exam_period
+    ]);
 
-        // Unset any current exam period for this semester
-        $currentSemester->examPeriods()->update(['is_current' => false]);
+    $examPeriod->update(['is_current' => true]);
 
-        // Find or create the selected exam period for this semester
-        $examPeriod = $currentSemester->examPeriods()->firstOrCreate(
-            ['name' => $request->exam_period],
-            ['is_current' => true]
-        );
+    // 🔥 ADD THIS HERE
+    app(\App\Services\ClearanceService::class)->resetAllClearances();
+    app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
 
-        // If it already existed but wasn't current, update it
-        if (!$examPeriod->wasRecentlyCreated) {
-            $examPeriod->update(['is_current' => true]);
-        }
-
-        return back()->with('success', $request->exam_period . ' is now the current exam period.');
-    }
+    return back()->with('success', 'Exam period updated.');
+}
    public function current(Request $request)
 {
     $user = $request->user();

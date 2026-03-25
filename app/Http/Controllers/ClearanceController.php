@@ -21,8 +21,11 @@ class ClearanceController extends Controller
         $this->clearanceService = $clearanceService;
     }
 
-    public function index()
+     public function index()
     {
+        // ✅ auto sync before showing
+        $this->clearanceService->bulkUpdateClearances();
+
         $currentSemester = Semester::where('is_current', true)->first();
         $clearances      = Student::with('user')->get();
 
@@ -42,33 +45,22 @@ class ClearanceController extends Controller
 
         if (!$currentSemester || !$currentSchoolYear) {
             return response()->json([
-                'status'      => 'no_fees',
-                'message'     => 'No active semester or school year set.',
-                'exam_period' => null,
-                'total_fees'  => 0,
-                'total_paid'  => 0,
-                'remaining'   => 0,
+                'status' => 'no_fees',
+                'message' => 'No active semester or school year set.'
             ]);
         }
 
-        // ✅ FIX: get the current exam period so we filter fees the same way
-        // breakdown() does — only fees for the active exam period (or null = always apply)
         $currentExamPeriod = ExamPeriod::where('semester_id', $currentSemester->id)
-                                       ->where('is_current', true)
-                                       ->first();
+            ->where('is_current', true)
+            ->first();
 
-        // ✅ FIX: mirror the EXACT same query as FeeController@breakdown
-        // so that totalFees here always matches what students see on their fees screen.
-        $applicableFees = Fee::where('school_year_id', $currentSchoolYear->id)
+        $fees = Fee::where('school_year_id', $currentSchoolYear->id)
             ->where('semester_id', $currentSemester->id)
             ->where(function ($q) use ($currentExamPeriod) {
                 if ($currentExamPeriod) {
-                    // Only fees with no exam period (always apply)
-                    // OR fees pinned to the current exam period exactly
                     $q->whereNull('exam_period_id')
                       ->orWhere('exam_period_id', $currentExamPeriod->id);
                 } else {
-                    // No active exam period — only show semester-wide fees
                     $q->whereNull('exam_period_id');
                 }
             })
@@ -78,22 +70,10 @@ class ClearanceController extends Controller
             })
             ->get();
 
-        $totalFees = $applicableFees->sum('amount');
+        $totalFees = $fees->sum('amount');
 
-        if ($totalFees <= 0) {
-            return response()->json([
-                'status'      => 'no_fees',
-                'message'     => 'No fees assigned for this period.',
-                'exam_period' => $currentExamPeriod?->name ?? $currentSemester->name,
-                'total_fees'  => 0,
-                'total_paid'  => 0,
-                'remaining'   => 0,
-            ]);
-        }
+        $feeIds = $fees->pluck('id');
 
-        $feeIds = $applicableFees->pluck('id');
-
-        // Scope payment lookup to ONLY the applicable fee IDs
         $totalPaid = DB::table('fee_payment')
             ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
             ->where('payments.student_id', $student->id)
@@ -101,33 +81,21 @@ class ClearanceController extends Controller
             ->whereIn('fee_payment.fee_id', $feeIds)
             ->sum('fee_payment.amount');
 
-        $remaining = max($totalFees - $totalPaid, 0);
         $isCleared = $totalPaid >= $totalFees;
 
+        // ✅ Sync DB
+        $this->clearanceService->updateClearance($student->id);
+
         return response()->json([
-            'status'      => $isCleared ? 'cleared' : 'pending',
-            'exam_period' => $currentExamPeriod?->name ?? $currentSemester->name,
-            'total_fees'  => $totalFees,
-            'total_paid'  => $totalPaid,
-            'remaining'   => $remaining,
-            'cleared_at'  => $isCleared ? now()->toDateTimeString() : null,
+            'status' => $isCleared ? 'cleared' : 'pending',
+            'total_fees' => $totalFees,
+            'total_paid' => $totalPaid,
         ]);
     }
-
     public function updateClearance($studentId)
     {
-        try {
-            $clearance = $this->clearanceService->updateClearance($studentId);
-
-            return response()->json([
-                'message'   => 'Clearance updated successfully',
-                'clearance' => $clearance,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to update clearance',
-                'error'   => $e->getMessage(),
-            ], 400);
-        }
+        return response()->json([
+            'clearance' => $this->clearanceService->updateClearance($studentId)
+        ]);
     }
 }

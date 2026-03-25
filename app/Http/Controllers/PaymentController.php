@@ -275,33 +275,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function checkStatus($paymentId)
-    {
-        $payment = Payment::findOrFail($paymentId);
-
-        if ($payment->paymongo_source_id) {
-            try {
-                $source = Paymongo::source()->find($payment->paymongo_source_id);
-
-                if ($source->getStatus() === 'chargeable') {
-                    $payment->update(['status' => 'processing']);
-                } elseif (in_array($source->getStatus(), ['cancelled', 'expired'])) {
-                    $payment->update(['status' => 'failed']);
-                }
-            } catch (\Exception $e) {
-                Log::error('Status check error', [
-                    'error'      => $e->getMessage(),
-                    'payment_id' => $paymentId,
-                ]);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'status'  => $payment->status,
-            'payment' => $payment,
-        ]);
-    }
+   
 
     public function downloadReceipt($id)
     {

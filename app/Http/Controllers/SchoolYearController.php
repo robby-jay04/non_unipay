@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Semester;
 use App\Models\Student;
 use App\Models\Fee;
-
+use App\Services\ClearanceService;
 class SchoolYearController extends Controller
 {
     public function index()
@@ -37,49 +37,27 @@ class SchoolYearController extends Controller
         return back()->with('success', 'School year "' . $year->name . '" added with 1st Semester.');
     }
 
-    public function setCurrent($id)
-    {
-        // Unset ALL school years, ALL semesters, and ALL exam periods first
-        SchoolYear::query()->update(['is_current' => false]);
-        Semester::query()->update(['is_current' => false]);
-        ExamPeriod::query()->update(['is_current' => false]); // ← reset exam period
+   public function setCurrent($id)
+{
+    SchoolYear::query()->update(['is_current' => false]);
+    Semester::query()->update(['is_current' => false]);
+    ExamPeriod::query()->update(['is_current' => false]);
 
-        $year = SchoolYear::findOrFail($id);
-        $year->update(['is_current' => true]);
+    $year = SchoolYear::findOrFail($id);
+    $year->update(['is_current' => true]);
 
-        // Auto-activate 1st Semester of the newly current school year
-        $semester = $year->semesters()->where('name', '1st Semester')->first();
-        if ($semester) {
-            $semester->update(['is_current' => true]);
-            Student::query()->update(['semester' => '1st Semester']);
-        }
-
-        return back()->with('success', 'School year "' . $year->name . '" is now active with 1st Semester. Please set the exam period.');
-    }
-
-    public function setSemester(Request $request, SchoolYear $schoolYear)
-    {
-        $request->validate([
-            'semester' => 'required|in:1st Semester,2nd Semester',
-        ]);
-
-        // Unset current for all semesters of this school year
-        $schoolYear->semesters()->update(['is_current' => false]);
-
-        // Reset exam periods for all semesters of this school year
-        $semesterIds = $schoolYear->semesters()->pluck('id');
-        ExamPeriod::whereIn('semester_id', $semesterIds)->update(['is_current' => false]); // ← reset exam period
-
-        // Find or create the selected semester
-        $semester = $schoolYear->semesters()->firstOrCreate(['name' => $request->semester]);
+    $semester = $year->semesters()->where('name', '1st Semester')->first();
+    if ($semester) {
         $semester->update(['is_current' => true]);
-
-        // Update all students' semester to the new current semester
-        Student::query()->update(['semester' => $request->semester]);
-
-        return redirect()->back()->with('success', 'Current semester updated to "' . $request->semester . '". Please set the exam period.');
+        Student::query()->update(['semester' => '1st Semester']);
     }
 
+    // 🔥 ADD THIS HERE
+    app(\App\Services\ClearanceService::class)->resetAllClearances();
+    app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
+
+    return back()->with('success', 'School year updated.');
+}
     // Delete school year + related semesters, exam periods, and fees
     public function destroy($id)
     {
@@ -107,6 +85,30 @@ class SchoolYearController extends Controller
                          ->with('success', 'School year "' . $year->name . '" and all related data deleted successfully.');
     }
 
+   
+    // Example method
+    public function setSemester(Request $request, $schoolYearId)
+    {
+        $semesterName = $request->input('semester');
+
+        // Reset all current semesters for this school year
+        Semester::where('school_year_id', $schoolYearId)
+                ->update(['is_current' => false]);
+
+        // Set the selected semester as current
+        $semester = Semester::where('school_year_id', $schoolYearId)
+                            ->where('name', $semesterName)
+                            ->firstOrFail();
+
+        $semester->is_current = true;
+        $semester->save();
+
+        // Optionally, update clearances for all students
+        app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
+
+        return redirect()->back()->with('success', 'Semester updated successfully.');
+    }
+
     public function apiIndex()
     {
         $schoolYears = SchoolYear::orderBy('name', 'desc')->get(['id', 'name', 'is_current']);
@@ -122,4 +124,6 @@ class SchoolYearController extends Controller
             'current_semester' => $currentSemester,
         ]);
     }
+    
+    
 }

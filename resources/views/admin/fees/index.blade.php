@@ -84,7 +84,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    32
+                    
                         <th class="px-4 py-3">Name</th>
                         <th class="py-3">Type</th>
                         <th class="py-3">Course</th>

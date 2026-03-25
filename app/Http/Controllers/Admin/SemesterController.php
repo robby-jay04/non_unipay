@@ -28,15 +28,18 @@ class SemesterController extends Controller
     }
 
     public function setCurrent(Semester $semester)
-    {
-        // Unset current for all semesters in the same school year
-        Semester::where('school_year_id', $semester->school_year_id)
-                ->update(['is_current' => false]);
+{
+    Semester::where('school_year_id', $semester->school_year_id)
+        ->update(['is_current' => false]);
 
-        $semester->update(['is_current' => true]);
+    $semester->update(['is_current' => true]);
 
-        return redirect()->route('admin.semesters.index')->with('success', 'Current semester updated.');
-    }
+    // 🔥 ADD THIS HERE
+    app(\App\Services\ClearanceService::class)->resetAllClearances();
+    app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
+
+    return back()->with('success', 'Current semester updated.');
+}
 
     public function destroy(Semester $semester)
     {

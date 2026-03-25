@@ -45,9 +45,15 @@ class FeeController extends Controller
                   ->orderBy('type', 'asc')
                   ->get();
 
-    // ✅ FIX HERE: filter semesters by selected school year
+    // ✅ Correct semesters for the selected school year
     $semesters = Semester::when($request->school_year, function ($q) use ($request) {
             $q->where('school_year_id', $request->school_year);
+        }, function ($q) {
+            // Default to current school year's semesters if no filter
+            $currentSY = SchoolYear::where('is_current', true)->first();
+            if ($currentSY) {
+                $q->where('school_year_id', $currentSY->id);
+            }
         })
         ->orderBy('name')
         ->get();
@@ -57,7 +63,6 @@ class FeeController extends Controller
 
     return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
 }
-
     public function getTotalFees()
     {
         $total = Fee::currentSchoolYear()->sum('amount');
@@ -139,9 +144,14 @@ public function adminIndex(Request $request)
                   ->orderBy('type', 'asc')
                   ->get();
 
-    // ✅ FIX HERE ALSO
+    // ✅ Correct semesters for the selected school year
     $semesters = Semester::when($request->school_year, function ($q) use ($request) {
             $q->where('school_year_id', $request->school_year);
+        }, function ($q) {
+            $currentSY = SchoolYear::where('is_current', true)->first();
+            if ($currentSY) {
+                $q->where('school_year_id', $currentSY->id);
+            }
         })
         ->orderBy('name')
         ->get();
@@ -151,7 +161,6 @@ public function adminIndex(Request $request)
 
     return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
 }
-
     public function storeWeb(Request $request)
     {
         $validated = $request->validate([

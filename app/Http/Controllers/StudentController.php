@@ -25,6 +25,36 @@ class StudentController extends Controller
 
     return response()->json($student);
 }
+public function index(Request $request)
+{
+    $query = Student::with('user');
+
+    // Apply search filter (name or student number)
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('student_no', 'like', "%{$search}%")
+              ->orWhereHas('user', function ($userQuery) use ($search) {
+                  $userQuery->where('name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    // Apply course filter
+    if ($request->filled('course')) {
+        $query->where('course', $request->course);
+    }
+
+    // Paginate results (15 per page)
+    $students = $query->orderBy('created_at', 'desc')
+                      ->paginate(15)
+                      ->appends($request->only(['search', 'course'])); // preserve filters in pagination links
+
+    // Get distinct courses for the dropdown
+    $courses = Student::distinct()->pluck('course')->filter()->values();
+
+    return view('admin.students', compact('students', 'courses'));
+}
 
 
   public function updateProfile(Request $request)

@@ -35,26 +35,37 @@ class AdminController extends Controller
         return view('admin.payments', compact('payments'));
     }
 
-    public function students(Request $request)
-    {
-        $search = $request->query('search');
+   public function students(Request $request)
+{
+    $query = Student::with(['user', 'payments']);
 
-        $students = Student::with(['user', 'payments'])
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('user', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%")
-                           ->orWhere('email', 'like', "%{$search}%");
-                    })
-                    ->orWhere('student_no', 'like', "%{$search}%");
-                });
+    // Apply search filter (name, email, student_no)
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($q2) use ($search) {
+                $q2->where('name', 'like', "%{$search}%")
+                   ->orWhere('email', 'like', "%{$search}%");
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->appends(request()->query());
-
-        return view('admin.students', compact('students', 'search'));
+            ->orWhere('student_no', 'like', "%{$search}%");
+        });
     }
+
+    // Apply course filter
+    if ($request->filled('course')) {
+        $query->where('course', $request->course);
+    }
+
+    // Order and paginate (preserve query parameters)
+    $students = $query->orderBy('created_at', 'desc')
+                      ->paginate(10)
+                      ->appends($request->only(['search', 'course']));
+
+    // Get distinct courses for the dropdown
+    $courses = Student::distinct()->pluck('course')->filter()->values();
+
+    return view('admin.students', compact('students', 'courses'));
+}
 
     public function studentJson(Student $student)
     {

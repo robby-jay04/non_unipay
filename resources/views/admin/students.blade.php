@@ -11,10 +11,9 @@
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Students</h5>
-        
-        <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
 
-         <!-- Course filter dropdown -->
+        <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
+            <!-- Course filter dropdown -->
             <select name="course" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 150;">
                 <option value="">All Courses</option>
                 @foreach($courses as $course)
@@ -23,10 +22,29 @@
                     </option>
                 @endforeach
             </select>
+
+            <!-- Year Level filter dropdown -->
+            <select name="year_level" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 190;">
+                <option value="">All Year Level</option>
+                @foreach($yearLevels as $level)
+                    <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>
+                        {{ $level }}
+                    </option>
+                @endforeach
+            </select>
+
+            <!-- Clearance Status filter dropdown -->
+            <select name="clearance_status" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 150;">
+                <option value="">All Status</option>
+                @foreach($clearanceStatuses as $status)
+                    <option value="{{ $status }}" {{ request('clearance_status') == $status ? 'selected' : '' }}>
+                        {{ ucfirst(str_replace('_', ' ', $status)) }}
+                    </option>
+                @endforeach
+            </select>
+
             <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
                    placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
-
-           
 
             <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
                 <i class="fas fa-search me-2"></i> Search
@@ -38,14 +56,14 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    <tr>
+                     <tr>
                         <th class="px-4 py-3">Student No.</th>
                         <th class="py-3">Name</th>
                         <th class="py-3">Course</th>
                         <th class="py-3">Year Level</th>
                         <th class="py-3">Clearance Status</th>
                         <th class="py-3 pe-4">Actions</th>
-                    </tr>
+                     </tr>
                 </thead>
                 <tbody id="students-table-body">
                     @forelse($students as $student)
@@ -141,7 +159,7 @@
         <!-- Pagination -->
         @if($students->hasPages())
         <div class="d-flex justify-content-center py-4" id="students-pagination">
-            {{ $students->appends(request()->only(['search', 'course']))->links('pagination::no-summary') }}
+            {{ $students->appends(request()->only(['search', 'course', 'year_level', 'clearance_status']))->links('pagination::no-summary') }}
         </div>
         @endif
     </div>
@@ -531,15 +549,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── AJAX load students ───────────────────────────────────────────────────
+    // ── AJAX load students (replaces table and pagination) ───────────────────
     function loadStudents(url) {
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(res => res.text())
             .then(html => {
-                const doc           = new DOMParser().parseFromString(html, 'text/html');
-                const newTbody      = doc.getElementById('students-table-body');
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const newTbody = doc.getElementById('students-table-body');
                 const newPagination = doc.getElementById('students-pagination');
-                if (newTbody)      document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
+                if (newTbody) document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
                 if (newPagination) document.getElementById('students-pagination').innerHTML = newPagination.innerHTML;
                 attachViewHandlers();
                 attachActionHandlers();
@@ -547,18 +565,56 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => console.error(err));
     }
 
-    // ── Init ─────────────────────────────────────────────────────────────────
-    attachViewHandlers();
-    attachActionHandlers();
+    // ── Auto-load on filter changes (debounced search, immediate dropdowns) ──
+    function applyFiltersAndLoad() {
+        const formData = new FormData(document.getElementById('searchForm'));
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', formData.get('search'));
+        url.searchParams.set('course', formData.get('course'));
+        url.searchParams.set('year_level', formData.get('year_level'));
+        url.searchParams.set('clearance_status', formData.get('clearance_status'));
+        url.searchParams.delete('page');
+        loadStudents(url.toString());
+    }
 
-    // Poll for new unconfirmed students
+    const searchInput = document.querySelector('input[name="search"]');
+    let debounceTimer;
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyFiltersAndLoad, 500);
+        });
+    }
+
+    const courseSelect = document.querySelector('select[name="course"]');
+    if (courseSelect) {
+        courseSelect.addEventListener('change', applyFiltersAndLoad);
+    }
+
+    const yearSelect = document.querySelector('select[name="year_level"]');
+    if (yearSelect) {
+        yearSelect.addEventListener('change', applyFiltersAndLoad);
+    }
+
+    const clearanceSelect = document.querySelector('select[name="clearance_status"]');
+    if (clearanceSelect) {
+        clearanceSelect.addEventListener('change', applyFiltersAndLoad);
+    }
+
+    // Optional: Keep form submission for fallback
+    document.getElementById('searchForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        applyFiltersAndLoad();
+    });
+
+    // ── Poll for new unconfirmed students ────────────────────────────────────
     let lastUnconfirmedCount = null;
     function pollForNewStudents() {
         fetch('/admin/api/new-students-count')
             .then(res => res.json())
             .then(data => {
                 if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
-                    loadStudents(window.location.href);
+                    applyFiltersAndLoad();
                 }
                 lastUnconfirmedCount = data.count;
             })
@@ -567,31 +623,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(pollForNewStudents, 5000);
     pollForNewStudents();
 
-    // Search form submit – preserve course filter
-    document.getElementById('searchForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const url = new URL(window.location.href);
-        url.searchParams.set('search', formData.get('search'));
-        url.searchParams.set('course', formData.get('course'));
-        url.searchParams.delete('page');
-        loadStudents(url.toString());
-    });
-
-    // ✅ Course dropdown change – automatically reload
-    const courseSelect = document.querySelector('select[name="course"]');
-    if (courseSelect) {
-        courseSelect.addEventListener('change', function () {
-            const formData = new FormData(document.getElementById('searchForm'));
-            const url = new URL(window.location.href);
-            url.searchParams.set('search', formData.get('search'));
-            url.searchParams.set('course', formData.get('course'));
-            url.searchParams.delete('page');
-            loadStudents(url.toString());
-        });
-    }
-
-    // Pagination links (AJAX)
+    // ── Pagination links (AJAX) ──────────────────────────────────────────────
     document.addEventListener('click', function (e) {
         const link = e.target.closest('.pagination a');
         if (link && !link.classList.contains('disabled')) {
@@ -599,6 +631,10 @@ document.addEventListener('DOMContentLoaded', function () {
             loadStudents(link.href);
         }
     });
+
+    // Initial attachment of handlers
+    attachViewHandlers();
+    attachActionHandlers();
 });
 </script>
 @endpush

@@ -11,7 +11,6 @@
         <h2 class="fw-bold mb-0" style="color: #0f3c91;">Student Clearance Status</h2>
     </div>
     <div>
-        <!-- Trigger modal -->
         <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#downloadModal">
             <i class="fas fa-download me-2"></i> Download PDF
         </button>
@@ -38,7 +37,7 @@
         <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Clearance Report</h5>
         <div class="d-flex gap-2">
             <span class="badge rounded-pill px-3 py-2" style="background:rgba(76,175,80,0.15); color:#2e7d32;">
-                <i class="fas fa-check me-1"></i>Cleared: {{ $clearances->count() }}
+                <i class="fas fa-check me-1"></i>Cleared: {{ $clearances->total() }}
             </span>
             <span class="badge rounded-pill px-3 py-2" style="background:rgba(244,180,20,0.15); color:#b26a00;">
                 <i class="fas fa-clock me-1"></i>Pending: {{ $pendingCount }}
@@ -46,7 +45,7 @@
         </div>
 
         <div class="d-flex gap-2 ms-auto">
-            <!-- Course Filter Form (auto-submit on change) -->
+            <!-- Course Filter Form (auto-submit) -->
             <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="courseFilterForm">
                 <select name="course" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;" onchange="this.form.submit()">
                     <option value="">All Courses</option>
@@ -54,7 +53,16 @@
                         <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
                     @endforeach
                 </select>
-                <!-- No submit button needed -->
+            </form>
+
+            <!-- Year Level Filter Form (auto-submit) -->
+            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="yearLevelFilterForm">
+                <select name="year_level" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Year Levels</option>
+                    @foreach($yearLevels as $level)
+                        <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
+                    @endforeach
+                </select>
             </form>
 
             <!-- Search Form -->
@@ -72,7 +80,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    
+                    <tr>
                         <th class="px-4 py-3">Student No.</th>
                         <th class="py-3">Student Name</th>
                         <th class="py-3">Course</th>
@@ -161,13 +169,22 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="downloadForm" method="GET" action="{{ route('admin.reports.clearances.pdf') }}" target="_blank">
+                <form id="downloadForm" method="GET" action="{{ route('admin.reports.clearances.pdf') }}" >
                     <div class="mb-3">
                         <label for="courseSelect" class="form-label fw-semibold">Select Course</label>
                         <select name="course" id="courseSelect" class="form-select">
                             <option value="">All Courses</option>
                             @foreach($courses as $course)
                                 <option value="{{ $course }}">{{ $course }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="yearLevelSelect" class="form-label fw-semibold">Select Year Level</label>
+                        <select name="year_level" id="yearLevelSelect" class="form-select">
+                            <option value="">All Year Levels</option>
+                            @foreach($yearLevels as $level)
+                                <option value="{{ $level }}">Year {{ $level }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -216,7 +233,6 @@
         border-bottom: 2px solid #e9ecef;
     }
 
-    /* Pagination styling */
     .pagination .page-link {
         border: none;
         color: #64748b;
@@ -245,7 +261,8 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // No additional code needed; the select already submits via onchange
+    // Auto-submit for year level dropdown (already uses onchange attribute)
+    // Optional: preserve filters when pagination links are clicked – already handled by Laravel pagination links.
 });
 </script>
 @endpush

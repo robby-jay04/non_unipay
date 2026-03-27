@@ -101,13 +101,18 @@ class ReportController extends Controller
    public function clearances(Request $request)
 {
     $search = $request->get('search');
-    $course = $request->get('course');  // new filter
+    $course = $request->get('course');
+    $yearLevel = $request->get('year_level'); // new filter
 
     $query = Student::with('user')
         ->where('clearance_status', 'cleared');
 
     if ($course) {
         $query->where('course', $course);
+    }
+
+    if ($yearLevel) {
+        $query->where('year_level', $yearLevel);
     }
 
     if ($search) {
@@ -119,25 +124,36 @@ class ReportController extends Controller
         });
     }
 
-    $clearances = $query->orderBy('student_no')->paginate(20)->appends(request()->only(['search', 'course']));
+    $clearances = $query->orderBy('student_no')
+                        ->paginate(20)
+                        ->appends(request()->only(['search', 'course', 'year_level']));
+
     $pendingCount = Student::where('clearance_status', 'pending')->count();
     $currentSemester = Semester::where('is_current', true)->with('schoolYear')->first();
 
-    // List of available courses (you may fetch from DB)
-    $courses = ['BSIT', 'BEED', 'BSED', 'BSCRIM', 'BSOA', 'BSPOLSCI'];
+    // Get distinct courses for the dropdown
+    $courses = Student::distinct()->pluck('course')->filter()->values();
 
-    return view('admin.reports.clearances', compact('clearances', 'pendingCount', 'currentSemester', 'courses'));
+    // Get distinct year levels for the dropdown
+    $yearLevels = Student::distinct()->pluck('year_level')->filter()->sort()->values();
+
+    return view('admin.reports.clearances', compact('clearances', 'pendingCount', 'currentSemester', 'courses', 'yearLevels'));
 }
-    public function clearancesPdf(Request $request)
+   public function clearancesPdf(Request $request)
 {
     $search = $request->get('search');
     $course = $request->get('course');
+    $yearLevel = $request->get('year_level'); // new
 
     $query = Student::with('user')
         ->where('clearance_status', 'cleared');
 
     if ($course) {
         $query->where('course', $course);
+    }
+
+    if ($yearLevel) {
+        $query->where('year_level', $yearLevel);
     }
 
     if ($search) {
@@ -158,6 +174,7 @@ class ReportController extends Controller
         'currentSemester' => $currentSemester,
         'search'          => $search,
         'course'          => $course,
+        'year_level'      => $yearLevel,
         'generated_at'    => now()->format('F d, Y H:i'),
     ];
 

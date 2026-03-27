@@ -39,7 +39,7 @@ class AdminController extends Controller
 {
     $query = Student::with(['user', 'payments']);
 
-    // Apply search filter (name, email, student_no)
+    // Apply search filter
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
@@ -56,17 +56,32 @@ class AdminController extends Controller
         $query->where('course', $request->course);
     }
 
-    // Order and paginate (preserve query parameters)
+    // Apply year level filter
+    if ($request->filled('year_level')) {
+        $query->where('year_level', $request->year_level);
+    }
+
+    // Apply clearance status filter
+    if ($request->filled('clearance_status')) {
+        $query->where('clearance_status', $request->clearance_status);
+    }
+
+    // Order and paginate
     $students = $query->orderBy('created_at', 'desc')
                       ->paginate(10)
-                      ->appends($request->only(['search', 'course']));
+                      ->appends($request->only(['search', 'course', 'year_level', 'clearance_status']));
 
     // Get distinct courses for the dropdown
     $courses = Student::distinct()->pluck('course')->filter()->values();
 
-    return view('admin.students', compact('students', 'courses'));
-}
+    // Get distinct year levels for the dropdown
+    $yearLevels = Student::distinct()->pluck('year_level')->filter()->sort()->values();
 
+    // (Optional) Get clearance status options
+    $clearanceStatuses = ['cleared', 'not_cleared']; // adjust based on your actual values
+
+    return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
+}
     public function studentJson(Student $student)
     {
         $student->load('user');

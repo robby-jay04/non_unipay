@@ -48,139 +48,176 @@ class PaymentController extends Controller
     return view('admin.payments.partials.view', compact('payment'));
 }
 
-    public function initiate(Request $request)
-    {
-        $request->validate([
-            'amount'    => 'required|numeric|min:100',
-            'fee_ids'   => 'required|array',
-            'fee_ids.*' => 'exists:fees,id',
-        ]);
+public function initiate(Request $request)
+{
+    $request->validate([
+        'amount'    => 'required|numeric|min:100',
+        'fee_ids'   => 'required|array',
+        'fee_ids.*' => 'exists:fees,id',
+    ]);
 
-        $student = $request->user()->student;
+    $student = $request->user()->student;
 
-        $selectedFees    = Fee::whereIn('id', $request->fee_ids)->get();
-        $calculatedTotal = $selectedFees->sum('amount');
+    $selectedFees    = Fee::whereIn('id', $request->fee_ids)->get();
+    $calculatedTotal = $selectedFees->sum('amount');
 
-        if (abs($calculatedTotal - $request->amount) > 0.01) {
-            return response()->json(['success' => false, 'message' => 'Total amount mismatch'], 400);
-        }
-
-        $amountPesos = floatval($request->amount);
-        if ($amountPesos > 100000) {
-            return response()->json(['success' => false, 'message' => 'Amount exceeds PayMongo maximum of ₱100,000']);
-        }
-
-        $firstFee     = $selectedFees->first();
-        $semesterId   = $firstFee->semester_id
-            ?? optional(\App\Models\Semester::where('is_current', true)->first())->id;
-        $schoolYearId = $firstFee->school_year_id
-            ?? optional(\App\Models\SchoolYear::where('is_current', true)->first())->id;
-
-        // --- NEW: Get the current exam period for this semester (if any) ---
-        $currentExamPeriod = null;
-        if ($semesterId) {
-            $currentExamPeriod = ExamPeriod::where('semester_id', $semesterId)
-                                ->where('is_current', true)
-                                ->first();
-        }
-        // --- End of new code ---
-
-        Log::info('Initiate payment debug', [
-            'student_id'     => $student->id,
-            'semester_id'    => $semesterId,
-            'school_year_id' => $schoolYearId,
-            'fee_ids'        => $request->fee_ids,
-        ]);
-
-        if ($semesterId && $schoolYearId) {
-            $semesterTotal = Fee::where('semester_id', $semesterId)
-                ->where('school_year_id', $schoolYearId)
-                ->sum('amount');
-
-            $totalPaid = Payment::where('student_id', $student->id)
-                ->where('semester_id', $semesterId)
-                ->where('school_year_id', $schoolYearId)
-                ->where('status', 'paid')
-                ->sum('total_amount');
-
-            $remainingBalance = $semesterTotal - $totalPaid;
-
-            Log::info('Payment balance check', [
-                'semester_total'    => $semesterTotal,
-                'total_paid'        => $totalPaid,
-                'remaining_balance' => $remainingBalance,
-                'requested_amount'  => $amountPesos,
-            ]);
-
-            if ($remainingBalance <= 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have already fully paid for this semester.',
-                ], 400);
-            }
-
-            if ($amountPesos > $remainingBalance + 0.01) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment of ₱' . number_format($amountPesos, 2) .
-                                 ' exceeds your remaining balance of ₱' . number_format($remainingBalance, 2) . '.',
-                ], 400);
-            }
-
-            Payment::where('student_id', $student->id)
-                ->where('semester_id', $semesterId)
-                ->where('school_year_id', $schoolYearId)
-                ->whereIn('status', ['pending', 'processing'])
-                ->where('created_at', '<', now()->subMinutes(30))
-                ->update(['status' => 'cancelled']);
-        }
-
-        $payment = Payment::create([
-            'student_id'     => $student->id,
-            'total_amount'   => $amountPesos,
-            'status'         => 'pending',
-            'payment_method' => 'gcash',
-            'reference_no'   => 'PAY-' . strtoupper(Str::random(10)),
-            'semester_id'    => $semesterId,
-            'school_year_id' => $schoolYearId,
-            'exam_period_id' => $currentExamPeriod ? $currentExamPeriod->id : null, // <-- Store the exam period
-        ]);
-
-        foreach ($selectedFees as $fee) {
-            $payment->fees()->attach($fee->id, ['amount' => $fee->amount]);
-        }
-
-        try {
-            $source = Paymongo::source()->create([
-                'type'     => 'gcash',
-                'amount'   => $amountPesos,
-                'currency' => 'PHP',
-                'redirect' => [
-                    'success' => route('payment.success'),
-                    'failed'  => route('payment.failed'),
-                ],
-                'billing' => [
-                    'name'  => $student->user->name,
-                    'email' => $student->user->email,
-                    'phone' => $student->user->phone ?? '09000000000',
-                ],
-            ]);
-
-            $payment->update(['paymongo_source_id' => $source->id]);
-
-            return response()->json([
-                'success'      => true,
-                'payment_url'  => $source->getRedirect()['checkout_url'],
-                'reference_no' => $payment->reference_no,
-                'payment_id'   => $payment->id,
-            ]);
-
-        } catch (\Luigel\Paymongo\Exceptions\BadRequestException $e) {
-            $payment->delete();
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    if (abs($calculatedTotal - $request->amount) > 0.01) {
+        return response()->json(['success' => false, 'message' => 'Total amount mismatch'], 400);
     }
 
+    $amountPesos = floatval($request->amount);
+    if ($amountPesos > 100000) {
+        return response()->json(['success' => false, 'message' => 'Amount exceeds PayMongo maximum of ₱100,000']);
+    }
+
+    $firstFee     = $selectedFees->first();
+    $semesterId   = $firstFee->semester_id
+        ?? optional(\App\Models\Semester::where('is_current', true)->first())->id;
+    $schoolYearId = $firstFee->school_year_id
+        ?? optional(\App\Models\SchoolYear::where('is_current', true)->first())->id;
+
+    // Get the current exam period for this semester (if any)
+    $currentExamPeriod = null;
+    if ($semesterId) {
+        $currentExamPeriod = ExamPeriod::where('semester_id', $semesterId)
+                            ->where('is_current', true)
+                            ->first();
+    }
+
+    Log::info('Initiate payment debug', [
+        'student_id'     => $student->id,
+        'semester_id'    => $semesterId,
+        'school_year_id' => $schoolYearId,
+        'fee_ids'        => $request->fee_ids,
+    ]);
+
+    if ($semesterId && $schoolYearId) {
+        $semesterTotal = Fee::where('semester_id', $semesterId)
+            ->where('school_year_id', $schoolYearId)
+            ->sum('amount');
+
+        $totalPaid = Payment::where('student_id', $student->id)
+            ->where('semester_id', $semesterId)
+            ->where('school_year_id', $schoolYearId)
+            ->where('status', 'paid')
+            ->sum('total_amount');
+
+        $remainingBalance = $semesterTotal - $totalPaid;
+
+        Log::info('Payment balance check', [
+            'semester_total'    => $semesterTotal,
+            'total_paid'        => $totalPaid,
+            'remaining_balance' => $remainingBalance,
+            'requested_amount'  => $amountPesos,
+        ]);
+
+        if ($remainingBalance <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already fully paid for this semester.',
+            ], 400);
+        }
+
+        if ($amountPesos > $remainingBalance + 0.01) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment of ₱' . number_format($amountPesos, 2) .
+                             ' exceeds your remaining balance of ₱' . number_format($remainingBalance, 2) . '.',
+            ], 400);
+        }
+
+        // Clean up old pending payments (older than 60 minutes)
+        Payment::where('student_id', $student->id)
+            ->where('semester_id', $semesterId)
+            ->where('school_year_id', $schoolYearId)
+            ->whereIn('status', ['pending', 'processing'])
+            ->where('created_at', '<', now()->subMinutes(60))
+            ->update(['status' => 'failed']);
+    }
+
+    // NEW: Check if any of the selected fees are already in a recent pending payment
+    $existingPending = Payment::where('student_id', $student->id)
+        ->where('status', 'pending')
+        ->where('created_at', '>', now()->subMinutes(30)) // only recent
+        ->whereHas('fees', function ($query) use ($request) {
+            $query->whereIn('fees.id', $request->fee_ids);
+        })
+        ->exists();
+
+    if ($existingPending) {
+        return response()->json([
+            'success' => false,
+            'message' => 'One or more selected fees are already pending payment. Please wait for the previous payment to complete.'
+        ], 400);
+    }
+
+    // Create payment record
+    $payment = Payment::create([
+        'student_id'     => $student->id,
+        'total_amount'   => $amountPesos,
+        'status'         => 'pending',
+        'payment_method' => 'gcash',
+        'reference_no'   => 'PAY-' . strtoupper(Str::random(10)),
+        'semester_id'    => $semesterId,
+        'school_year_id' => $schoolYearId,
+        'exam_period_id' => $currentExamPeriod ? $currentExamPeriod->id : null,
+    ]);
+
+    foreach ($selectedFees as $fee) {
+        $payment->fees()->attach($fee->id, ['amount' => $fee->amount]);
+    }
+
+    try {
+        $source = Paymongo::source()->create([
+            'type'     => 'gcash',
+            'amount'   => $amountPesos,
+            'currency' => 'PHP',
+            'redirect' => [
+                'success' => route('payment.success'),
+                'failed'  => route('payment.failed'),
+            ],
+            'billing' => [
+                'name'  => $student->user->name,
+                'email' => $student->user->email,
+                'phone' => $student->user->phone ?? '09000000000',
+            ],
+        ]);
+
+        $payment->update(['paymongo_source_id' => $source->id]);
+
+        return response()->json([
+            'success'      => true,
+            'payment_url'  => $source->getRedirect()['checkout_url'],
+            'reference_no' => $payment->reference_no,
+            'payment_id'   => $payment->id,
+        ]);
+
+    } catch (\Luigel\Paymongo\Exceptions\BadRequestException $e) {
+        $payment->delete();
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+public function status($id)
+{
+    $payment = Payment::find($id);
+
+    if (!$payment) {
+        return response()->json(['status' => 'not_found'], 404);
+    }
+
+    // Optional: authorize the user – only the owner or admin can see the status
+    $user = auth()->user();
+    if ($payment->student_id !== $user->student->id && !$user->is_admin) {
+        return response()->json(['status' => 'unauthorized'], 403);
+    }
+
+    return response()->json([
+        'status' => $payment->status,
+        'payment_id' => $payment->id,
+        'reference_no' => $payment->reference_no,
+    ]);
+}
     public function webhook(Request $request)
     {
         $payload = $request->all();

@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::post('/initiate', [PaymentController::class, 'initiate']);
         Route::get('/history', [PaymentController::class, 'history']);
-        Route::get('/status/{id}', [PaymentController::class, 'checkStatus']);
+        Route::get('/status/{id}', [PaymentController::class, 'status']);
         Route::get('/{id}', [PaymentController::class, 'show']);
         Route::get('/{id}/receipt', [PaymentController::class, 'downloadReceipt']);
     });

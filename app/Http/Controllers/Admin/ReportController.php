@@ -98,34 +98,70 @@ class ReportController extends Controller
         );
     }
 
-    public function clearances(Request $request)
-    {
-        $currentSemester = Semester::where('is_current', true)->first();
+   public function clearances(Request $request)
+{
+    $search = $request->get('search');
+    $course = $request->get('course');  // new filter
 
-        // ✅ Read directly from clearance_status column — no more loop recomputation
-        $query = Student::with(['user', 'payments'])
-            ->where('clearance_status', 'cleared');
+    $query = Student::with('user')
+        ->where('clearance_status', 'cleared');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%");
-                })->orWhere('student_no', 'like', "%{$search}%");
-            });
-        }
-
-        $clearedStudents = $query->orderBy('updated_at', 'desc')
-            ->paginate(10)
-            ->appends($request->query());
-
-        $totalStudents = Student::count();
-        $pendingCount  = $totalStudents - Student::where('clearance_status', 'cleared')->count();
-
-        return view('admin.reports.clearances', [
-            'clearances'      => $clearedStudents,
-            'pendingCount'    => $pendingCount,
-            'currentSemester' => $currentSemester,
-        ]);
+    if ($course) {
+        $query->where('course', $course);
     }
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('student_no', 'like', "%{$search}%")
+              ->orWhereHas('user', function ($q2) use ($search) {
+                  $q2->where('name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $clearances = $query->orderBy('student_no')->paginate(20)->appends(request()->only(['search', 'course']));
+    $pendingCount = Student::where('clearance_status', 'pending')->count();
+    $currentSemester = Semester::where('is_current', true)->with('schoolYear')->first();
+
+    // List of available courses (you may fetch from DB)
+    $courses = ['BSIT', 'BEED', 'BSED', 'BSCRIM', 'BSOA', 'BSPOLSCI'];
+
+    return view('admin.reports.clearances', compact('clearances', 'pendingCount', 'currentSemester', 'courses'));
+}
+    public function clearancesPdf(Request $request)
+{
+    $search = $request->get('search');
+    $course = $request->get('course');
+
+    $query = Student::with('user')
+        ->where('clearance_status', 'cleared');
+
+    if ($course) {
+        $query->where('course', $course);
+    }
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('student_no', 'like', "%{$search}%")
+              ->orWhereHas('user', function ($q2) use ($search) {
+                  $q2->where('name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $clearances = $query->orderBy('student_no')->get();
+
+    $currentSemester = Semester::where('is_current', true)->with('schoolYear')->first();
+
+    $data = [
+        'clearances'      => $clearances,
+        'currentSemester' => $currentSemester,
+        'search'          => $search,
+        'course'          => $course,
+        'generated_at'    => now()->format('F d, Y H:i'),
+    ];
+
+    $pdf = Pdf::loadView('admin.reports.clearances_pdf', $data);
+    return $pdf->download('clearance_report_' . now()->format('Ymd_His') . '.pdf');
+}
 }

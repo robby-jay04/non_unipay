@@ -31,13 +31,10 @@ class PasswordResetController extends Controller
         }
 
         try {
-            // Generate password reset token
             $token = Password::createToken($user);
 
-            // HTTPS URL for email (clickable in all email clients)
-            $webUrl = url("/password/reset/{$token}?email={$user->email}");
+            $webUrl = url("/password/reset/{$token}?email=" . urlencode($user->email));
 
-            // Send email
             Mail::to($user->email)->send(new ResetPasswordMail($webUrl));
 
             return response()->json([
@@ -55,27 +52,16 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Handle clickable link from email (web or mobile)
-     * Redirects to mobile deep link automatically
+     * Handle clickable link from email
+     * Shows the web reset form directly
      */
     public function redirectToMobile($token, Request $request)
     {
         $email = $request->query('email');
 
-        // Build deep link for your app
-        $deepLink = "nonunipay://reset-password?token={$token}&email={$email}";
-
-        // Redirect mobile users automatically
-        return redirect()->away($deepLink);
-    }
-    // Show the web reset form
-    public function showResetForm(Request $request, $token)
-    {
-        $email = $request->query('email');
-
         return view('auth.passwords.reset', [
             'token' => $token,
-            'email' => $email
+            'email' => $email,
         ]);
     }
 
@@ -97,9 +83,8 @@ class PasswordResetController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-        // ✅ Return Blade view for success
-        return view('auth.password-reset-success');
-    }
+            return view('auth.password-reset-success');
+        }
 
         return back()->withErrors(['email' => __($status)]);
     }

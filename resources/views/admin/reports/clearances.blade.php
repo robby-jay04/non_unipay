@@ -10,9 +10,13 @@
         </a>
         <h2 class="fw-bold mb-0" style="color: #0f3c91;">Student Clearance Status</h2>
     </div>
-    <!-- You can add other header actions here if needed -->
+    <div>
+        <!-- Trigger modal -->
+        <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#downloadModal">
+            <i class="fas fa-download me-2"></i> Download PDF
+        </button>
+    </div>
 </div>
-
 
 {{-- Current Semester Info --}}
 @php
@@ -28,36 +32,47 @@
 </div>
 @endif
 
-
 <!-- Clearance Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Clearance Report</h5>
-    <div class="d-flex gap-2">
-        <span class="badge rounded-pill px-3 py-2" style="background:rgba(76,175,80,0.15); color:#2e7d32;">
-            <i class="fas fa-check me-1"></i>Cleared: {{ $clearances->count() }}
-        </span>
-        <span class="badge rounded-pill px-3 py-2" style="background:rgba(244,180,20,0.15); color:#b26a00;">
-            <i class="fas fa-clock me-1"></i>Pending: {{ $pendingCount }}
-        </span>
+    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Clearance Report</h5>
+        <div class="d-flex gap-2">
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(76,175,80,0.15); color:#2e7d32;">
+                <i class="fas fa-check me-1"></i>Cleared: {{ $clearances->count() }}
+            </span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(244,180,20,0.15); color:#b26a00;">
+                <i class="fas fa-clock me-1"></i>Pending: {{ $pendingCount }}
+            </span>
+        </div>
+
+        <div class="d-flex gap-2 ms-auto">
+            <!-- Course Filter Form (auto-submit on change) -->
+            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="courseFilterForm">
+                <select name="course" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Courses</option>
+                    @foreach($courses as $course)
+                        <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                    @endforeach
+                </select>
+                <!-- No submit button needed -->
+            </form>
+
+            <!-- Search Form -->
+            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="searchForm">
+                <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
+                       placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
+                <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
+                    <i class="fas fa-search me-2"></i> Search
+                </button>
+            </form>
+        </div>
     </div>
 
-
-
-        <!-- Search Form -->
-        <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="searchForm">
-            <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
-                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
-            <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
-                <i class="fas fa-search me-2"></i> Search
-            </button>
-        </form>
-    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    <tr>
+                    
                         <th class="px-4 py-3">Student No.</th>
                         <th class="py-3">Student Name</th>
                         <th class="py-3">Course</th>
@@ -136,6 +151,39 @@
         @endif
     </div>
 </div>
+
+<!-- Download Modal -->
+<div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: #ffffff;" id="downloadModalLabel">Download Clearance Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="downloadForm" method="GET" action="{{ route('admin.reports.clearances.pdf') }}" target="_blank">
+                    <div class="mb-3">
+                        <label for="courseSelect" class="form-label fw-semibold">Select Course</label>
+                        <select name="course" id="courseSelect" class="form-select">
+                            <option value="">All Courses</option>
+                            @foreach($courses as $course)
+                                <option value="{{ $course }}">{{ $course }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-download me-2"></i> Download PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('styles')
@@ -168,7 +216,7 @@
         border-bottom: 2px solid #e9ecef;
     }
 
-    /* Pagination styling (consistent with students page) */
+    /* Pagination styling */
     .pagination .page-link {
         border: none;
         color: #64748b;
@@ -197,9 +245,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Optional: AJAX pagination and search (like on students page)
-    // If you want AJAX pagination, you can reuse the logic from the students page.
-    // For now, the standard links will reload the page.
+    // No additional code needed; the select already submits via onchange
 });
 </script>
 @endpush

@@ -66,10 +66,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/new-students-count', [AdminController::class, 'newStudentsCount'])->name('students.new-count');
 
         // REPORTS
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports');
-        Route::get('/reports/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
-        Route::get('/reports/excel', [ReportController::class, 'exportExcel'])->name('reports.excel');
-        Route::get('/reports/clearances', [ReportController::class, 'clearances'])->name('reports.clearances');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
+    Route::get('/reports/excel', [ReportController::class, 'exportExcel'])->name('reports.excel');
+    Route::get('/reports/clearances', [ReportController::class, 'clearances'])->name('reports.clearances');
+    Route::get('/reports/clearances/pdf', [ReportController::class, 'clearancesPdf'])->name('reports.clearances.pdf');
 
         // SCHOOL YEARS
         Route::get('/school-years', [SchoolYearController::class, 'index'])->name('school-years.index');

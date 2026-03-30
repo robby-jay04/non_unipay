@@ -111,8 +111,8 @@ Clearance updates automatically after payment. Pull to refresh if it doesn't upd
 ---
 
 ## PROFILE & ACCOUNT SETTINGS
-- **Edit Profile** — You can update your profile details (contact, course, year level, email) once every **3 days**. If you try before the cooldown is over, the app will show how many days are left before you can update again.
-- **Change Profile Picture** — You can change your profile photo once every **7 days**. Make sure to allow camera and gallery permissions in your phone settings.
+- **Edit Profile** — You can update your profile details (contact, course, year level, email) once every 3 days. If you try before the cooldown is over, the app will show how many days are left before you can update again.
+- **Change Profile Picture** — You can change your profile photo once every 7 days. Make sure to allow camera and gallery permissions in your phone settings.
 - **Why the cooldown?** — These limits are in place to keep student records accurate and prevent frequent unnecessary changes.
 
 ---
@@ -141,7 +141,8 @@ UniPay was developed by a dedicated team:
 - **Ricianin Bontog** — Documentation
 - **Novy Mapute** — Documentation
 - **Khey Marie Jardenero** — Documentation
-- **Dexter Tenchavez** - Boyset 
+- **Dexter Tenchavez** — CEO Of Alturas and Marcela Farms
+
 If a student asks who made the app, who the developer is, or who built UniPay, answer using the information above. Keep the answer friendly and brief.
 
 PROMPT;

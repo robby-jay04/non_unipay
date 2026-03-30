@@ -79,7 +79,7 @@ public function login(Request $request)
 
     if (!$user) {
         return response()->json([
-            'message' => 'The provided credentials are incorrect.'
+            'message' => 'No account found with that email address.'
         ], 401);
     }
 
@@ -87,20 +87,19 @@ public function login(Request $request)
     if (!$user->password) {
         if ($request->password !== 'password123') {
             return response()->json([
-                'message' => 'The provided credentials are incorrect.'
+                'message' => 'Incorrect password. Please try again.'
             ], 401);
         }
     } else {
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'The provided credentials are incorrect.'
+                'message' => 'Incorrect password. Please try again.'
             ], 401);
         }
     }
 
-    // 🔥 BLOCK STUDENT IF NOT CONFIRMED
+    // Block student if not confirmed
     if ($user->isStudent()) {
-
         $student = $user->student;
 
         if (!$student || !$student->is_confirmed) {
@@ -110,7 +109,7 @@ public function login(Request $request)
         }
     }
 
-    // Create token only if allowed
+    // Create token
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json([
@@ -124,7 +123,6 @@ public function login(Request $request)
         ],
     ]);
 }
-
 
     // -------------------------------
     // API Logout (Sanctum token)

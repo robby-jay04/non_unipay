@@ -7,8 +7,8 @@ use App\Models\Student;
 use Illuminate\Support\Facades\Storage;
 class StudentController extends Controller
 {
- public function profile(Request $request)
-{
+ // StudentController.php - profile()
+public function profile(Request $request) {
     $student = $request->user()
         ->student()
         ->with(['user', 'clearance', 'payments'])
@@ -18,9 +18,17 @@ class StudentController extends Controller
         return response()->json(['message' => 'Student profile not found'], 404);
     }
 
-    // Generate full URL for profile picture if exists
+    // Build URL dynamically — never hardcode ngrok URL in DB
     if ($student->profile_picture) {
-        $student->profile_picture = asset('storage/' . $student->profile_picture);
+        // Strip any old full URL if accidentally stored, keep only path
+        $path = $student->profile_picture;
+        if (str_starts_with($path, 'http')) {
+            // Already a full URL stored in DB (old records) — extract path portion
+            $path = preg_replace('#^https?://[^/]+/storage/#', '', $path);
+            // Fix the DB record while we're at it
+            $student->update(['profile_picture' => $path]);
+        }
+        $student->profile_picture = asset('storage/' . $path);
     }
 
     return response()->json($student);

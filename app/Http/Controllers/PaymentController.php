@@ -24,22 +24,25 @@ class PaymentController extends Controller
     }
 
     public function index(Request $request)
-    {
-        $query = Payment::with('student.user')->orderBy('id', 'desc');
+{
+    $query = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
+        ->orderBy('created_at', 'desc');
 
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
-        $payments = $query->paginate(10);
-
-        if ($request->ajax()) {
-            return view('admin.payments', compact('payments'))->render();
-        }
-
-        return view('admin.payments', compact('payments'));
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
 
+    $payments = $query->paginate(10);
+
+    if ($request->expectsJson()) {
+        return response()->json([
+            'rows'       => view('admin.payments.partials.payments_rows', compact('payments'))->render(),
+            'pagination' => view('admin.payments.partials.payments_pagination', compact('payments'))->render(),
+        ]);
+    }
+
+    return view('admin.payments', compact('payments'));
+}
     public function show($id)
 {
     $payment = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])

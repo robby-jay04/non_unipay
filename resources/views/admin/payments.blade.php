@@ -441,44 +441,52 @@ document.addEventListener('DOMContentLoaded', function () {
         handleRejectButtons();
     };
 
-    const loadPayments = async (url) => {
-        try {
-            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            if (!res.ok) throw new Error();
-            const html  = await res.text();
-            const doc   = new DOMParser().parseFromString(html, 'text/html');
-            const tbody = doc.getElementById('paymentsTableBody');
-            const pager = doc.getElementById('paymentsPagination');
-            if (tbody) document.getElementById('paymentsTableBody').innerHTML  = tbody.innerHTML;
-            if (pager) document.getElementById('paymentsPagination').innerHTML = pager.innerHTML;
-            rebindAll();
-        } catch {
-            showResult({
-                type:    'error',
-                title:   'Load Error',
-                message: 'Failed to load payments. Please refresh the page.'
-            });
-        }
-    };
+  const loadPayments = async (url) => {
+    // Only force https on non-localhost (e.g. ngrok)
+    if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
+        url = url.replace(/^http:\/\//i, 'https://');
+    }
+    console.log('Fetching URL:', url);
+
+    try {
+        const res = await fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        });
+
+        console.log('Status:', res.status);
+        const text = await res.text();
+        console.log('RAW:', text.substring(0, 1000));
+
+        const data = JSON.parse(text);
+        document.getElementById('paymentsTableBody').innerHTML = data.rows;
+        document.getElementById('paymentsPagination').innerHTML = data.pagination;
+        rebindAll();
+    } catch (err) {
+        console.error('FETCH ERROR:', err.message);
+    }
+};
 
     rebindAll();
 
-    document.getElementById('filterForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const status = document.getElementById('status').value;
-        let url = '{{ route("admin.payments") }}';
-        if (status) url += '?status=' + status;
-        bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
-        loadPayments(url);
-    });
+   document.getElementById('filterForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const status = document.getElementById('status').value;
+    let url = window.location.origin + '/admin/payments';
+    if (status) url += '?status=' + encodeURIComponent(status);
+    bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
+    loadPayments(url);
+});
 
     document.addEventListener('click', function (e) {
-        const link = e.target.closest('.pagination a');
-        if (link && !link.classList.contains('disabled')) {
-            e.preventDefault();
-            loadPayments(link.href);
-        }
-    });
+    const link = e.target.closest('#paymentsPagination a');
+    if (link) {
+        e.preventDefault();
+        loadPayments(link.href);
+    }
+});
 });
 </script>
 @endpush

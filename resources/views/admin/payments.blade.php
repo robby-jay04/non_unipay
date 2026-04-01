@@ -21,13 +21,25 @@
 @endif
 
 <!-- Main Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Payments</h5>
-        <button class="btn btn-sm rounded-pill px-4" style="background: #0f3c91; color: white;" data-bs-toggle="modal" data-bs-target="#filterModal">
+<div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3">
+    <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Payments</h5>
+    <div class="d-flex align-items-center gap-2">
+        <!-- Search -->
+        <div class="input-group input-group-sm" style="width: 260px;">
+            <span class="input-group-text border-0 bg-light rounded-start-pill">
+                <i class="fas fa-search text-muted"></i>
+            </span>
+            <input type="text" id="searchInput" class="form-control border-0 bg-light"
+                   placeholder="Search student or reference..."
+                   style="border-radius: 0 30px 30px 0;">
+        </div>
+        <!-- Filter -->
+        <button class="btn btn-sm rounded-pill px-4" style="background: #0f3c91; color: white;"
+                data-bs-toggle="modal" data-bs-target="#filterModal">
             <i class="fas fa-filter me-2"></i> Filter
         </button>
     </div>
+</div>
 
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -486,6 +498,22 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         loadPayments(link.href);
     }
+});
+
+// ── Search ───────────────────────────────────────────────────────────────
+let searchTimeout = null;
+document.getElementById('searchInput').addEventListener('input', function () {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    searchTimeout = setTimeout(() => {
+        let url = window.location.origin + '/admin/payments';
+        const params = new URLSearchParams();
+        if (query) params.set('search', query);
+        const status = new URLSearchParams(window.location.search).get('status');
+        if (status) params.set('status', status);
+        if (params.toString()) url += '?' + params.toString();
+        loadPayments(url);
+    }, 400);
 });
 });
 </script>

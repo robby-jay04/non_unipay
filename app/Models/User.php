@@ -24,7 +24,6 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        //'password' => 'hashed',
     ];
 
     public function student()
@@ -33,17 +32,22 @@ class User extends Authenticatable
     }
 
     public function isAdmin(): bool
-{
-    return in_array($this->role, ['admin', 'superadmin']);
-}
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
+    }
 
     public function isStudent()
     {
         return $this->role === 'student';
     }
-    // app/Models/User.php
-public function notifications()
-{
-    return $this->hasMany(\App\Models\Notification::class);
-}
+
+    public function notifications()
+    {
+        return $this->hasMany(\App\Models\Notification::class);
+    }
 }

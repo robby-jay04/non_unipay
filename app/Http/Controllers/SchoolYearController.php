@@ -18,24 +18,28 @@ class SchoolYearController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|unique:school_years,name'
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|unique:school_years,name'
+    ]);
 
-        $year = SchoolYear::create([
-            'name'       => $request->name,
-            'is_current' => false,
-        ]);
+    $year = SchoolYear::create([
+        'name'       => $request->name,
+        'is_current' => false,
+    ]);
 
-        // Created with is_current false — activates when set as current
-        $year->semesters()->create([
-            'name'       => '1st Semester',
-            'is_current' => false,
-        ]);
+    $year->semesters()->create([
+        'name'       => '1st Semester',
+        'is_current' => false,
+    ]);
 
-        return back()->with('success', 'School year "' . $year->name . '" added with 1st Semester.');
-    }
+    $year->semesters()->create([
+        'name'       => '2nd Semester',
+        'is_current' => false,
+    ]);
+
+    return back()->with('success', 'School year "' . $year->name . '" added with 1st and 2nd Semester.');
+}
 
    public function setCurrent($id)
 {
@@ -87,27 +91,24 @@ class SchoolYearController extends Controller
 
    
     // Example method
-    public function setSemester(Request $request, $schoolYearId)
-    {
-        $semesterName = $request->input('semester');
+ public function setSemester(Request $request, $id)
+{
+    $semesterName = $request->input('semester');
 
-        // Reset all current semesters for this school year
-        Semester::where('school_year_id', $schoolYearId)
-                ->update(['is_current' => false]);
+    Semester::where('school_year_id', $id)
+            ->update(['is_current' => false]);
 
-        // Set the selected semester as current
-        $semester = Semester::where('school_year_id', $schoolYearId)
-                            ->where('name', $semesterName)
-                            ->firstOrFail();
+    $semester = Semester::where('school_year_id', $id)
+                        ->where('name', $semesterName)
+                        ->firstOrFail();
 
-        $semester->is_current = true;
-        $semester->save();
+    $semester->is_current = true;
+    $semester->save();
 
-        // Optionally, update clearances for all students
-        app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
+    app(\App\Services\ClearanceService::class)->bulkUpdateClearances();
 
-        return redirect()->back()->with('success', 'Semester updated successfully.');
-    }
+    return redirect()->back()->with('success', 'Semester updated successfully.');
+}
 
     public function apiIndex()
     {

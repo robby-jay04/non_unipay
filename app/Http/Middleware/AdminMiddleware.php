@@ -10,7 +10,10 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || !$request->user()->isAdmin()) {
+        $user = $request->user();
+        
+        // Allow both admin and superadmin
+        if (!$user || !in_array($user->role, ['admin', 'superadmin'])) {
             // If request expects JSON (API)
             if ($request->expectsJson()) {
                 return response()->json([

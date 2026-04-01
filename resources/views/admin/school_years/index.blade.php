@@ -257,8 +257,9 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ route('admin.school-years.setSemester', ['schoolYear' => ':yearId']) }}" id="semesterForm">
+            <form method="POST" id="semesterForm" action="">
                 @csrf
+                <input type="hidden" name="_year_id" id="semesterYearId" value="">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label for="semester" class="form-label fw-medium">Select Semester</label>
@@ -456,16 +457,27 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // Semester modal — inject correct year ID into form action
-    const semesterModal = document.getElementById('semesterModal');
-    if (semesterModal) {
-        const semesterForm = document.getElementById('semesterForm');
-        const baseAction   = semesterForm.action;
-        semesterModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            semesterForm.action = baseAction.replace(':yearId', button.getAttribute('data-year-id'));
-            document.getElementById('yearName').textContent = button.getAttribute('data-year-name');
-        });
-    }
+ const semesterModal = document.getElementById('semesterModal');
+if (semesterModal) {
+    const semesterForm = document.getElementById('semesterForm');
+    const semesterYearId = document.getElementById('semesterYearId');
+
+    semesterModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const yearId = button.getAttribute('data-year-id');
+        const yearName = button.getAttribute('data-year-name');
+
+        semesterYearId.value = yearId;
+        semesterForm.action = `{{ url('admin/school-years') }}/${yearId}/set-semester`;
+        document.getElementById('yearName').textContent = yearName;
+
+        console.log('Action set to:', semesterForm.action);
+    });
+
+    semesterForm.addEventListener('submit', function () {
+        console.log('Submitting to:', this.action, 'method:', this.method);
+    });
+}
 
     // Delete modal
     const deleteModal = document.getElementById('deleteModal');

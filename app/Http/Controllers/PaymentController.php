@@ -23,13 +23,23 @@ class PaymentController extends Controller
         $this->clearanceService = $clearanceService;
     }
 
-    public function index(Request $request)
+   public function index(Request $request)
 {
     $query = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
         ->orderBy('created_at', 'desc');
 
     if ($request->filled('status')) {
         $query->where('status', $request->status);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('reference_no', 'like', "%{$search}%")
+              ->orWhereHas('student.user', function ($q2) use ($search) {
+                  $q2->where('name', 'like', "%{$search}%");
+              });
+        });
     }
 
     $payments = $query->paginate(10);

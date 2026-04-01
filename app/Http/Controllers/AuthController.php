@@ -7,6 +7,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use App\Models\Student;
+use Illuminate\Support\Facades\Password;
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Illuminate\Validation\ValidationException;
   use App\Models\Student;
      use Illuminate\Support\Facades\Password;
 
@@ -83,7 +93,7 @@ public function login(Request $request)
         ], 401);
     }
 
-    // Password check
+    // Handle accounts without a password (imported data)
     if (!$user->password) {
         if ($request->password !== 'password123') {
             return response()->json([
@@ -98,10 +108,16 @@ public function login(Request $request)
         }
     }
 
-    // Block student if not confirmed
+    // 🔒 BLOCK ADMIN LOGIN VIA MOBILE APP
+    if ($user->isAdmin() || $user->isSuperAdmin()) {
+        return response()->json([
+            'message' => 'Admin accounts cannot log in to the mobile app. Please use the web admin panel.'
+        ], 403);
+    }
+
+    // Check student confirmation
     if ($user->isStudent()) {
         $student = $user->student;
-
         if (!$student || !$student->is_confirmed) {
             return response()->json([
                 'message' => 'Your account is pending admin approval.'
@@ -123,7 +139,6 @@ public function login(Request $request)
         ],
     ]);
 }
-
     // -------------------------------
     // API Logout (Sanctum token)
     // -------------------------------

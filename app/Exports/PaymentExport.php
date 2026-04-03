@@ -34,33 +34,34 @@ class PaymentExport implements
         return 'Payment Report';
     }
 
-   public function collection()
-{
-    $query = Payment::with('student.user', 'transaction')
-        ->whereNotNull('payment_date')
-        ->orderBy('payment_date', 'asc');
+    public function collection()
+    {
+        $query = Payment::with('student.user')
+            ->whereNotNull('payment_date')
+            ->orderBy('payment_date', 'asc');
 
-    if (!empty($this->filters['status'])) {
-        $query->where('status', $this->filters['status']);
+        if (!empty($this->filters['status'])) {
+            $query->where('status', $this->filters['status']);
+        }
+
+        if (!empty($this->filters['from_date'])) {
+            $query->whereDate('payment_date', '>=', $this->filters['from_date']);
+        }
+
+        if (!empty($this->filters['to_date'])) {
+            $query->whereDate('payment_date', '<=', $this->filters['to_date']);
+        }
+
+        return $query->get();
     }
 
-    if (!empty($this->filters['from_date'])) {
-        $query->whereDate('payment_date', '>=', $this->filters['from_date']);
-    }
-
-    if (!empty($this->filters['to_date'])) {
-        $query->whereDate('payment_date', '<=', $this->filters['to_date']);
-    }
-
-    return $query->get();
-}
     public function headings(): array
     {
         return [
             'Payment ID',
             'Student Name',
             'Student No',
-            'Amount (₱)',
+            'Amount (PHP)',
             'Payment Method',
             'Status',
             'Reference No',
@@ -73,12 +74,12 @@ class PaymentExport implements
     {
         return [
             $payment->id,
-            $payment->student->user->name    ?? 'N/A',
-            $payment->student->student_no    ?? 'N/A',
+            optional($payment->student)->user->name ?? 'N/A',
+            optional($payment->student)->student_no ?? 'N/A',
             number_format($payment->total_amount, 2),
             ucfirst($payment->payment_method ?? 'N/A'),
-            ucfirst($payment->status),
-            $payment->reference_no           ?? 'N/A',
+            ucfirst($payment->status ?? 'N/A'),
+            $payment->reference_no ?? 'N/A',
             $payment->payment_date
                 ? $payment->payment_date->format('Y-m-d H:i:s')
                 : 'N/A',
@@ -89,15 +90,15 @@ class PaymentExport implements
     public function columnWidths(): array
     {
         return [
-            'A' => 12,  // Payment ID
-            'B' => 28,  // Student Name
-            'C' => 16,  // Student No
-            'D' => 15,  // Amount
-            'E' => 18,  // Payment Method
-            'F' => 12,  // Status
-            'G' => 24,  // Reference No
-            'H' => 22,  // Payment Date
-            'I' => 22,  // Created At
+            'A' => 12,
+            'B' => 28,
+            'C' => 16,
+            'D' => 15,
+            'E' => 18,
+            'F' => 12,
+            'G' => 24,
+            'H' => 22,
+            'I' => 22,
         ];
     }
 
@@ -105,7 +106,7 @@ class PaymentExport implements
     {
         $lastRow = $sheet->getHighestRow();
 
-        // Header row styling
+        // Header row
         $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => [
                 'bold'  => true,
@@ -122,7 +123,7 @@ class PaymentExport implements
             ],
         ]);
 
-        // Data rows — zebra striping
+        // Zebra striping
         for ($row = 2; $row <= $lastRow; $row++) {
             $color = ($row % 2 === 0) ? 'F0F4FF' : 'FFFFFF';
             $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
@@ -136,25 +137,21 @@ class PaymentExport implements
             ]);
         }
 
-        // Status column — color code Paid / Failed
+        // Status column colors
         for ($row = 2; $row <= $lastRow; $row++) {
-            $status = strtolower($sheet->getCell("F{$row}")->getValue());
-            if ($status === 'paid') {
-                $sheet->getStyle("F{$row}")->applyFromArray([
-                    'font' => ['color' => ['rgb' => '2E7D32'], 'bold' => true],
-                ]);
-            } elseif ($status === 'failed') {
-                $sheet->getStyle("F{$row}")->applyFromArray([
-                    'font' => ['color' => ['rgb' => 'C62828'], 'bold' => true],
-                ]);
-            } elseif ($status === 'pending') {
-                $sheet->getStyle("F{$row}")->applyFromArray([
-                    'font' => ['color' => ['rgb' => 'E65100'], 'bold' => true],
-                ]);
-            }
+            $status = strtolower((string) $sheet->getCell("F{$row}")->getValue());
+            $color = match($status) {
+                'paid'    => '2E7D32',
+                'failed'  => 'C62828',
+                'pending' => 'E65100',
+                default   => '333333',
+            };
+            $sheet->getStyle("F{$row}")->applyFromArray([
+                'font' => ['color' => ['rgb' => $color], 'bold' => true],
+            ]);
         }
 
-        // Border around entire table
+        // Borders
         $sheet->getStyle("A1:I{$lastRow}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
@@ -164,18 +161,21 @@ class PaymentExport implements
             ],
         ]);
 
-        // Freeze the header row
+        // Freeze header row
         $sheet->freezePane('A2');
 
-        // Center-align ID, Amount, Method, Status columns
-        $sheet->getStyle("A2:A{$lastRow}")->getAlignment()
+        // Column alignment
+        $sheet->getStyle("A2:A{$lastRow}")
+              ->getAlignment()
               ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("D2:D{$lastRow}")->getAlignment()
+        $sheet->getStyle("D2:D{$lastRow}")
+              ->getAlignment()
               ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->getStyle("E2:F{$lastRow}")->getAlignment()
+        $sheet->getStyle("E2:F{$lastRow}")
+              ->getAlignment()
               ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Row height for header
+        // Header row height
         $sheet->getRowDimension(1)->setRowHeight(24);
 
         return [];

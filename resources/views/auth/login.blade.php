@@ -29,9 +29,78 @@
             min-height: 100vh;
             display: flex;
             overflow: hidden;
+            position: relative;
         }
 
-        /* ── LEFT PANEL ─────────────────────────────── */
+        /* ── FULL-SCREEN SPLASH ANIMATION ─────────────────────────── */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 200000;
+            background: linear-gradient(135deg, #0f3c91 0%, #1a4da8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+            opacity: 1;
+            transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            pointer-events: all;
+        }
+        #splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .splash-logo {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 28px;
+            padding: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: splashBounce 0.8s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+        }
+        .splash-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        @keyframes splashBounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .splash-text {
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeInUp 0.6s 0.3s forwards;
+        }
+        .splash-sub {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            font-weight: 400;
+            opacity: 0;
+            animation: fadeInUp 0.6s 0.5s forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── LEFT PANEL (same as before, but initial visibility hidden until splash ends) ── */
+        .left-panel, .right-panel {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .content-visible .left-panel,
+        .content-visible .right-panel {
+            opacity: 1;
+        }
+
         .left-panel {
             flex: 0 0 55%;
             position: relative;
@@ -335,6 +404,13 @@
 
         .btn-login:active { transform: translateY(0); }
 
+        /* Disabled button state */
+        .btn-login.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Error */
         .error-msg {
             background: #fef2f2;
@@ -426,6 +502,81 @@
             color: #b0b7c3;
         }
 
+        /* ── LOADING OVERLAY (shown on form submit) ── */
+        #loginLoader {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            background: rgba(5, 15, 50, 0.75);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .loader-card {
+            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            border-radius: 28px;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            min-width: 240px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+        }
+        .loader-logo-ring {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+        }
+        .loader-logo-ring img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: white;
+            padding: 6px;
+            object-fit: contain;
+        }
+        .loader-spinner {
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #f4b400;
+            border-right-color: rgba(244, 180, 0, 0.3);
+            animation: loader-spin 0.85s linear infinite;
+        }
+        .loader-text {
+            color: white;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        .loader-subtext {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+        .loader-bar-track {
+            width: 140px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 99px;
+            overflow: hidden;
+            margin: 0.75rem auto 0;
+        }
+        .loader-bar-fill {
+            height: 100%;
+            background: #f4b400;
+            border-radius: 99px;
+            animation: loader-bar 1.1s ease-in-out infinite alternate;
+        }
+        @keyframes loader-spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes loader-bar {
+            from { width: 15%; margin-left: 0; }
+            to   { width: 70%; margin-left: 30%; }
+        }
+
         /* ── RESPONSIVE ─────────────────────────────── */
         @media (max-width: 860px) {
             body { flex-direction: column; overflow: auto; }
@@ -442,6 +593,15 @@
     </style>
 </head>
 <body>
+
+    <!-- ══ SPLASH SCREEN (full-screen animation) ══ -->
+    <div id="splash-screen">
+        <div class="splash-logo">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+        </div>
+        <div class="splash-text">Non-UniPay</div>
+        <div class="splash-sub">Secure Payments • Smart Clearance</div>
+    </div>
 
     <!-- ══ LEFT PANEL ══════════════════════════════════ -->
     <div class="left-panel">
@@ -515,10 +675,9 @@
                         required
                         autocomplete="current-password"
                     >
-                    
                 </div>
 
-                <button type="submit" class="btn-login">
+                <button type="submit" class="btn-login" id="loginBtn">
                     <i class="fas fa-sign-in-alt me-2"></i> Sign In
                 </button>
             </form>
@@ -536,7 +695,7 @@
         </div>
     </div>
 
-    <!-- ══ STUDENT TOAST (shown only on student-like email detection) ══ -->
+    <!-- ══ STUDENT TOAST ══ -->
     <div id="student-toast" role="alert">
         <div class="toast-icon">
             <i class="fas fa-mobile-alt"></i>
@@ -550,16 +709,78 @@
         </button>
     </div>
 
+    <!-- ══ LOADING OVERLAY (shown on form submit) ══ -->
+    <div id="loginLoader">
+        <div class="loader-card">
+            <div class="loader-logo-ring">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+                <div class="loader-spinner"></div>
+            </div>
+            <p class="loader-text">Signing in...</p>
+            <p class="loader-subtext">Please wait</p>
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
-      
+        // ── SPLASH SCREEN LOGIC ──────────────────────────────
+        const splash = document.getElementById('splash-screen');
+        const body = document.body;
 
-        /* ── Student toast logic ──
-           We detect a "student" email by checking for common student patterns:
-           student ID numbers, or a configurable student domain keyword.
-           Adjust the STUDENT_DOMAINS / pattern to match your school's email convention. */
-        const STUDENT_DOMAINS = ['student.', 'stud.', 'stu.', '@s.'];   // substrings in student emails
-        const STUDENT_ID_PATTERN = /^\d{7,12}@/;                         // numeric IDs before @
+        // Hide splash after 1.5 seconds and show main content
+        setTimeout(function() {
+            if (splash) {
+                splash.classList.add('fade-out');
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    body.classList.add('content-visible');
+                }, 800);
+            } else {
+                body.classList.add('content-visible');
+            }
+        }, 1500);
 
+        // ── LOADING OVERLAY ON FORM SUBMIT ───────────────────
+        const loginForm = document.getElementById('loginForm');
+        const loginLoader = document.getElementById('loginLoader');
+        const loginBtn = document.getElementById('loginBtn');
+
+        function showLoader() {
+            if (loginLoader) loginLoader.style.display = 'flex';
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.classList.add('disabled');
+            }
+        }
+
+        function hideLoader() {
+            if (loginLoader) loginLoader.style.display = 'none';
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('disabled');
+            }
+        }
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                const email = document.getElementById('emailInput').value.trim();
+                const password = document.getElementById('password').value.trim();
+                if (!email || !password) {
+                    return;
+                }
+                showLoader();
+            });
+        }
+
+        window.addEventListener('pageshow', function() {
+            hideLoader();
+        });
+
+        // ── STUDENT TOAST LOGIC (unchanged) ──────────────────
+        const STUDENT_DOMAINS = ['student.', 'stud.', 'stu.', '@s.'];
+        const STUDENT_ID_PATTERN = /^\d{7,12}@/;
         let toastTimeout;
 
         function checkStudentEmail(email) {
@@ -567,23 +788,17 @@
             const looksLikeStudent =
                 STUDENT_DOMAINS.some(d => lower.includes(d)) ||
                 STUDENT_ID_PATTERN.test(lower);
-
-            if (looksLikeStudent) {
-                showToast();
-            } else {
-                hideToast();
-            }
+            if (looksLikeStudent) showToast();
+            else hideToast();
         }
 
         function showToast() {
             clearTimeout(toastTimeout);
             const toast = document.getElementById('student-toast');
             toast.style.display = 'flex';
-            // Force reflow then add .show for transition
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => toast.classList.add('show'));
             });
-            // Auto-hide after 7 s
             toastTimeout = setTimeout(hideToast, 7000);
         }
 
@@ -598,7 +813,6 @@
             hideToast();
         }
 
-        // Listen on email input with a small debounce
         let debounce;
         document.getElementById('emailInput').addEventListener('input', function () {
             clearTimeout(debounce);
@@ -609,8 +823,7 @@
             }, 500);
         });
 
-        // Also check on form submit (fallback)
-        document.getElementById('loginForm').addEventListener('submit', function () {
+        loginForm.addEventListener('submit', function () {
             const email = document.getElementById('emailInput').value.trim();
             checkStudentEmail(email);
         });

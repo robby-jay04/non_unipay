@@ -161,7 +161,7 @@
                     </div>
                     <div>
                         <h5 class="fw-bold mb-0" id="exportModalTitle" style="color: #ffffff;"></h5>
-                        <small class="text-muted" id="exportModalSubtitle"></small>
+                        <small class="text-white" id="exportModalSubtitle"></small>
                     </div>
                 </div>
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
@@ -249,6 +249,31 @@
         </div>
     </div>
 </div>
+
+{{-- ── Report Generation Loading Overlay ── --}}
+<div id="reportLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
+    <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
+        <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width: 70px; height: 70px; border-radius: 50%; background: white; padding: 6px; object-fit: contain;">
+            <div class="loader-spinner" style="position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: #f4b400; border-right-color: rgba(244, 180, 0, 0.3); animation: loader-spin 0.85s linear infinite;"></div>
+        </div>
+        <p class="loader-text" style="color: white; font-weight: 600; margin-top: 1rem;">Generating Report</p>
+        <p class="loader-subtext" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Please wait...</p>
+        <div class="loader-bar-track" style="width: 140px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; margin: 0.75rem auto 0;">
+            <div class="loader-bar-fill" style="height: 100%; background: #f4b400; border-radius: 99px; animation: loader-bar 1.1s ease-in-out infinite alternate;"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes loader-spin {
+        to { transform: rotate(360deg); }
+    }
+    @keyframes loader-bar {
+        from { width: 15%; margin-left: 0; }
+        to   { width: 70%; margin-left: 30%; }
+    }
+</style>
 
 @endsection
 
@@ -368,14 +393,18 @@
 @push('scripts')
 <script>
     let exportType = 'pdf';
+    let isExporting = false;
 
     const pdfRoute   = "{{ route('admin.reports.pdf') }}";
     const excelRoute = "{{ route('admin.reports.excel') }}";
 
     function openExportModal(type) {
+        const loader = document.getElementById('reportLoader');
+        if (loader) loader.style.display = 'none';
+        isExporting = false;
+
         exportType = type;
 
-        // Reset form
         document.getElementById('exportFromDate').value = '';
         document.getElementById('exportToDate').value   = '';
         document.getElementById('exportStatus').value   = '';
@@ -403,25 +432,17 @@
             document.getElementById('exportBtnLabel').textContent        = 'Generate Excel';
         }
 
-        // ✅ Default to today without needing a click event
         applyPresetByName('today');
-
-        // ✅ Mark today button as active
-        document.querySelectorAll('.preset-btn').forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-preset') === 'today');
-        });
 
         new bootstrap.Modal(document.getElementById('exportModal')).show();
     }
 
-    // ✅ Called from button clicks — passes the button element to mark it active
     function applyPreset(presetName, btnEl) {
         applyPresetByName(presetName);
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         btnEl.classList.add('active');
     }
 
-    // ✅ Pure date logic — no event dependency
     function applyPresetByName(preset) {
         const today = new Date();
         const fmt   = d => d.toISOString().split('T')[0];
@@ -453,7 +474,11 @@
         document.getElementById('exportToDate').value   = to;
     }
 
+    // 🔥 FIXED EXPORT FUNCTION (NO FETCH)
     function confirmExport() {
+        if (isExporting) return;
+        isExporting = true;
+
         const from   = document.getElementById('exportFromDate').value;
         const to     = document.getElementById('exportToDate').value;
         const status = document.getElementById('exportStatus').value;
@@ -465,8 +490,20 @@
         if (to)     params.append('to_date', to);
         if (status) params.append('status', status);
 
+        const exportUrl = base + (params.toString() ? '?' + params.toString() : '');
+
         bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
-        window.location.href = base + (params.toString() ? '?' + params.toString() : '');
+
+        const loader = document.getElementById('reportLoader');
+        if (loader) loader.style.display = 'flex';
+
+        // 🔥 DIRECT DOWNLOAD (FINAL FIX)
+        window.location.href = exportUrl;
+
+        setTimeout(() => {
+            if (loader) loader.style.display = 'none';
+            isExporting = false;
+        }, 2000);
     }
 </script>
 @endpush

@@ -11,19 +11,57 @@ use App\Exports\PaymentExport;
 use App\Models\Student;
 use App\Models\Clearance;
 use App\Models\Semester;
-use App\Models\Fee;
+use App\Models\Fee;;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Excel as ExcelWriter;
+
 
 class ReportController extends Controller
 {
-    public function index()
-    {
-        $payments = Payment::with('student.user')
-            ->whereNotNull('payment_date')
-            ->orderBy('payment_date', 'asc')
-            ->paginate(10);
 
-        return view('admin.reports', compact('payments'));
-    }
+
+public function index()
+{
+    // Existing payments query
+    $payments = Payment::with('student.user')
+        ->whereNotNull('payment_date')
+        ->orderBy('payment_date', 'asc')
+        ->paginate(10);
+
+    // ─── Statistics for charts ─────────────────────────────────
+    // 1. Clearance status counts (cleared vs pending)
+    $clearedCount = Student::where('clearance_status', 'cleared')->count();
+    $pendingCount = Student::where('clearance_status', 'pending')->count();
+
+    // 2. Payment status distribution (paid, pending, failed)
+    $paidCount = Payment::where('status', 'paid')->count();
+    $pendingPaymentCount = Payment::where('status', 'pending')->count();
+    $failedCount = Payment::where('status', 'failed')->count();
+
+    // 3. Monthly payment totals (last 12 months)
+    $monthlyData = Payment::where('status', 'paid')
+        ->whereNotNull('payment_date')
+        ->selectRaw('DATE_FORMAT(payment_date, "%Y-%m") as month, SUM(total_amount) as total')
+        ->groupBy('month')
+        ->orderBy('month', 'asc')
+        ->limit(12)
+        ->get();
+
+    $months = $monthlyData->pluck('month');
+    $totals = $monthlyData->pluck('total');
+
+    // Pass all to view
+    return view('admin.reports', compact(
+        'payments',
+        'clearedCount',
+        'pendingCount',
+        'paidCount',
+        'pendingPaymentCount',
+        'failedCount',
+        'months',
+        'totals'
+    ));
+}
 
     public function paymentReport(Request $request)
     {
@@ -48,16 +86,27 @@ class ReportController extends Controller
         return view('admin.reports.payments', compact('payments'));
     }
 
-    public function exportExcel(Request $request)
-    {
-        $filters = array_merge($request->all(), ['sort_by_payment_date' => true]);
+   public function exportExcel(Request $request)
+{
+    $filters = array_merge($request->all(), ['sort_by_payment_date' => true]);
 
-        return Excel::download(
-            new PaymentExport($filters),
-            'payments-' . now()->format('Y-m-d') . '.xlsx'
-        );
-    }
+    return Excel::download(
+        new PaymentExport($filters),
+        'payments-' . now()->format('Y-m-d') . '.xlsx',
+        ExcelWriter::XLSX   // ← add this
+    );
+}
 
+public function downloadExcel()
+{
+    $filters = ['sort_by_payment_date' => true];
+
+    return Excel::download(
+        new PaymentExport($filters),
+        'payments-' . now()->format('Y-m-d') . '.xlsx',
+        ExcelWriter::XLSX   // ← add this too
+    );
+}
     public function downloadPdf(Request $request)
     {
         $query = Payment::with('student.user')
@@ -88,15 +137,7 @@ class ReportController extends Controller
         return $pdf->download('payment-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    public function downloadExcel()
-    {
-        $filters = ['sort_by_payment_date' => true];
-
-        return Excel::download(
-            new PaymentExport($filters),
-            'payments-' . now()->format('Y-m-d') . '.xlsx'
-        );
-    }
+   
 
    public function clearances(Request $request)
 {

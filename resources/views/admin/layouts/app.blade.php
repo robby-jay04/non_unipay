@@ -5,18 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Non-UniPay Admin</title>
 
-    {{-- ── Favicon (browser tab icon) ── --}}
+    {{-- ── Favicon ── --}}
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {{-- ── Loading Screen Styles ── (integrated) --}}
     <style>
         body {
             background-color: #f0f2f5;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
+
+        /* ─── Page Loading Overlay ─────────────────────────────────────────── */
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(5, 15, 50, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        #page-loader.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .loader-card {
+            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            border-radius: 28px;
+            padding: 2.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
+            min-width: 220px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+        }
+        .loader-logo-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .loader-logo-ring img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            padding: 8px;
+            object-fit: contain;
+            display: block;
+        }
+        .loader-spinner {
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #f4b400;
+            border-right-color: rgba(244, 180, 0, 0.3);
+            animation: loader-spin 0.85s linear infinite;
+        }
+        @keyframes loader-spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader-text {
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin: 0;
+        }
+        .loader-subtext {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            margin: -0.75rem 0 0;
+        }
+        .loader-bar-track {
+            width: 140px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .loader-bar-fill {
+            height: 100%;
+            background: #f4b400;
+            border-radius: 99px;
+            animation: loader-bar 1.1s ease-in-out infinite alternate;
+        }
+        @keyframes loader-bar {
+            from { width: 15%; margin-left: 0; }
+            to   { width: 70%; margin-left: 30%; }
+        }
+        /* ─── end loader ───────────────────────────────────────────────────── */
+
         .sidebar {
             background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
             color: white;
@@ -95,25 +185,11 @@
             z-index: 100;
         }
         .mobile-navbar-logo {
-            width: 38px;
-            height: 38px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid #0f3c91;
-            padding: 2px;
-            background: white;
+            width: 38px; height: 38px; object-fit: cover;
+            border-radius: 50%; border: 2px solid #0f3c91; padding: 2px; background: white;
         }
-        .mobile-navbar-title {
-            font-weight: 700;
-            color: #0f3c91;
-            font-size: 1rem;
-            line-height: 1.2;
-        }
-        .mobile-navbar-subtitle {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            line-height: 1;
-        }
+        .mobile-navbar-title { font-weight: 700; color: #0f3c91; font-size: 1rem; line-height: 1.2; }
+        .mobile-navbar-subtitle { font-size: 0.7rem; color: #94a3b8; line-height: 1; }
         .navbar-toggle {
             background: #0f3c91; border: none; color: white;
             font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px;
@@ -148,7 +224,22 @@
 </head>
 <body>
 
-    {{-- ── Mobile Navbar with logo ── --}}
+    {{-- ── Page Loading Overlay ── --}}
+    <div id="page-loader" role="status" aria-label="Loading page">
+        <div class="loader-card">
+            <div class="loader-logo-ring">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+                <div class="loader-spinner"></div>
+            </div>
+            <p class="loader-text">Loading…</p>
+            <p class="loader-subtext">Please wait</p>
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Mobile Navbar ── --}}
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
@@ -157,8 +248,6 @@
                 aria-controls="sidebarOffcanvas">
                 <i class="fas fa-bars"></i>
             </button>
-
-            {{-- Logo + title centered --}}
             <div class="d-flex align-items-center gap-2">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo" class="mobile-navbar-logo">
                 <div>
@@ -166,8 +255,6 @@
                     <div class="mobile-navbar-subtitle">Admin Panel</div>
                 </div>
             </div>
-
-            {{-- Spacer to balance the hamburger --}}
             <div style="width: 44px;"></div>
         </div>
     </nav>
@@ -339,25 +426,86 @@
     @stack('scripts')
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // ── Page loading overlay ───────────────────────────────────────────────────
+    (function () {
+        var loader = document.getElementById('page-loader');
+
+        function showLoader() {
+            loader.classList.add('visible');
+        }
+
+        function hideLoader() {
+            loader.classList.remove('visible');
+        }
+
+        // Show on every same-origin navigation link click,
+        // but skip: anchor-only links (#), new-tab links, download links,
+        // logout form submit, and Bootstrap modal/offcanvas toggles.
+        document.addEventListener('click', function (e) {
+            var target = e.target.closest('a');
+            if (!target) return;
+
+            // Skip if modifier key held (open in new tab etc.)
+            if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+            // Skip download / target="_blank"
+            if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
+
+            // Skip Bootstrap data-bs-toggle (modals, offcanvas, dropdowns)
+            if (target.hasAttribute('data-bs-toggle')) return;
+
+            // Skip pure hash links
+            var href = target.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+
+            // Skip external links
+            try {
+                var url = new URL(href, window.location.href);
+                if (url.origin !== window.location.origin) return;
+            } catch (err) {
+                return;
+            }
+
+            showLoader();
+        });
+
+        // Also show when a form is submitted (logout form only)
+        var logoutForm = document.querySelector('#logoutModal form');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', showLoader);
+        }
+
+        // Hide the loader once the new page has fully loaded.
+        window.addEventListener('pageshow', hideLoader);
+
+        // Safety net: hide after 8 s in case something goes wrong.
+        window.addEventListener('beforeunload', function () {
+            setTimeout(hideLoader, 8000);
+        });
+    })();
+
+    // ── Notification badge polling ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
         function fetchNotificationCounts() {
             fetch('/admin/api/pending-payments-count')
-                .then(response => response.json())
-                .then(data => {
-                    const badges = document.querySelectorAll('#payments-badge, #payments-badge-desktop');
-                    badges.forEach(badge => {
-                        badge.style.display = data.count > 0 ? 'inline-block' : 'none';
-                    });
-                }).catch(err => console.error('Error fetching payments count:', err));
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    document.querySelectorAll('#payments-badge, #payments-badge-desktop')
+                        .forEach(function (b) {
+                            b.style.display = data.count > 0 ? 'inline-block' : 'none';
+                        });
+                })
+                .catch(function (err) { console.error('Payments count error:', err); });
 
             fetch('/admin/api/new-students-count')
-                .then(response => response.json())
-                .then(data => {
-                    const badges = document.querySelectorAll('#students-badge, #students-badge-desktop');
-                    badges.forEach(badge => {
-                        badge.style.display = data.count > 0 ? 'inline-block' : 'none';
-                    });
-                }).catch(err => console.error('Error fetching students count:', err));
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    document.querySelectorAll('#students-badge, #students-badge-desktop')
+                        .forEach(function (b) {
+                            b.style.display = data.count > 0 ? 'inline-block' : 'none';
+                        });
+                })
+                .catch(function (err) { console.error('Students count error:', err); });
         }
 
         fetchNotificationCounts();

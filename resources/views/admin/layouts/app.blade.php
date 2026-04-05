@@ -454,6 +454,15 @@
             // Skip Bootstrap data-bs-toggle (modals, offcanvas, dropdowns)
             if (target.hasAttribute('data-bs-toggle')) return;
 
+            // Skip pagination links (handled by AJAX, not full page navigation)
+if (target.closest('.pagination')) return;
+
+ if (target.closest('#statusFilter') || 
+            target.closest('#searchBtn') || 
+            target.closest('#searchInput')) {
+            return;
+        }
+
             // Skip pure hash links
             var href = target.getAttribute('href') || '';
             if (!href || href.startsWith('#') || href.startsWith('javascript')) return;

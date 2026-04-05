@@ -7,39 +7,29 @@
     <h2 class="fw-bold" style="color: #0f3c91;">Payment Management</h2>
 </div>
 
-<!-- Filter Badge (if active) -->
-@if(request()->filled('status'))
-<div class="alert alert-light d-flex align-items-center justify-content-between shadow-sm rounded-3 mb-4 p-3" style="border-left: 4px solid rgb(244, 180, 20); background: white;">
-    <div>
-        <i class="fas fa-filter me-2" style="color: rgb(244, 180, 20);"></i>
-        <strong>Filtered by:</strong> {{ ucfirst(request('status')) }}
-    </div>
-    <a href="{{ route('admin.payments') }}" class="text-muted" style="font-size: 1.5rem; line-height: 1; text-decoration: none;">
-        <i class="fas fa-times"></i>
-    </a>
-</div>
-@endif
-
 <!-- Main Card -->
-<div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3">
-    <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Payments</h5>
-    <div class="d-flex align-items-center gap-2">
-        <!-- Search -->
-        <div class="input-group input-group-sm" style="width: 260px;">
-            <span class="input-group-text border-0 bg-light rounded-start-pill">
-                <i class="fas fa-search text-muted"></i>
-            </span>
-            <input type="text" id="searchInput" class="form-control border-0 bg-light"
-                   placeholder="Search student or reference..."
-                   style="border-radius: 0 30px 30px 0;">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Payments</h5>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Status Filter Dropdown -->
+            <select id="statusFilter" class="form-select rounded-pill bg-light px-4 py-2" style="width: auto; min-width: 150px;">
+                <option value="">All Payments</option>
+                <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+            </select>
+
+            <!-- Search Input with Button -->
+            <div class="input-group" style="width: 320px;">
+                <input type="text" id="searchInput" class="form-control rounded-start-pill border-0 bg-light"
+                       placeholder="Search student or reference..." value="{{ request('search') }}">
+                <button class="btn rounded-end-pill px-4" style="background: #0f3c91; color: white;" id="searchBtn">
+                    <i class="fas fa-search me-2"></i> Search
+                </button>
+            </div>
         </div>
-        <!-- Filter -->
-        <button class="btn btn-sm rounded-pill px-4" style="background: #0f3c91; color: white;"
-                data-bs-toggle="modal" data-bs-target="#filterModal">
-            <i class="fas fa-filter me-2"></i> Filter
-        </button>
     </div>
-</div>
 
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -82,35 +72,6 @@
                     <li class="page-item disabled"><span class="page-link rounded-end-3">&raquo;</span></li>
                 @endif
             </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Filter Modal -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
-                <h5 class="modal-title fw-bold"><i class="fas fa-filter me-2"></i> Filter Payments</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="filterForm" method="GET" action="{{ route('admin.payments') }}">
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label for="status" class="form-label fw-medium">Status</label>
-                        <select class="form-select rounded-pill border-0 bg-light px-4 py-2" id="status" name="status">
-                            <option value="">All Payments</option>
-                            <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">Apply</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -170,11 +131,45 @@
         </div>
     </div>
 </div>
-@endsection
 
-@push('styles')
+{{-- Page Loader for filter/search/pagination --}}
+<div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
+    <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
+        <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width: 70px; height: 70px; border-radius: 50%; background: white; padding: 6px; object-fit: contain;">
+            <div class="loader-spinner" style="position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: #f4b400; border-right-color: rgba(244, 180, 0, 0.3); animation: loader-spin 0.85s linear infinite;"></div>
+        </div>
+        <p class="loader-text" style="color: white; font-weight: 600; margin-top: 1rem;">Loading Data</p>
+        <p class="loader-subtext" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Please wait...</p>
+        <div class="loader-bar-track" style="width: 140px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; margin: 0.75rem auto 0;">
+            <div class="loader-bar-fill" style="height: 100%; background: #f4b400; border-radius: 99px; animation: loader-bar 1.1s ease-in-out infinite alternate;"></div>
+        </div>
+    </div>
+</div>
+
+{{-- Loading Overlay for verify/reject actions --}}
+<div id="paymentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
+    <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
+        <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width: 70px; height: 70px; border-radius: 50%; background: white; padding: 6px; object-fit: contain;">
+            <div class="loader-spinner" style="position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: #f4b400; border-right-color: rgba(244, 180, 0, 0.3); animation: loader-spin 0.85s linear infinite;"></div>
+        </div>
+        <p class="loader-text" style="color: white; font-weight: 600; margin-top: 1rem;">Processing Payment</p>
+        <p class="loader-subtext" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Please wait...</p>
+        <div class="loader-bar-track" style="width: 140px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; margin: 0.75rem auto 0;">
+            <div class="loader-bar-fill" style="height: 100%; background: #f4b400; border-radius: 99px; animation: loader-bar 1.1s ease-in-out infinite alternate;"></div>
+        </div>
+    </div>
+</div>
+
 <style>
-    /* Pagination */
+    @keyframes loader-spin {
+        to { transform: rotate(360deg); }
+    }
+    @keyframes loader-bar {
+        from { width: 15%; margin-left: 0; }
+        to   { width: 70%; margin-left: 30%; }
+    }
     .pagination .page-link {
         border: none;
         color: #64748b;
@@ -197,8 +192,6 @@
         color: #cbd5e0;
         background: transparent;
     }
-
-    /* Status badges */
     .badge-paid {
         background: rgba(76, 175, 80, 0.15);
         color: #2e7d32;
@@ -223,8 +216,6 @@
         border-radius: 30px;
         display: inline-block;
     }
-
-    /* Table rows */
     .table td {
         border-bottom: 1px solid #f0f2f5;
         color: #334155;
@@ -234,19 +225,39 @@
         color: #475569;
         border-bottom: 2px solid #e9ecef;
     }
-
-    /* Buttons */
-    .btn-outline-secondary {
-        border-color: #e2e8f0;
-        color: #475569;
+    .payment-row {
+        transition: all 0.2s ease;
     }
-    .btn-outline-secondary:hover {
-        background: #e2e8f0;
-        border-color: #cbd5e0;
-        color: #0f3c91;
+    .payment-row:hover {
+        background-color: rgba(15, 60, 145, 0.02) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
+    .student-avatar { transition: all 0.2s; }
+    .payment-row:hover .student-avatar {
+        background: rgba(15,60,145,0.15) !important;
+        transform: scale(1.02);
+    }
+    .btn-action {
+        width: 36px; height: 36px; border-radius: 50%; border: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; cursor: pointer; background: transparent; color: #64748b;
+    }
+    .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
+    .btn-action.verifyPaymentBtn:hover { background: rgba(40,167,69,0.1); color: #28a745; }
+    .btn-action.rejectPaymentBtn:hover { background: rgba(220,53,69,0.1); color: #dc3545; }
+    .empty-state { padding: 2rem; }
+    .badge-paid, .badge-pending, .badge-processing, .badge-failed {
+        font-weight: 600; padding: 0.45rem 1rem; border-radius: 30px;
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        font-size: 0.85rem; white-space: nowrap; min-width: 100px; justify-content: center;
+    }
+    .badge-paid       { background: rgba(76,175,80,0.15);   color: #2e7d32; }
+    .badge-pending    { background: rgba(244,180,20,0.15);  color: #b26a00; }
+    .badge-processing { background: rgba(13,110,253,0.15);  color: #0a58ca; }
+    .badge-failed     { background: rgba(220,53,69,0.15);   color: #a71d2a; }
 </style>
-@endpush
+@endsection
 
 @push('scripts')
 <script>
@@ -254,55 +265,55 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
-    // ── Modal helpers ────────────────────────────────────────────────────────
+    // --- Loading Overlays ---
+    const actionLoader = document.getElementById('paymentActionLoader');
+    const pageLoader = document.getElementById('pageLoader');
 
+    function showActionLoader() { if (actionLoader) actionLoader.style.display = 'flex'; }
+    function hideActionLoader() { if (actionLoader) actionLoader.style.display = 'none'; }
+    function showPageLoader()  { if (pageLoader) pageLoader.style.display = 'flex'; }
+    function hidePageLoader()  { if (pageLoader) pageLoader.style.display = 'none'; }
+
+    // --- Modal helpers (unchanged) ---
     function showConfirm({ title, message, confirmText, confirmStyle, onConfirm }) {
-        document.getElementById('confirmTitle').textContent   = title;
+        document.getElementById('confirmTitle').textContent = title;
         document.getElementById('confirmMessage').textContent = message;
-
         const iconWrap = document.getElementById('confirmIconWrap');
         iconWrap.style.background = confirmStyle.iconBg;
-        iconWrap.innerHTML        = `<i class="${confirmStyle.icon}" style="font-size:1.6rem;color:${confirmStyle.iconColor};"></i>`;
-
-        // Clone button to remove old listeners
-        const oldBtn   = document.getElementById('confirmActionBtn');
+        iconWrap.innerHTML = `<i class="${confirmStyle.icon}" style="font-size:1.6rem;color:${confirmStyle.iconColor};"></i>`;
+        const oldBtn = document.getElementById('confirmActionBtn');
         const freshBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(freshBtn, oldBtn);
-        freshBtn.textContent      = confirmText;
+        freshBtn.textContent = confirmText;
         freshBtn.style.background = confirmStyle.btnBg;
-        freshBtn.style.color      = 'white';
-
+        freshBtn.style.color = 'white';
         freshBtn.addEventListener('click', () => {
             bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
             onConfirm();
         });
-
         new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
     }
 
     function showResult({ type, title, message }) {
         const palettes = {
-            success: { iconBg: 'rgba(76,175,80,0.12)',  icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
+            success: { iconBg: 'rgba(76,175,80,0.12)', icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
             error:   { iconBg: 'rgba(220,53,69,0.12)',  icon: 'fas fa-times-circle', iconColor: '#a71d2a' },
             info:    { iconBg: 'rgba(15,60,145,0.12)',  icon: 'fas fa-info-circle',  iconColor: '#0f3c91' },
         };
         const p = palettes[type] || palettes.info;
-
-        document.getElementById('resultTitle').textContent   = title;
+        document.getElementById('resultTitle').textContent = title;
         document.getElementById('resultMessage').textContent = message;
-
         const iconWrap = document.getElementById('resultIconWrap');
         iconWrap.style.background = p.iconBg;
-        iconWrap.innerHTML        = `<i class="${p.icon}" style="font-size:1.6rem;color:${p.iconColor};"></i>`;
-
+        iconWrap.innerHTML = `<i class="${p.icon}" style="font-size:1.6rem;color:${p.iconColor};"></i>`;
         new bootstrap.Modal(document.getElementById('resultModal')).show();
     }
 
-    // ── Button handlers ──────────────────────────────────────────────────────
-
-    const handleViewButtons = () => {
+    // --- Button handlers (verify/reject/view) ---
+    function handleViewButtons() {
         document.querySelectorAll('.viewPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', async function () {
+            btn.removeEventListener('click', btn._viewListener);
+            const handler = async function () {
                 const paymentId = this.dataset.id;
                 const modalBody = document.getElementById('viewPaymentBody');
                 modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border" style="color:#0f3c91;" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
@@ -313,208 +324,235 @@ document.addEventListener('DOMContentLoaded', function () {
                 } catch {
                     modalBody.innerHTML = `<div class="alert alert-danger rounded-3">Error loading payment details.</div>`;
                 }
-            });
+            };
+            btn.addEventListener('click', handler);
+            btn._viewListener = handler;
         });
-    };
+    }
 
-    const handleVerifyButtons = () => {
+    function handleVerifyButtons() {
         document.querySelectorAll('.verifyPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.removeEventListener('click', btn._verifyListener);
+            const handler = function () {
                 const paymentId = this.dataset.id;
-                const self      = this;
-
+                const self = this;
                 showConfirm({
-                    title:       'Verify Payment',
-                    message:     'Are you sure you want to mark this payment as PAID?',
+                    title: 'Verify Payment',
+                    message: 'Are you sure you want to mark this payment as PAID?',
                     confirmText: 'Yes, Verify',
                     confirmStyle: {
-                        iconBg:    'rgba(76,175,80,0.12)',
-                        icon:      'fas fa-check-circle',
+                        iconBg: 'rgba(76,175,80,0.12)',
+                        icon: 'fas fa-check-circle',
                         iconColor: '#2e7d32',
-                        btnBg:     '#2e7d32',
+                        btnBg: '#2e7d32',
                     },
                     onConfirm: async () => {
-                        self.disabled  = true;
+                        showActionLoader();
+                        self.disabled = true;
                         self.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                         try {
-                            const res  = await fetch(`/admin/payments/${paymentId}/verify`, {
-                                method:  'POST',
+                            const res = await fetch(`/admin/payments/${paymentId}/verify`, {
+                                method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-CSRF-TOKEN': csrfToken,
-                                    'Accept':       'application/json'
+                                    'Accept': 'application/json'
                                 },
                             });
                             const data = await res.json();
+                            hideActionLoader();
                             if (data.success) {
                                 const badge = document.getElementById(`status-badge-${paymentId}`);
-                                badge.className   = 'badge-paid';
-                                badge.textContent = 'Paid';
-                                document.getElementById(`verify-btn-${paymentId}`)?.remove();
-                                document.getElementById(`reject-btn-${paymentId}`)?.remove();
-                                showResult({
-                                    type:    'success',
-                                    title:   'Payment Verified',
-                                    message: 'The payment has been marked as paid successfully.'
-                                });
+                                if (badge) {
+                                    badge.className = 'badge-paid';
+                                    badge.textContent = 'Paid';
+                                }
+                                const verifyBtn = document.getElementById(`verify-btn-${paymentId}`);
+                                const rejectBtn = document.getElementById(`reject-btn-${paymentId}`);
+                                if (verifyBtn) verifyBtn.remove();
+                                if (rejectBtn) rejectBtn.remove();
+                                showResult({ type: 'success', title: 'Payment Verified', message: 'The payment has been marked as paid successfully.' });
                             } else {
-                                showResult({
-                                    type:    'error',
-                                    title:   'Verification Failed',
-                                    message: data.message || 'Unable to verify this payment.'
-                                });
-                                self.disabled  = false;
+                                showResult({ type: 'error', title: 'Verification Failed', message: data.message || 'Unable to verify this payment.' });
+                                self.disabled = false;
                                 self.innerHTML = '<i class="fas fa-check"></i> Verify';
                             }
-                        } catch {
-                            showResult({
-                                type:    'error',
-                                title:   'Error',
-                                message: 'An unexpected error occurred. Please try again.'
-                            });
-                            self.disabled  = false;
+                        } catch (error) {
+                            hideActionLoader();
+                            showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
+                            self.disabled = false;
                             self.innerHTML = '<i class="fas fa-check"></i> Verify';
                         }
                     },
                 });
-            });
+            };
+            btn.addEventListener('click', handler);
+            btn._verifyListener = handler;
         });
-    };
+    }
 
-    const handleRejectButtons = () => {
+    function handleRejectButtons() {
         document.querySelectorAll('.rejectPaymentBtn').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.removeEventListener('click', btn._rejectListener);
+            const handler = function () {
                 const paymentId = this.dataset.id;
-                const self      = this;
-
+                const self = this;
                 showConfirm({
-                    title:       'Reject Payment',
-                    message:     'Are you sure you want to reject this payment? This action cannot be undone.',
+                    title: 'Reject Payment',
+                    message: 'Are you sure you want to reject this payment? This action cannot be undone.',
                     confirmText: 'Yes, Reject',
                     confirmStyle: {
-                        iconBg:    'rgba(220,53,69,0.12)',
-                        icon:      'fas fa-times-circle',
+                        iconBg: 'rgba(220,53,69,0.12)',
+                        icon: 'fas fa-times-circle',
                         iconColor: '#a71d2a',
-                        btnBg:     '#a71d2a',
+                        btnBg: '#a71d2a',
                     },
                     onConfirm: async () => {
-                        self.disabled  = true;
+                        showActionLoader();
+                        self.disabled = true;
                         self.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                         try {
-                            const res  = await fetch(`/admin/payments/${paymentId}/reject`, {
-                                method:  'POST',
+                            const res = await fetch(`/admin/payments/${paymentId}/reject`, {
+                                method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-CSRF-TOKEN': csrfToken,
-                                    'Accept':       'application/json'
+                                    'Accept': 'application/json'
                                 },
                             });
                             const data = await res.json();
+                            hideActionLoader();
                             if (data.success) {
                                 const badge = document.getElementById(`status-badge-${paymentId}`);
-                                badge.className   = 'badge-failed';
-                                badge.textContent = 'Failed';
-                                document.getElementById(`verify-btn-${paymentId}`)?.remove();
-                                document.getElementById(`reject-btn-${paymentId}`)?.remove();
-                                showResult({
-                                    type:    'info',
-                                    title:   'Payment Rejected',
-                                    message: 'The payment has been rejected successfully.'
-                                });
+                                if (badge) {
+                                    badge.className = 'badge-failed';
+                                    badge.textContent = 'Failed';
+                                }
+                                const verifyBtn = document.getElementById(`verify-btn-${paymentId}`);
+                                const rejectBtn = document.getElementById(`reject-btn-${paymentId}`);
+                                if (verifyBtn) verifyBtn.remove();
+                                if (rejectBtn) rejectBtn.remove();
+                                showResult({ type: 'info', title: 'Payment Rejected', message: 'The payment has been rejected successfully.' });
                             } else {
-                                showResult({
-                                    type:    'error',
-                                    title:   'Rejection Failed',
-                                    message: data.message || 'Unable to reject this payment.'
-                                });
-                                self.disabled  = false;
+                                showResult({ type: 'error', title: 'Rejection Failed', message: data.message || 'Unable to reject this payment.' });
+                                self.disabled = false;
                                 self.innerHTML = '<i class="fas fa-times"></i> Reject';
                             }
-                        } catch {
-                            showResult({
-                                type:    'error',
-                                title:   'Error',
-                                message: 'An unexpected error occurred. Please try again.'
-                            });
-                            self.disabled  = false;
+                        } catch (error) {
+                            hideActionLoader();
+                            showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
+                            self.disabled = false;
                             self.innerHTML = '<i class="fas fa-times"></i> Reject';
                         }
                     },
                 });
-            });
+            };
+            btn.addEventListener('click', handler);
+            btn._rejectListener = handler;
         });
-    };
+    }
 
-    // ── AJAX pagination & filter ─────────────────────────────────────────────
-
-    const rebindAll = () => {
+    function rebindAll() {
         handleViewButtons();
         handleVerifyButtons();
         handleRejectButtons();
-    };
-
-  const loadPayments = async (url) => {
-    // Only force https on non-localhost (e.g. ngrok)
-    if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
-        url = url.replace(/^http:\/\//i, 'https://');
     }
-    console.log('Fetching URL:', url);
 
-    try {
-        const res = await fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
+    // --- AJAX loadPayments (supports status, search, page) ---
+    let currentRequest = null;
+
+    async function loadPayments(url) {
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+        showPageLoader();
+        try {
+            const separator = url.includes('?') ? '&' : '?';
+            const ajaxUrl = url + separator + 'ajax=1';
+            currentRequest = new AbortController();
+            const response = await fetch(ajaxUrl, {
+                signal: currentRequest.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            document.getElementById('paymentsTableBody').innerHTML = data.rows;
+            document.getElementById('paymentsPagination').innerHTML = data.pagination;
+            rebindAll();
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Load error:', error);
             }
-        });
-
-        console.log('Status:', res.status);
-        const text = await res.text();
-        console.log('RAW:', text.substring(0, 1000));
-
-        const data = JSON.parse(text);
-        document.getElementById('paymentsTableBody').innerHTML = data.rows;
-        document.getElementById('paymentsPagination').innerHTML = data.pagination;
-        rebindAll();
-    } catch (err) {
-        console.error('FETCH ERROR:', err.message);
+        } finally {
+            hidePageLoader();
+            currentRequest = null;
+        }
     }
-};
 
-    rebindAll();
-
-   document.getElementById('filterForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const status = document.getElementById('status').value;
-    let url = window.location.origin + '/admin/payments';
-    if (status) url += '?status=' + encodeURIComponent(status);
-    bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
-    loadPayments(url);
-});
-
-    document.addEventListener('click', function (e) {
-    const link = e.target.closest('#paymentsPagination a');
-    if (link) {
-        e.preventDefault();
-        loadPayments(link.href);
-    }
-});
-
-// ── Search ───────────────────────────────────────────────────────────────
-let searchTimeout = null;
-document.getElementById('searchInput').addEventListener('input', function () {
-    clearTimeout(searchTimeout);
-    const query = this.value.trim();
-    searchTimeout = setTimeout(() => {
+    // --- Build URL from current filters ---
+    function buildFilterUrl() {
+        const status = document.getElementById('statusFilter').value;
+        const search = document.getElementById('searchInput').value.trim();
         let url = window.location.origin + '/admin/payments';
         const params = new URLSearchParams();
-        if (query) params.set('search', query);
-        const status = new URLSearchParams(window.location.search).get('status');
         if (status) params.set('status', status);
+        if (search) params.set('search', search);
         if (params.toString()) url += '?' + params.toString();
-        loadPayments(url);
-    }, 400);
-});
+        return url;
+    }
+
+    // --- Event listeners for filter & search ---
+    document.getElementById('statusFilter').addEventListener('change', function () {
+        loadPayments(buildFilterUrl());
+    });
+
+    document.getElementById('searchBtn').addEventListener('click', function () {
+        loadPayments(buildFilterUrl());
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loadPayments(buildFilterUrl());
+        }
+    });
+
+    // --- Pagination click handler with full skip logic ---
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('#paymentsPagination a');
+        if (!link) return;
+
+        // Skip if modifier key held (open in new tab, new window, etc.)
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+        // Skip if the link has download attribute or target="_blank"
+        if (link.hasAttribute('download') || link.getAttribute('target') === '_blank') return;
+
+        // Skip if the link triggers a Bootstrap modal/offcanvas/dropdown
+        if (link.hasAttribute('data-bs-toggle')) return;
+
+        // Skip hash links (same page anchors) or javascript: links
+        const href = link.getAttribute('href') || '';
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+        // Skip external links (different origin)
+        try {
+            const url = new URL(href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+        } catch (err) {
+            return;
+        }
+
+        // If we get here, it's a valid internal pagination link – load via AJAX
+        e.preventDefault();
+        loadPayments(link.href);
+    });
+
+    // Initial bindings
+    rebindAll();
 });
 </script>
 @endpush

@@ -45,25 +45,23 @@
         </div>
 
         <div class="d-flex gap-2 ms-auto">
-            <!-- Course Filter Form (auto-submit) -->
-            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="courseFilterForm">
-                <select name="course" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;" onchange="this.form.submit()">
-                    <option value="">All Courses</option>
-                    @foreach($courses as $course)
-                        <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
-                    @endforeach
-                </select>
-            </form>
+    <form method="GET" action="{{ route('admin.reports.clearances') }}" id="filterForm" class="d-flex gap-2">
+        
+        <select name="course" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;">
+            <option value="">All Courses</option>
+            @foreach($courses as $course)
+                <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+            @endforeach
+        </select>
 
-            <!-- Year Level Filter Form (auto-submit) -->
-            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="yearLevelFilterForm">
-                <select name="year_level" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;" onchange="this.form.submit()">
-                    <option value="">All Year Levels</option>
-                    @foreach($yearLevels as $level)
-                        <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
-                    @endforeach
-                </select>
-            </form>
+        <select name="year_level" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;">
+            <option value="">All Year Levels</option>
+            @foreach($yearLevels as $level)
+                <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
+            @endforeach
+        </select>
+    </form>
+</div>
 
             <!-- Search Form -->
             <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="searchForm">
@@ -350,5 +348,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+// ── Auto-submit filter form on any change ────────────────────────────────
+const filterForm = document.getElementById('filterForm');
+
+if (filterForm) {
+    // Dropdowns: submit immediately on change
+    filterForm.querySelectorAll('select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            filterForm.submit();
+        });
+    });
+
+    // Search input: submit after 500ms debounce
+    const searchInput = filterForm.querySelector('input[name="search"]');
+    let searchTimer;
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                filterForm.submit();
+            }, 500);
+        });
+
+        // Prevent Enter from double-submitting
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimer);
+                filterForm.submit();
+            }
+        });
+    }
+}
 </script>
 @endpush

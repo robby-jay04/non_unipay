@@ -19,69 +19,74 @@ class AdminController extends Controller
     }
 
     public function payments(Request $request)
-    {
-        $query = Payment::with(['student.user', 'transaction'])->orderBy('created_at', 'desc');
+{
+    $query = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
+                    ->orderBy('created_at', 'desc');
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $payments = $query->paginate(10);
-
-        if ($request->ajax()) {
-            return view('admin.payments.partials.ajax_response', compact('payments'))->render();
-        }
-
-        return view('admin.payments', compact('payments'));
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
 
-   public function students(Request $request)
-{
-    $query = Student::with(['user', 'payments']);
-
-    // Apply search filter
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
-            $q->whereHas('user', function ($q2) use ($search) {
-                $q2->where('name', 'like', "%{$search}%")
-                   ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->orWhere('student_no', 'like', "%{$search}%");
+            $q->whereHas('student.user', function ($q2) use ($search) {
+                $q2->where('name', 'like', '%' . $search . '%');
+            })->orWhere('reference_no', 'like', '%' . $search . '%');
         });
     }
 
-    // Apply course filter
-    if ($request->filled('course')) {
-        $query->where('course', $request->course);
+    $payments = $query->paginate(10)->withQueryString();
+
+    // Check for ajax=1 param OR standard AJAX headers
+    if ($request->filled('ajax') || $request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'rows'       => view('admin.payments.partials.payments_rows', compact('payments'))->render(),
+            'pagination' => view('admin.payments.partials.payments_pagination', compact('payments'))->render(),
+        ]);
     }
 
-    // Apply year level filter
-    if ($request->filled('year_level')) {
-        $query->where('year_level', $request->year_level);
-    }
-
-    // Apply clearance status filter
-    if ($request->filled('clearance_status')) {
-        $query->where('clearance_status', $request->clearance_status);
-    }
-
-    // Order and paginate
-    $students = $query->orderBy('created_at', 'desc')
-                      ->paginate(10)
-                      ->appends($request->only(['search', 'course', 'year_level', 'clearance_status']));
-
-    // Get distinct courses for the dropdown
-    $courses = Student::distinct()->pluck('course')->filter()->values();
-
-    // Get distinct year levels for the dropdown
-    $yearLevels = Student::distinct()->pluck('year_level')->filter()->sort()->values();
-
-    // (Optional) Get clearance status options
-    $clearanceStatuses = ['cleared', 'not_cleared']; // adjust based on your actual values
-
-    return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
+    return view('admin.payments', compact('payments'));
 }
+
+    public function students(Request $request)
+    {
+        $query = Student::with(['user', 'payments']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhere('student_no', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('course')) {
+            $query->where('course', $request->course);
+        }
+
+        if ($request->filled('year_level')) {
+            $query->where('year_level', $request->year_level);
+        }
+
+        if ($request->filled('clearance_status')) {
+            $query->where('clearance_status', $request->clearance_status);
+        }
+
+        $students = $query->orderBy('created_at', 'desc')
+                          ->paginate(10)
+                          ->appends($request->only(['search', 'course', 'year_level', 'clearance_status']));
+
+        $courses          = Student::distinct()->pluck('course')->filter()->values();
+        $yearLevels       = Student::distinct()->pluck('year_level')->filter()->sort()->values();
+        $clearanceStatuses = ['cleared', 'not_cleared'];
+
+        return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
+    }
+
     public function studentJson(Student $student)
     {
         $student->load('user');
@@ -94,7 +99,7 @@ class AdminController extends Controller
             'year_level'       => $student->year_level,
             'contact'          => $student->contact,
             'is_confirmed'     => (bool) $student->is_confirmed,
-            'clearance_status' => $student->clearance_status, // ✅ reads from synced column
+            'clearance_status' => $student->clearance_status,
             'profile_picture'  => $student->profile_picture
                                     ? asset('storage/' . $student->profile_picture)
                                     : null,
@@ -137,6 +142,12 @@ class AdminController extends Controller
     public function newStudentsCount()
     {
         $count = Student::where('is_confirmed', false)->count();
+        return response()->json(['count' => $count]);
+    }
+
+    public function pendingPaymentsCount()
+    {
+        $count = Payment::whereIn('status', ['pending', 'processing'])->count();
         return response()->json(['count' => $count]);
     }
 }

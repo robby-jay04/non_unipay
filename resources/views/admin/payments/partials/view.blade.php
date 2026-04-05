@@ -73,13 +73,14 @@
             <div class="col-6">
                 <small class="text-muted">School Year</small>
                 <p class="fw-medium mb-1">{{ $payment->schoolYear ? $payment->schoolYear->name : 'N/A' }}</p>
+                 </div>
            <div class="col-6">
     <small class="text-muted">Exam Period</small>
     <p class="fw-medium mb-1">
         {{ $payment->examPeriod ? $payment->examPeriod->name : 'Not set' }}
     </p>
 </div>
-        </div>
+       
     </div>
 </div>
 

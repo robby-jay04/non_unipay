@@ -29,14 +29,16 @@ class SuperAdminController extends Controller
         return view('admin.superadmin.admins.index', compact('admins', 'search'));
     }
 
+    // These are kept for RESTful completeness but are no longer used as standalone pages.
+    // create() and edit() are now handled entirely by the index blade modals.
     public function create()
     {
-        return view('admin.superadmin.admins.create');
+        return redirect()->route('admin.superadmin.admins.index');
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validateWithBag('createBag', [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
             'role'     => ['required', 'in:admin,superadmin'],
@@ -55,53 +57,49 @@ class SuperAdminController extends Controller
     }
 
     public function edit(User $admin)
-{
-    if ($admin->id === auth()->id()) {
+    {
+        // No longer used as a standalone page; redirect back to index.
+        return redirect()->route('admin.superadmin.admins.index');
+    }
+
+    public function update(Request $request, User $admin)
+    {
+        if ($admin->id === auth()->id()) {
+            return redirect()->route('admin.superadmin.admins.index')
+                ->with('error', 'You cannot edit your own account here.');
+        }
+
+        $validated = $request->validateWithBag('editBag', [
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'unique:users,email,' . $admin->id],
+            'role'     => ['required', 'in:admin,superadmin'],
+            'password' => ['nullable', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
+        ]);
+
+        $admin->name  = $validated['name'];
+        $admin->email = $validated['email'];
+        $admin->role  = $validated['role'];
+
+        if (!empty($validated['password'])) {
+            $admin->password = Hash::make($validated['password']);
+        }
+
+        $admin->save();
+
         return redirect()->route('admin.superadmin.admins.index')
-            ->with('error', 'You cannot edit your own account here.');
+            ->with('success', 'Admin account updated successfully.');
     }
 
-    return view('admin.superadmin.admins.edit', ['user' => $admin]);
-}
+    public function destroy(User $admin)
+    {
+        if ($admin->id === auth()->id()) {
+            return redirect()->route('admin.superadmin.admins.index')
+                ->with('error', 'You cannot delete your own account.');
+        }
 
-public function update(Request $request, User $admin)
-{
-    if ($admin->id === auth()->id()) {
+        $admin->delete();
+
         return redirect()->route('admin.superadmin.admins.index')
-            ->with('error', 'You cannot edit your own account here.');
+            ->with('success', 'Admin account deleted successfully.');
     }
-
-    $validated = $request->validate([
-        'name'     => ['required', 'string', 'max:255'],
-        'email'    => ['required', 'email', 'unique:users,email,' . $admin->id],
-        'role'     => ['required', 'in:admin,superadmin'],
-        'password' => ['nullable', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
-    ]);
-
-    $admin->name  = $validated['name'];
-    $admin->email = $validated['email'];
-    $admin->role  = $validated['role'];
-
-    if (!empty($validated['password'])) {
-        $admin->password = Hash::make($validated['password']);
-    }
-
-    $admin->save();
-
-    return redirect()->route('admin.superadmin.admins.index')
-        ->with('success', 'Admin account updated successfully.');
-}
-
-public function destroy(User $admin)
-{
-    if ($admin->id === auth()->id()) {
-        return redirect()->route('admin.superadmin.admins.index')
-            ->with('error', 'You cannot delete your own account.');
-    }
-
-    $admin->delete();
-
-    return redirect()->route('admin.superadmin.admins.index')
-        ->with('success', 'Admin account deleted successfully.');
-}
 }

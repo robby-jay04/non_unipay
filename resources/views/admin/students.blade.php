@@ -4,20 +4,20 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold" style="color: #0f3c91;">Student Management</h2>
+    <h2 class="fw-bold" style="color: var(--text-primary);">Student Management</h2>
 </div>
 
 <!-- Hidden element to store current page (used by JS) -->
 <input type="hidden" id="initialPage" data-page="{{ request('page', 1) }}">
 
 <!-- Main Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Students</h5>
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bg-main);">
+    <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: var(--bg-main);">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">All Students</h5>
 
         <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
             <!-- Course filter -->
-            <select name="course" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 150px;">
+            <select name="course" class="form-select rounded-pill border-0 px-4 py-2" style="width: 150px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Courses</option>
                 @foreach($courses as $course)
                     <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>
@@ -27,7 +27,7 @@
             </select>
 
             <!-- Year Level filter -->
-            <select name="year_level" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 190px;">
+            <select name="year_level" class="form-select rounded-pill border-0 px-4 py-2" style="width: 190px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Year Level</option>
                 @foreach($yearLevels as $level)
                     <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>
@@ -37,7 +37,7 @@
             </select>
 
             <!-- Clearance Status filter -->
-            <select name="clearance_status" class="form-select rounded-pill border-0 bg-light px-4 py-2" style="width: 150px;">
+            <select name="clearance_status" class="form-select rounded-pill border-0 px-4 py-2" style="width: 150px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Status</option>
                 @foreach($clearanceStatuses as $status)
                     <option value="{{ $status }}" {{ request('clearance_status') == $status ? 'selected' : '' }}>
@@ -46,8 +46,8 @@
                 @endforeach
             </select>
 
-            <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
-                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
+            <input type="search" name="search" class="form-control rounded-pill border-0 px-4 py-2"
+                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
 
             <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
                 <i class="fas fa-search me-2"></i> Search
@@ -57,41 +57,37 @@
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover align-middle mb-0 students-table">
+                <thead style="background: var(--table-header-bg);">
                     <tr>
-                        <th class="px-4 py-3">Student No.</th>
-                        <th class="py-3">Name</th>
-                        <th class="py-3">Course</th>
-                        <th class="py-3">Year Level</th>
-                        <th class="py-3">Clearance Status</th>
-                        <th class="py-3 pe-4">Actions</th>
+                        <th class="px-4 py-3" style="color: var(--text-primary);">Student No.</th>
+                        <th class="py-3" style="color: var(--text-primary);">Name</th>
+                        <th class="py-3" style="color: var(--text-primary);">Course</th>
+                        <th class="py-3" style="color: var(--text-primary);">Year Level</th>
+                        <th class="py-3" style="color: var(--text-primary);">Clearance Status</th>
+                        <th class="py-3 pe-4" style="color: var(--text-primary);">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="students-table-body">
                     @forelse($students as $student)
                     <tr class="student-row">
-                        <td class="px-4 py-3 fw-medium" style="color: #1e293b;">{{ $student->student_no }}</td>
+                        <td class="px-4 py-3 fw-medium" style="color: var(--text-primary);">{{ $student->student_no }}</td>
                         <td class="py-3">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="student-avatar rounded-circle d-flex align-items-center justify-content-center"
                                      style="width: 38px; height: 38px; background: rgba(15,60,145,0.1); font-weight: 600; color: #0f3c91;">
                                     {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                 </div>
-                                <span class="fw-medium">{{ $student->user->name }}</span>
+                                <span class="fw-medium" style="color: var(--text-primary);">{{ $student->user->name }}</span>
                             </div>
                         </td>
-                        <td class="py-3">{{ $student->course }}</td>
-                        <td class="py-3">{{ $student->year_level }}</td>
+                        <td class="py-3" style="color: var(--text-secondary);">{{ $student->course }}</td>
+                        <td class="py-3" style="color: var(--text-secondary);">{{ $student->year_level }}</td>
                         <td class="py-3">
                             @if($student->clearance_status === 'cleared')
-                                <span class="badge-paid">
-                                    <i class="fas fa-check-circle me-1"></i> Cleared
-                                </span>
+                                <span class="badge-paid"><i class="fas fa-check-circle me-1"></i> Cleared</span>
                             @else
-                                <span class="badge-pending">
-                                    <i class="fas fa-clock me-1"></i> Not Cleared
-                                </span>
+                                <span class="badge-pending"><i class="fas fa-clock me-1"></i> Not Cleared</span>
                             @endif
                         </td>
                         <td class="py-3 pe-4">
@@ -120,9 +116,7 @@
                                         <i class="fas fa-check-circle"></i>
                                     </button>
                                 @else
-                                    <span class="badge-confirmed">
-                                        <i class="fas fa-check-circle me-1"></i> Confirmed
-                                    </span>
+                                    <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
                                 @endif
 
                                 <!-- Delete Button -->
@@ -148,9 +142,9 @@
                     <tr>
                         <td colspan="6" class="text-center py-5">
                             <div class="empty-state">
-                                <i class="fas fa-user-graduate fa-4x" style="color: #d1d5db;"></i>
-                                <h6 class="fw-semibold mt-3" style="color: #1e293b;">No students found</h6>
-                                <p class="text-muted small">Students who register will appear here.</p>
+                                <i class="fas fa-user-graduate fa-4x" style="color: var(--text-muted);"></i>
+                                <h6 class="fw-semibold mt-3" style="color: var(--text-primary);">No students found</h6>
+                                <p class="small" style="color: var(--text-muted);">Students who register will appear here.</p>
                             </div>
                         </td>
                     </tr>
@@ -168,35 +162,35 @@
     </div>
 </div>
 
-<!-- Confirmation Modal -->
+<!-- Confirmation Modal (dark mode compatible) -->
 <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
-                <h5 class="fw-bold mb-2" id="confirmTitle"></h5>
-                <p class="text-muted mb-0" id="confirmMessage"></p>
+                <h5 class="fw-bold mb-2" id="confirmTitle" style="color: var(--text-primary);"></h5>
+                <p class="mb-0" id="confirmMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
                 <button type="button" class="btn rounded-pill px-4 fw-semibold" id="confirmActionBtn"></button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Result Modal -->
+<!-- Result Modal (dark mode compatible) -->
 <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
-                <h5 class="fw-bold mb-2" id="resultTitle"></h5>
-                <p class="text-muted mb-0" id="resultMessage"></p>
+                <h5 class="fw-bold mb-2" id="resultTitle" style="color: var(--text-primary);"></h5>
+                <p class="mb-0" id="resultMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn rounded-pill px-5 fw-semibold" id="resultOkBtn" data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
@@ -205,10 +199,10 @@
     </div>
 </div>
 
-<!-- Student Details Modal -->
+<!-- Student Details Modal (dark mode compatible) -->
 <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); border-radius: 20px 20px 0 0;">
                 <div class="w-100 text-center py-3">
                     <div class="mx-auto mb-2" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.5);">
@@ -229,25 +223,25 @@
                 </div>
                 <div class="row g-3">
                     <div class="col-6">
-                        <div class="p-3 rounded-3 h-100" style="background: #f8f9fc;">
+                        <div class="p-3 rounded-3 h-100 student-detail-card">
                             <small class="text-muted d-block mb-1"><i class="fas fa-envelope me-1"></i> Email</small>
                             <span class="fw-medium" id="modalStudentEmail" style="font-size: 0.9rem;">—</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="p-3 rounded-3 h-100" style="background: #f8f9fc;">
+                        <div class="p-3 rounded-3 h-100 student-detail-card">
                             <small class="text-muted d-block mb-1"><i class="fas fa-phone me-1"></i> Mobile</small>
                             <span class="fw-medium" id="modalStudentContact" style="font-size: 0.9rem;">—</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="p-3 rounded-3 h-100" style="background: #f8f9fc;">
+                        <div class="p-3 rounded-3 h-100 student-detail-card">
                             <small class="text-muted d-block mb-1"><i class="fas fa-book me-1"></i> Course</small>
                             <span class="fw-medium" id="modalStudentCourse" style="font-size: 0.9rem;">—</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="p-3 rounded-3 h-100" style="background: #f8f9fc;">
+                        <div class="p-3 rounded-3 h-100 student-detail-card">
                             <small class="text-muted d-block mb-1"><i class="fas fa-layer-group me-1"></i> Year Level</small>
                             <span class="fw-medium" id="modalStudentYear" style="font-size: 0.9rem;">—</span>
                         </div>
@@ -256,7 +250,7 @@
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn w-100 rounded-pill py-2 fw-medium"
-                        style="background: #f0f2f5; color: #475569;"
+                        style="background: var(--input-bg); color: var(--text-primary);"
                         data-bs-dismiss="modal">
                     Close
                 </button>
@@ -265,7 +259,7 @@
     </div>
 </div>
 
-{{-- Global Page Loader for filtering/pagination --}}
+<!-- Loaders (same as before, but we keep the original styling) -->
 <div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -280,7 +274,6 @@
     </div>
 </div>
 
-{{-- Loading Overlay for confirm/delete actions --}}
 <div id="studentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -303,11 +296,54 @@
         from { width: 15%; margin-left: 0; }
         to   { width: 70%; margin-left: 30%; }
     }
+
+    /* Dark mode table overrides */
+    .students-table,
+    .students-table tbody,
+    .students-table tr,
+    .students-table td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+    }
+    .students-table thead th {
+        background-color: var(--table-header-bg);
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .students-table tbody tr {
+        border-bottom: 1px solid var(--table-row-border);
+        transition: background 0.2s;
+    }
+    .students-table tbody tr:hover {
+        background-color: var(--hover-bg) !important;
+    }
+    .students-table tbody td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+        border-bottom: none;
+    }
+    .students-table tbody td:first-child {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* Placeholder dark mode */
+    .form-control::placeholder,
+    input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+    body.dark .form-control::placeholder,
+    body.dark input::placeholder {
+        color: #94a3b8;
+        opacity: 0.6;
+    }
+
+    /* Student row hover effects */
     .student-row {
         transition: all 0.2s ease;
     }
     .student-row:hover {
-        background-color: rgba(15, 60, 145, 0.02) !important;
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.02);
     }
@@ -318,6 +354,8 @@
         background: rgba(15,60,145,0.15) !important;
         transform: scale(1.02);
     }
+
+    /* Action buttons */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -329,7 +367,7 @@
         transition: all 0.2s;
         cursor: pointer;
         background: transparent;
-        color: #64748b;
+        color: var(--text-muted);
         padding: 0;
     }
     .btn-action:hover {
@@ -345,6 +383,8 @@
         background: rgba(220, 53, 69, 0.1);
         color: #dc3545;
     }
+
+    /* Badges (light and dark) */
     .badge-paid, .badge-pending, .badge-confirmed {
         font-weight: 600;
         padding: 0.45rem 1rem;
@@ -352,6 +392,7 @@
         display: inline-flex;
         align-items: center;
         font-size: 0.85rem;
+        gap: 0.35rem;
     }
     .badge-paid {
         background: rgba(76, 175, 80, 0.15);
@@ -365,22 +406,29 @@
         background: rgba(15, 60, 145, 0.1);
         color: #0f3c91;
     }
-    .empty-state {
-        padding: 2rem;
+    body.dark .badge-paid {
+        background: rgba(76, 175, 80, 0.25);
+        color: #81c784;
     }
-    .table td {
-        border-bottom: 1px solid #f0f2f5;
-        color: #334155;
-        vertical-align: middle;
+    body.dark .badge-pending {
+        background: rgba(244, 180, 20, 0.25);
+        color: #ffd54f;
     }
-    .table th {
-        font-weight: 600;
-        color: #475569;
-        border-bottom: 2px solid #e9ecef;
+    body.dark .badge-confirmed {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
     }
+
+    /* Student detail modal cards */
+    .student-detail-card {
+        background: var(--input-bg);
+        transition: background 0.3s ease;
+    }
+
+    /* Pagination */
     .pagination .page-link {
         border: none;
-        color: #64748b;
+        color: var(--text-muted);
         font-weight: 500;
         padding: 0.5rem 1rem;
         margin: 0 0.2rem;
@@ -396,9 +444,31 @@
         color: white;
         box-shadow: 0 4px 8px rgba(15, 60, 145, 0.2);
     }
-    .form-control:focus {
-        box-shadow: none;
+    .pagination .disabled .page-link {
+        color: var(--text-muted);
+        opacity: 0.5;
+        background: transparent;
+    }
+
+    /* Form controls */
+    .form-select, .form-control {
+        background-color: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--text-primary);
+    }
+    .form-select:focus, .form-control:focus {
         border-color: #0f3c91;
+        box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
+        background-color: var(--input-bg);
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+        text-align: center;
+    }
+    .empty-state i {
+        opacity: 0.7;
     }
 </style>
 @endsection
@@ -532,11 +602,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             fallback.style.display = 'flex';
                         }
                         document.getElementById('modalStudentConfirmed').innerHTML = data.is_confirmed
-                            ? '<span style="background:rgba(15,60,145,0.1);color:#0f3c91;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-check-circle me-1"></i>Confirmed</span>'
-                            : '<span style="background:rgba(244,180,20,0.15);color:#b26a00;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-clock me-1"></i>Pending Approval</span>';
+                            ? '<span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i>Confirmed</span>'
+                            : '<span class="badge-pending"><i class="fas fa-clock me-1"></i>Pending Approval</span>';
                         document.getElementById('modalStudentStatus').innerHTML = data.clearance_status === 'cleared'
-                            ? '<span style="background:rgba(76,175,80,0.15);color:#2e7d32;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-shield-alt me-1"></i>Cleared</span>'
-                            : '<span style="background:rgba(220,53,69,0.15);color:#a71d2a;font-weight:500;padding:0.4rem 1rem;border-radius:30px;font-size:0.85rem;"><i class="fas fa-times-circle me-1"></i>Not Cleared</span>';
+                            ? '<span class="badge-paid"><i class="fas fa-shield-alt me-1"></i>Cleared</span>'
+                            : '<span class="badge-pending"><i class="fas fa-times-circle me-1"></i>Not Cleared</span>';
                         studentModal.show();
                     })
                     .catch(err => console.error(err));
@@ -569,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadStudents(url) {
         if (isLoading) return;
         isLoading = true;
-        showPageLoader();  // show global overlay
+        showPageLoader();
         try {
             const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const html = await response.text();

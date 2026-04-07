@@ -115,7 +115,7 @@ class FeeController extends Controller
         $currentSemester   = Semester::where('is_current', true)->first();
         $courses           = self::COURSES;
 
-        return view('admin.fees.create', compact(
+        return view('admin.fees.index', compact(
             'schoolYears',
             'currentSchoolYear',
             'currentSemester',
@@ -158,10 +158,24 @@ public function adminIndex(Request $request)
 
     $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
     $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+    $courses = self::COURSES;
 
-    return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
+    // ✅ Add current school year and semester for modal pre-selection
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $currentSemester = Semester::where('is_current', true)->first();
+
+    return view('admin.fees.index', compact(
+        'fees', 
+        'schoolYears', 
+        'semesters', 
+        'examPeriods', 
+        'courses', 
+        'currentSchoolYear',
+        'currentSemester'
+    ));
 }
-    public function storeWeb(Request $request)
+
+public function storeWeb(Request $request)
     {
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
@@ -206,7 +220,7 @@ public function adminIndex(Request $request)
         $currentSchoolYear = SchoolYear::where('is_current', true)->first();
         $courses           = self::COURSES;
 
-        return view('admin.fees.edit', compact(
+        return view('admin.fees.index', compact(
             'fee',
             'schoolYears',
             'currentSchoolYear',

@@ -17,6 +17,11 @@ class AdminController extends Controller
     {
         $this->clearanceService = $clearanceService;
     }
+    public function show(Payment $payment)
+{
+    $payment->load(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod']);
+    return view('admin.payments.partials.payment_details', compact('payment'));
+}
 
     public function payments(Request $request)
 {

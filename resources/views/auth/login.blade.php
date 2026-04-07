@@ -32,66 +32,205 @@
             position: relative;
         }
 
-        /* ── FULL-SCREEN SPLASH ANIMATION ─────────────────────────── */
+        /* ═══════════════════════════════════════════
+           SPLASH SCREEN — improved animation
+        ═══════════════════════════════════════════ */
         #splash-screen {
             position: fixed;
             inset: 0;
             z-index: 200000;
-            background: linear-gradient(135deg, #0f3c91 0%, #1a4da8 100%);
+            background: linear-gradient(145deg, #0a2a6b 0%, #0f3c91 50%, #1a4da8 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            gap: 1.5rem;
             opacity: 1;
-            transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transform: scale(1);
+            transition: opacity 0.7s ease, transform 0.7s ease;
             pointer-events: all;
+            overflow: hidden;
         }
         #splash-screen.fade-out {
             opacity: 0;
+            transform: scale(1.04);
             pointer-events: none;
         }
-        .splash-logo {
-            width: 100px;
-            height: 100px;
+
+        /* Pulse rings */
+        .splash-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.07);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation: splashRingPulse 3s ease-in-out infinite;
+        }
+        .splash-ring:nth-child(1) { width: 340px; height: 340px; animation-delay: 0s; }
+        .splash-ring:nth-child(2) { width: 520px; height: 520px; animation-delay: 1s; }
+        .splash-ring:nth-child(3) { width: 700px; height: 700px; animation-delay: 2s; }
+        @keyframes splashRingPulse {
+            0%,100% { opacity: 0.5; transform: translate(-50%,-50%) scale(1); }
+            50%      { opacity: 0.1; transform: translate(-50%,-50%) scale(1.06); }
+        }
+
+        /* Floating particles container */
+        #splash-particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .splash-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+            animation: splashParticleFloat var(--pd) var(--pp) ease-in-out infinite;
+        }
+        @keyframes splashParticleFloat {
+            0%,100% { opacity: 0;    transform: translateY(0)      scale(0.5); }
+            20%      { opacity: 0.55; }
+            80%      { opacity: 0.2; }
+            50%      { opacity: 0.4; transform: translateY(-110px) scale(1);   }
+        }
+
+        /* Logo wrapper — bounces in */
+        .splash-logo-wrap {
+            position: relative;
+            opacity: 0;
+            animation: splashLogoIn 0.7s 0.2s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+            margin-bottom: 1.75rem;
+        }
+        @keyframes splashLogoIn {
+            from { opacity: 0; transform: scale(0.5) translateY(20px); }
+            to   { opacity: 1; transform: scale(1)   translateY(0);    }
+        }
+
+        /* Logo box */
+        .splash-logo-box {
+            width: 96px;
+            height: 96px;
             background: white;
             border-radius: 28px;
             padding: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            animation: splashBounce 0.8s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+            position: relative;
+            z-index: 1;
+            animation: splashLogoPulse 2.2s 0.9s ease-in-out infinite;
         }
-        .splash-logo img {
+        .splash-logo-box img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            display: block;
         }
-        @keyframes splashBounce {
-            0% { transform: scale(0.8); opacity: 0; }
-            60% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
+        /* Gloss overlay */
+        .splash-logo-box::after {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.30) 0%, transparent 55%);
+            pointer-events: none;
         }
+        @keyframes splashLogoPulse {
+            0%,100% { box-shadow: 0 0 0 0   rgba(232,184,75,0.45); }
+            50%      { box-shadow: 0 0 0 20px rgba(232,184,75,0);   }
+        }
+
+        /* Orbiting dot */
+        .splash-orbit {
+            position: absolute;
+            width: 132px; height: 132px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(232,184,75,0.45);
+            top: -18px; left: -18px;
+            animation: splashOrbit 4s linear infinite;
+        }
+        .splash-orbit-dot {
+            position: absolute;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #e8b84b;
+            top: -4px; left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px rgba(232,184,75,0.9);
+        }
+        @keyframes splashOrbit {
+            from { transform: rotate(0deg);   }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* App name */
         .splash-text {
             color: white;
             font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
+            font-size: 1.85rem;
             font-weight: 700;
             letter-spacing: 1px;
             opacity: 0;
-            animation: fadeInUp 0.6s 0.3s forwards;
-        }
-        .splash-sub {
-            color: rgba(255,255,255,0.7);
-            font-size: 0.9rem;
-            font-weight: 400;
-            opacity: 0;
-            animation: fadeInUp 0.6s 0.5s forwards;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            animation: splashSlideUp 0.6s 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+            margin-bottom: 0.3rem;
         }
 
-        /* ── LEFT PANEL (same as before, but initial visibility hidden until splash ends) ── */
+        /* Tagline */
+        .splash-sub {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.78rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: splashSlideUp 0.6s 0.75s cubic-bezier(0.22,1,0.36,1) forwards;
+            margin-bottom: 2rem;
+        }
+        @keyframes splashSlideUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+
+        /* Progress bar */
+        .splash-bar-track {
+            width: 160px; height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 99px;
+            overflow: hidden;
+            opacity: 0;
+            animation: splashSlideUp 0.4s 1s forwards;
+        }
+        .splash-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e8b84b, #f4d080);
+            border-radius: 99px;
+            width: 0%;
+            animation: splashBarFill 1.6s 1s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        @keyframes splashBarFill {
+            0%   { width: 0%;   }
+            60%  { width: 75%;  }
+            85%  { width: 88%;  }
+            100% { width: 100%; }
+        }
+
+        /* Loading dots */
+        .splash-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 0.9rem;
+            opacity: 0;
+            animation: splashSlideUp 0.4s 1.05s forwards;
+        }
+        .splash-dot-ind {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            animation: splashDotBlink 1.2s 1.1s ease-in-out infinite;
+        }
+        .splash-dot-ind:nth-child(2) { animation-delay: 1.25s; }
+        .splash-dot-ind:nth-child(3) { animation-delay: 1.40s; }
+        @keyframes splashDotBlink {
+            0%,100% { background: rgba(255,255,255,0.3); transform: scale(1);   }
+            50%      { background: rgba(255,255,255,0.9); transform: scale(1.4); }
+        }
+
+        /* ── Content panels hidden until splash ends ── */
         .left-panel, .right-panel {
             opacity: 0;
             transition: opacity 0.5s ease;
@@ -101,6 +240,9 @@
             opacity: 1;
         }
 
+        /* ═══════════════════════════════════════════
+           LEFT PANEL
+        ═══════════════════════════════════════════ */
         .left-panel {
             flex: 0 0 55%;
             position: relative;
@@ -196,34 +338,28 @@
             transition: background 0.2s;
         }
 
-        .feature-chip i {
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
+        .feature-chip i { color: var(--accent); font-size: 0.9rem; }
 
-        /* Decorative floating circle */
         .deco-circle {
             position: absolute;
-            top: -80px;
-            right: -80px;
-            width: 340px;
-            height: 340px;
+            top: -80px; right: -80px;
+            width: 340px; height: 340px;
             border-radius: 50%;
             border: 60px solid rgba(232,184,75,0.12);
             z-index: 2;
         }
         .deco-circle-sm {
             position: absolute;
-            top: 160px;
-            right: -40px;
-            width: 180px;
-            height: 180px;
+            top: 160px; right: -40px;
+            width: 180px; height: 180px;
             border-radius: 50%;
             border: 30px solid rgba(255,255,255,0.07);
             z-index: 2;
         }
 
-        /* ── RIGHT PANEL ─────────────────────────────── */
+        /* ═══════════════════════════════════════════
+           RIGHT PANEL
+        ═══════════════════════════════════════════ */
         .right-panel {
             flex: 1;
             display: flex;
@@ -239,10 +375,8 @@
         .right-panel::before {
             content: '';
             position: absolute;
-            bottom: -120px;
-            right: -120px;
-            width: 380px;
-            height: 380px;
+            bottom: -120px; right: -120px;
+            width: 380px; height: 380px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(15,60,145,0.06) 0%, transparent 70%);
             pointer-events: none;
@@ -256,7 +390,7 @@
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0);    }
         }
 
         /* Logo */
@@ -268,8 +402,7 @@
         }
 
         .logo-img {
-            width: 54px;
-            height: 54px;
+            width: 54px; height: 54px;
             border-radius: 16px;
             background: var(--navy);
             padding: 4px;
@@ -277,9 +410,7 @@
             object-fit: contain;
         }
 
-        .logo-text {
-            line-height: 1.1;
-        }
+        .logo-text { line-height: 1.1; }
 
         .logo-text span {
             font-family: 'Playfair Display', serif;
@@ -318,8 +449,7 @@
 
         .field-wrap .field-icon {
             position: absolute;
-            left: 1rem;
-            top: 50%;
+            left: 1rem; top: 50%;
             transform: translateY(-50%);
             color: #9ca3af;
             font-size: 1rem;
@@ -348,15 +478,11 @@
             box-shadow: 0 0 0 4px rgba(15,60,145,0.08);
         }
 
-        .field-wrap input:focus + .field-icon-right,
-        .field-wrap:focus-within .field-icon {
-            color: var(--navy);
-        }
+        .field-wrap:focus-within .field-icon { color: var(--navy); }
 
         .field-wrap .toggle-pw {
             position: absolute;
-            right: 1rem;
-            top: 50%;
+            right: 1rem; top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
             color: #9ca3af;
@@ -366,7 +492,6 @@
             border: none;
             padding: 0;
         }
-
         .field-wrap .toggle-pw:hover { color: var(--navy); }
 
         /* Login button */
@@ -390,8 +515,7 @@
 
         .btn-login::after {
             content: '';
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
             pointer-events: none;
         }
@@ -401,15 +525,8 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 28px rgba(15,60,145,0.30);
         }
-
         .btn-login:active { transform: translateY(0); }
-
-        /* Disabled button state */
-        .btn-login.disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-login.disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
         /* Error */
         .error-msg {
@@ -425,12 +542,11 @@
             gap: 0.5rem;
         }
 
-        /* Student notification toast */
+        /* Student toast */
         #student-toast {
             display: none;
             position: fixed;
-            bottom: 2rem;
-            left: 50%;
+            bottom: 2rem; left: 50%;
             transform: translateX(-50%) translateY(20px);
             z-index: 999;
             background: #fff;
@@ -438,12 +554,10 @@
             border-radius: 12px;
             box-shadow: 0 12px 36px rgba(0,0,0,0.15);
             padding: 1rem 1.4rem;
-            min-width: 300px;
-            max-width: 380px;
+            min-width: 300px; max-width: 380px;
             opacity: 0;
             transition: opacity 0.35s ease, transform 0.35s ease;
         }
-
         #student-toast.show {
             display: flex;
             align-items: flex-start;
@@ -451,41 +565,28 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-
         #student-toast .toast-icon {
             flex-shrink: 0;
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             background: rgba(15,60,145,0.10);
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             color: var(--navy);
             font-size: 1rem;
         }
-
         #student-toast .toast-body strong {
             display: block;
-            font-size: 0.9rem;
-            color: #111827;
+            font-size: 0.9rem; color: #111827;
             margin-bottom: 0.15rem;
         }
-
         #student-toast .toast-body span {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-size: 0.8rem; color: var(--text-muted);
         }
-
         #student-toast .toast-close {
-            margin-left: auto;
-            flex-shrink: 0;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0;
+            margin-left: auto; flex-shrink: 0;
+            background: none; border: none;
+            color: #9ca3af; cursor: pointer;
+            font-size: 1rem; padding: 0;
             align-self: flex-start;
         }
 
@@ -495,18 +596,18 @@
             background: #e5e7eb;
             margin: 1.75rem 0 1.25rem;
         }
-
         .footer-note {
             text-align: center;
             font-size: 0.78rem;
             color: #b0b7c3;
         }
 
-        /* ── LOADING OVERLAY (shown on form submit) ── */
+        /* ═══════════════════════════════════════════
+           LOADING OVERLAY (on form submit)
+        ═══════════════════════════════════════════ */
         #loginLoader {
             display: none;
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             z-index: 100000;
             background: rgba(5, 15, 50, 0.75);
             backdrop-filter: blur(6px);
@@ -525,59 +626,47 @@
         }
         .loader-logo-ring {
             position: relative;
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             margin: 0 auto;
         }
         .loader-logo-ring img {
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             border-radius: 50%;
             background: white;
             padding: 6px;
             object-fit: contain;
         }
         .loader-spinner {
-            position: absolute;
-            inset: -5px;
+            position: absolute; inset: -5px;
             border-radius: 50%;
             border: 3px solid transparent;
             border-top-color: #f4b400;
-            border-right-color: rgba(244, 180, 0, 0.3);
-            animation: loader-spin 0.85s linear infinite;
+            border-right-color: rgba(244,180,0,0.3);
+            animation: loaderSpin 0.85s linear infinite;
         }
-        .loader-text {
-            color: white;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-        .loader-subtext {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.85rem;
-        }
+        .loader-text  { color: white; font-weight: 600; margin-top: 1rem; }
+        .loader-subtext { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
         .loader-bar-track {
-            width: 140px;
-            height: 4px;
+            width: 140px; height: 4px;
             background: rgba(255,255,255,0.2);
-            border-radius: 99px;
-            overflow: hidden;
+            border-radius: 99px; overflow: hidden;
             margin: 0.75rem auto 0;
         }
         .loader-bar-fill {
             height: 100%;
             background: #f4b400;
             border-radius: 99px;
-            animation: loader-bar 1.1s ease-in-out infinite alternate;
+            animation: loaderBar 1.1s ease-in-out infinite alternate;
         }
-        @keyframes loader-spin {
-            to { transform: rotate(360deg); }
-        }
-        @keyframes loader-bar {
-            from { width: 15%; margin-left: 0; }
+        @keyframes loaderSpin { to { transform: rotate(360deg); } }
+        @keyframes loaderBar {
+            from { width: 15%; margin-left: 0;   }
             to   { width: 70%; margin-left: 30%; }
         }
 
-        /* ── RESPONSIVE ─────────────────────────────── */
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
         @media (max-width: 860px) {
             body { flex-direction: column; overflow: auto; }
             .left-panel { flex: 0 0 240px; min-height: 240px; }
@@ -586,7 +675,6 @@
             .features-row { display: none; }
             .right-panel { padding: 2rem 1.5rem; }
         }
-
         @media (max-width: 480px) {
             .left-panel { flex: 0 0 180px; min-height: 180px; }
         }
@@ -594,13 +682,32 @@
 </head>
 <body>
 
-    <!-- ══ SPLASH SCREEN (full-screen animation) ══ -->
+    <!-- ══ SPLASH SCREEN ═══════════════════════════════ -->
     <div id="splash-screen">
-        <div class="splash-logo">
-            <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+        <div class="splash-ring"></div>
+        <div id="splash-particles"></div>
+
+        <div class="splash-logo-wrap">
+            <div class="splash-logo-box">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
+            </div>
+            <div class="splash-orbit">
+                <div class="splash-orbit-dot"></div>
+            </div>
         </div>
+
         <div class="splash-text">Non-UniPay</div>
-        <div class="splash-sub">Secure Payments • Smart Clearance</div>
+        <div class="splash-sub">Secure Payments · Smart Clearance</div>
+        <div class="splash-bar-track">
+            <div class="splash-bar-fill" id="splashBarFill"></div>
+        </div>
+        <div class="splash-dots">
+            <div class="splash-dot-ind"></div>
+            <div class="splash-dot-ind"></div>
+            <div class="splash-dot-ind"></div>
+        </div>
     </div>
 
     <!-- ══ LEFT PANEL ══════════════════════════════════ -->
@@ -634,7 +741,6 @@
     <div class="right-panel">
         <div class="login-inner">
 
-            <!-- Logo -->
             <div class="logo-wrap">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo" class="logo-img">
                 <div class="logo-text">
@@ -643,11 +749,9 @@
                 </div>
             </div>
 
-            <!-- Heading -->
             <h1 class="welcome-heading">Welcome back</h1>
             <p class="welcome-sub">Sign in to your account to continue</p>
 
-            <!-- Form -->
             <form method="POST" action="{{ route('login.submit') }}" id="loginForm">
                 @csrf
 
@@ -695,7 +799,7 @@
         </div>
     </div>
 
-    <!-- ══ STUDENT TOAST ══ -->
+    <!-- ══ STUDENT TOAST ════════════════════════════════ -->
     <div id="student-toast" role="alert">
         <div class="toast-icon">
             <i class="fas fa-mobile-alt"></i>
@@ -709,7 +813,7 @@
         </button>
     </div>
 
-    <!-- ══ LOADING OVERLAY (shown on form submit) ══ -->
+    <!-- ══ LOGIN LOADING OVERLAY ════════════════════════ -->
     <div id="loginLoader">
         <div class="loader-card">
             <div class="loader-logo-ring">
@@ -725,87 +829,101 @@
     </div>
 
     <script>
-        // ── SPLASH SCREEN LOGIC ──────────────────────────────
-        const splash = document.getElementById('splash-screen');
-        const body = document.body;
+        // ══ SPLASH: generate floating particles ═══════════
+        (function () {
+            var container = document.getElementById('splash-particles');
+            var colors = [
+                'rgba(232,184,75,0.55)',
+                'rgba(255,255,255,0.35)',
+                'rgba(26,77,168,0.8)'
+            ];
+            for (var i = 0; i < 18; i++) {
+                var p = document.createElement('div');
+                p.className = 'splash-particle';
+                var size = 3 + Math.random() * 5;
+                p.style.cssText =
+                    'width:'  + size + 'px;' +
+                    'height:' + size + 'px;' +
+                    'background:' + colors[i % 3] + ';' +
+                    'left:'   + (5 + Math.random() * 90) + '%;' +
+                    'bottom:' + (Math.random() * 45)     + '%;' +
+                    '--pd:'   + (3 + Math.random() * 4)  + 's;' +
+                    '--pp:'   + (Math.random() * 2)      + 's;';
+                container.appendChild(p);
+            }
+        })();
 
-        // Hide splash after 1.5 seconds and show main content
-        setTimeout(function() {
+        // ══ SPLASH: dismiss after progress bar completes ══
+        var splash = document.getElementById('splash-screen');
+        var body   = document.body;
+
+        // Progress bar animation is 1s delay + 1.6s fill = ~2.7s total; dismiss at 2.8s
+        setTimeout(function () {
             if (splash) {
                 splash.classList.add('fade-out');
-                setTimeout(function() {
+                setTimeout(function () {
                     splash.style.display = 'none';
                     body.classList.add('content-visible');
-                }, 800);
+                }, 700);
             } else {
                 body.classList.add('content-visible');
             }
-        }, 1500);
+        }, 2800);
 
-        // ── LOADING OVERLAY ON FORM SUBMIT ───────────────────
-        const loginForm = document.getElementById('loginForm');
-        const loginLoader = document.getElementById('loginLoader');
-        const loginBtn = document.getElementById('loginBtn');
+        // ══ LOGIN FORM: show loader on submit ═════════════
+        var loginForm   = document.getElementById('loginForm');
+        var loginLoader = document.getElementById('loginLoader');
+        var loginBtn    = document.getElementById('loginBtn');
 
         function showLoader() {
             if (loginLoader) loginLoader.style.display = 'flex';
-            if (loginBtn) {
-                loginBtn.disabled = true;
-                loginBtn.classList.add('disabled');
-            }
+            if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add('disabled'); }
         }
 
         function hideLoader() {
             if (loginLoader) loginLoader.style.display = 'none';
-            if (loginBtn) {
-                loginBtn.disabled = false;
-                loginBtn.classList.remove('disabled');
-            }
+            if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove('disabled'); }
         }
 
         if (loginForm) {
-            loginForm.addEventListener('submit', function(e) {
-                const email = document.getElementById('emailInput').value.trim();
-                const password = document.getElementById('password').value.trim();
-                if (!email || !password) {
-                    return;
-                }
+            loginForm.addEventListener('submit', function () {
+                var email    = document.getElementById('emailInput').value.trim();
+                var password = document.getElementById('password').value.trim();
+                if (!email || !password) return;
                 showLoader();
             });
         }
 
-        window.addEventListener('pageshow', function() {
-            hideLoader();
-        });
+        window.addEventListener('pageshow', hideLoader);
 
-        // ── STUDENT TOAST LOGIC (unchanged) ──────────────────
-        const STUDENT_DOMAINS = ['student.', 'stud.', 'stu.', '@s.'];
-        const STUDENT_ID_PATTERN = /^\d{7,12}@/;
-        let toastTimeout;
+        // ══ STUDENT TOAST ═════════════════════════════════
+        var STUDENT_DOMAINS  = ['student.', 'stud.', 'stu.', '@s.'];
+        var STUDENT_ID_PATT  = /^\d{7,12}@/;
+        var toastTimeout;
 
         function checkStudentEmail(email) {
-            const lower = email.toLowerCase();
-            const looksLikeStudent =
-                STUDENT_DOMAINS.some(d => lower.includes(d)) ||
-                STUDENT_ID_PATTERN.test(lower);
+            var lower = email.toLowerCase();
+            var looksLikeStudent =
+                STUDENT_DOMAINS.some(function (d) { return lower.includes(d); }) ||
+                STUDENT_ID_PATT.test(lower);
             if (looksLikeStudent) showToast();
             else hideToast();
         }
 
         function showToast() {
             clearTimeout(toastTimeout);
-            const toast = document.getElementById('student-toast');
+            var toast = document.getElementById('student-toast');
             toast.style.display = 'flex';
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => toast.classList.add('show'));
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () { toast.classList.add('show'); });
             });
             toastTimeout = setTimeout(hideToast, 7000);
         }
 
         function hideToast() {
-            const toast = document.getElementById('student-toast');
+            var toast = document.getElementById('student-toast');
             toast.classList.remove('show');
-            setTimeout(() => { toast.style.display = 'none'; }, 380);
+            setTimeout(function () { toast.style.display = 'none'; }, 380);
         }
 
         function closeToast() {
@@ -813,19 +931,18 @@
             hideToast();
         }
 
-        let debounce;
+        var debounce;
         document.getElementById('emailInput').addEventListener('input', function () {
             clearTimeout(debounce);
-            const val = this.value.trim();
-            debounce = setTimeout(() => {
+            var val = this.value.trim();
+            debounce = setTimeout(function () {
                 if (val.length > 4) checkStudentEmail(val);
                 else hideToast();
             }, 500);
         });
 
         loginForm.addEventListener('submit', function () {
-            const email = document.getElementById('emailInput').value.trim();
-            checkStudentEmail(email);
+            checkStudentEmail(document.getElementById('emailInput').value.trim());
         });
     </script>
 </body>

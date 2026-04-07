@@ -13,117 +13,226 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- ── Loading Screen Styles ── (integrated) --}}
+    {{-- ── Global CSS Variables & Dark Mode Support ── --}}
     <style>
-        body {
-            background-color: #f0f2f5;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        :root {
+            /* Light mode (default) */
+            --bg-body: #f0f2f5;
+            --bg-main: #ffffff;
+            --bg-sidebar: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --hover-bg: rgba(15, 60, 145, 0.04);
+            --modal-header-bg: linear-gradient(135deg, #0f3c91, #1a4da8);
+            --btn-primary: #0f3c91;
+            --btn-primary-hover: #1a4da8;
+            --input-bg: #f8fafc;
+            --input-border: #e2e8f0;
+            --table-header-bg: #f9fafb;
+            --table-row-border: #f0f2f5;
+            --topbar-bg: #ffffff;
         }
 
-        /* ─── Page Loading Overlay ─────────────────────────────────────────── */
+        body.dark {
+            --bg-body: #0f172a;
+            --bg-main: #1e293b;
+            --bg-sidebar: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --hover-bg: rgba(255, 255, 255, 0.05);
+            --modal-header-bg: linear-gradient(135deg, #1e293b, #0f172a);
+            --btn-primary: #3b82f6;
+            --btn-primary-hover: #2563eb;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --table-header-bg: #1e293b;
+            --table-row-border: #334155;
+            --topbar-bg: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.3s ease, color 0.2s ease;
+        }
+
+        /* ─── Enhanced Page Loading Overlay ─────────────────────────────────── */
         #page-loader {
             position: fixed;
             inset: 0;
             z-index: 99999;
-            background: rgba(5, 15, 50, 0.72);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: rgba(5, 15, 50, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
         }
         #page-loader.visible {
             opacity: 1;
-            pointer-events: all;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s linear 0s;
         }
         .loader-card {
-            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
-            border-radius: 28px;
+            background: linear-gradient(135deg, #0f3c91, #1a4da8);
+            border-radius: 32px;
             padding: 2.5rem 3rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1.25rem;
-            min-width: 220px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+            gap: 1.5rem;
+            min-width: 260px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        #page-loader.visible .loader-card {
+            transform: scale(1);
+        }
+        body.dark .loader-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
         }
         .loader-logo-ring {
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
         }
         .loader-logo-ring img {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             background: white;
-            padding: 8px;
+            padding: 10px;
             object-fit: contain;
             display: block;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
+            animation: pulse-logo 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse-logo {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
         }
         .loader-spinner {
             position: absolute;
-            inset: -5px;
+            inset: -6px;
             border-radius: 50%;
             border: 3px solid transparent;
             border-top-color: #f4b400;
-            border-right-color: rgba(244, 180, 0, 0.3);
-            animation: loader-spin 0.85s linear infinite;
+            border-right-color: #f4b400;
+            border-bottom-color: rgba(244, 180, 0, 0.3);
+            animation: loader-spin 0.9s linear infinite;
         }
         @keyframes loader-spin {
             to { transform: rotate(360deg); }
         }
         .loader-text {
             color: white;
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             margin: 0;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
         }
         .loader-subtext {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            margin: -0.75rem 0 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin: -0.5rem 0 0;
+            font-weight: 500;
         }
         .loader-bar-track {
-            width: 140px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.15);
+            width: 180px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 99px;
             overflow: hidden;
+            margin-top: 0.25rem;
         }
         .loader-bar-fill {
             height: 100%;
-            background: #f4b400;
+            background: linear-gradient(90deg, #f4b400, #ffdd77);
             border-radius: 99px;
-            animation: loader-bar 1.1s ease-in-out infinite alternate;
+            width: 0%;
+            animation: loader-bar 1.8s ease-in-out infinite alternate;
         }
         @keyframes loader-bar {
-            from { width: 15%; margin-left: 0; }
-            to   { width: 70%; margin-left: 30%; }
+            0% { width: 5%; }
+            100% { width: 95%; }
         }
-        /* ─── end loader ───────────────────────────────────────────────────── */
 
+        /* Rest of your existing styles (unchanged) */
+        /* ─── Desktop Top Bar ───────────────────────────────────────── */
+        .desktop-topbar {
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            transition: background 0.3s ease;
+        }
+        .desktop-topbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .desktop-topbar-logo img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .desktop-topbar-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+        .desktop-topbar-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .desktop-theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+        .desktop-theme-toggle:hover {
+            background: var(--hover-bg);
+            transform: translateY(-1px);
+        }
+
+        /* ─── Sidebar & Navigation ───────────────────────────────────────── */
         .sidebar {
-            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            background: var(--bg-sidebar);
             color: white;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
         }
         .offcanvas.sidebar {
             width: 280px;
-            background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
+            background: var(--bg-sidebar);
         }
-        .offcanvas.sidebar .offcanvas-header {
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            padding: 1.5rem 1rem;
-        }
-        .offcanvas.sidebar .offcanvas-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-        .sidebar-header { text-align: center; }
         .sidebar-header img {
             width: 60px; height: 60px; object-fit: contain;
             border-radius: 30px; background: white; padding: 5px;
@@ -136,8 +245,6 @@
         }
         .role-badge.superadmin { background: linear-gradient(135deg, #f6c90e, #f39c12); color: #5a3e00; }
         .role-badge.admin { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); }
-        .sidebar-nav { padding: 1rem 0; }
-        .sidebar-nav .nav-item { margin: 0.25rem 0.5rem; }
         .sidebar-nav .nav-link {
             color: rgba(255,255,255,0.85); padding: 0.85rem 1.5rem;
             border-radius: 30px; transition: all 0.2s ease;
@@ -151,6 +258,9 @@
             background: white; color: #0f3c91; font-weight: 600;
             box-shadow: -4px 0 10px rgba(0,0,0,0.05);
         }
+        body.dark .sidebar-nav .nav-item.active .nav-link {
+            background: #3b82f6; color: white;
+        }
         .nav-section-title {
             color: rgba(255,255,255,0.5); font-size: 0.75rem;
             text-transform: uppercase; letter-spacing: 1px;
@@ -158,7 +268,6 @@
         }
         .superadmin-link { color: rgba(246,201,14,0.9) !important; }
         .superadmin-link:hover { background: rgba(246,201,14,0.15) !important; color: #f6c90e !important; }
-        .nav-item.active .superadmin-link { background: #f6c90e !important; color: #5a3e00 !important; }
         .logout-btn {
             background: transparent; border: none; color: rgba(255,255,255,0.85);
             padding: 0.85rem 1.5rem; border-radius: 30px; margin: 1rem 0.5rem;
@@ -166,49 +275,123 @@
             display: flex; align-items: center; gap: 12px; transition: all 0.2s;
         }
         .logout-btn:hover { background: rgba(255,255,255,0.15); color: white; }
-        .main-content {
-            background: #f0f2f5; padding: 2rem;
-            min-height: 100vh; border-radius: 30px 0 0 30px;
-        }
-        .content-card {
-            background: white; border-radius: 24px;
-            padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
 
-        /* ── Mobile navbar ── */
+        /* Mobile navbar */
         .mobile-navbar {
-            background: white;
+            background: var(--bg-main);
             padding: 0.75rem 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background 0.3s ease;
         }
         .mobile-navbar-logo {
             width: 38px; height: 38px; object-fit: cover;
             border-radius: 50%; border: 2px solid #0f3c91; padding: 2px; background: white;
         }
-        .mobile-navbar-title { font-weight: 700; color: #0f3c91; font-size: 1rem; line-height: 1.2; }
-        .mobile-navbar-subtitle { font-size: 0.7rem; color: #94a3b8; line-height: 1; }
+        .mobile-navbar-title { font-weight: 700; color: var(--text-primary); font-size: 1rem; line-height: 1.2; }
+        .mobile-navbar-subtitle { font-size: 0.7rem; color: var(--text-muted); line-height: 1; }
         .navbar-toggle {
             background: #0f3c91; border: none; color: white;
             font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px;
         }
+        body.dark .navbar-toggle {
+            background: #3b82f6;
+        }
+        .theme-toggle-mobile {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 30px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+        }
 
+        /* Main content adjustment */
+        .main-content {
+            background: var(--bg-body);
+            padding: 2rem;
+            min-height: calc(100vh - 65px);
+            transition: background 0.3s ease;
+        }
         @media (max-width: 767.98px) {
-            .main-content { border-radius: 0; padding: 1rem; }
+            .main-content { padding: 1rem; min-height: auto; }
         }
-        .modal-content { border: none; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .content-card {
+            background: var(--bg-main);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Cards, Tables, Modals (themed via variables) */
+        .card, .modal-content {
+            background: var(--bg-main);
+            border: none;
+            box-shadow: var(--card-shadow);
+            transition: background 0.3s ease;
+        }
         .modal-header {
-            background: linear-gradient(135deg, #0f3c91, #1a4da8);
-            color: white; border-radius: 20px 20px 0 0; padding: 1.25rem 1.5rem;
+            background: var(--modal-header-bg);
+            color: white;
+            border-radius: 20px 20px 0 0;
         }
-        .modal-header .btn-close { filter: brightness(0) invert(1); }
-        .modal-footer { border-top: 1px solid #e9ecef; padding: 1.25rem; }
-        .btn-primary { background: #0f3c91; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
-        .btn-primary:hover { background: #1a4da8; }
-        .btn-danger { background: #dc3545; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
-        .btn-secondary { background: #e9ecef; border: none; color: #495057; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 500; }
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        .modal-footer {
+            border-top-color: var(--border-color);
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table td {
+            border-bottom-color: var(--table-row-border);
+            color: var(--text-secondary);
+        }
+        .table th {
+            background-color: var(--table-header-bg);
+            color: var(--text-primary);
+            border-bottom-color: var(--border-color);
+        }
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0f3c91;
+            box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
+            background-color: var(--input-bg);
+        }
+        .btn-primary {
+            background: var(--btn-primary);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: var(--btn-primary-hover);
+        }
+        .btn-outline-secondary {
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-outline-secondary:hover {
+            background: var(--hover-bg);
+            border-color: var(--text-muted);
+        }
+        .alert-light {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border-left-color: #28a745;
+        }
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        .bg-light {
+            background-color: var(--input-bg) !important;
+        }
         .badge-notification {
             display: inline-block; width: 8px; height: 8px;
             background-color: #ff3b30; border-radius: 50%; margin-left: 8px;
@@ -224,22 +407,22 @@
 </head>
 <body>
 
-    {{-- ── Page Loading Overlay ── --}}
+    {{-- ── Enhanced Page Loading Overlay ── --}}
     <div id="page-loader" role="status" aria-label="Loading page">
         <div class="loader-card">
             <div class="loader-logo-ring">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay">
                 <div class="loader-spinner"></div>
             </div>
-            <p class="loader-text">Loading…</p>
-            <p class="loader-subtext">Please wait</p>
+            <p class="loader-text">Non-UniPay</p>
+            <p class="loader-subtext">Loading your dashboard</p>
             <div class="loader-bar-track">
                 <div class="loader-bar-fill"></div>
             </div>
         </div>
     </div>
 
-    {{-- ── Mobile Navbar ── --}}
+    {{-- ── Mobile Navbar (with dark mode toggle) ── --}}
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
@@ -255,7 +438,9 @@
                     <div class="mobile-navbar-subtitle">Admin Panel</div>
                 </div>
             </div>
-            <div style="width: 44px;"></div>
+            <button class="theme-toggle-mobile" id="mobileThemeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
     </nav>
 
@@ -390,8 +575,20 @@
                 </div>
             </div>
 
-            <!-- Page Content -->
+            <!-- Page Content with Desktop Top Bar -->
             <div class="col">
+                <div class="desktop-topbar d-none d-md-flex">
+                    <div class="desktop-topbar-logo">
+                        <img src="{{ asset('logo.png') }}" alt="Logo">
+                        <div>
+                            <div class="desktop-topbar-title">Non-UniPay Admin</div>
+                            <div class="desktop-topbar-subtitle">Control Panel</div>
+                        </div>
+                    </div>
+                    <button class="desktop-theme-toggle" id="desktopThemeToggle">
+                        <i class="fas fa-moon"></i> Dark Mode
+                    </button>
+                </div>
                 <div class="main-content">
                     @yield('content')
                 </div>
@@ -426,50 +623,95 @@
     @stack('scripts')
 
     <script>
-    // ── Page loading overlay ───────────────────────────────────────────────────
+    // ── Dark Mode Toggle & Persistence ─────────────────────────────────────
+    (function() {
+        const darkModeKey = 'admin_dark_mode';
+
+        function setDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark');
+                localStorage.setItem(darkModeKey, 'true');
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem(darkModeKey, 'false');
+            }
+            const desktopToggle = document.getElementById('desktopThemeToggle');
+            const mobileToggle = document.getElementById('mobileThemeToggle');
+            if (desktopToggle) {
+                desktopToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
+            }
+            if (mobileToggle) {
+                mobileToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        function initDarkMode() {
+            const stored = localStorage.getItem(darkModeKey);
+            if (stored !== null) {
+                setDarkMode(stored === 'true');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setDarkMode(prefersDark);
+            }
+        }
+
+        function bindToggleButtons() {
+            const desktopBtn = document.getElementById('desktopThemeToggle');
+            const mobileBtn = document.getElementById('mobileThemeToggle');
+            if (desktopBtn) {
+                desktopBtn.addEventListener('click', () => setDarkMode(!document.body.classList.contains('dark')));
+            }
+            if (mobileBtn) {
+                mobileBtn.addEventListener('click', () => setDarkMode(!document.body.classList.contains('dark')));
+            }
+        }
+
+        initDarkMode();
+        bindToggleButtons();
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (localStorage.getItem(darkModeKey) === null) setDarkMode(e.matches);
+        });
+    })();
+
+    // ── Enhanced Page Loading Overlay ─────────────────────────────────────
     (function () {
-        var loader = document.getElementById('page-loader');
+        const loader = document.getElementById('page-loader');
+        let activeRequests = 0;
+        let hideTimeout = null;
 
         function showLoader() {
+            if (hideTimeout) clearTimeout(hideTimeout);
+            activeRequests++;
             loader.classList.add('visible');
         }
 
         function hideLoader() {
-            loader.classList.remove('visible');
+            activeRequests--;
+            if (activeRequests <= 0) {
+                // Small delay to ensure the next page has rendered
+                hideTimeout = setTimeout(() => {
+                    loader.classList.remove('visible');
+                    hideTimeout = null;
+                }, 150);
+            }
         }
 
-        // Show on every same-origin navigation link click,
-        // but skip: anchor-only links (#), new-tab links, download links,
-        // logout form submit, and Bootstrap modal/offcanvas toggles.
+        // Intercept all link clicks (same-origin, non-special)
         document.addEventListener('click', function (e) {
-            var target = e.target.closest('a');
+            const target = e.target.closest('a');
             if (!target) return;
-
-            // Skip if modifier key held (open in new tab etc.)
             if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-
-            // Skip download / target="_blank"
             if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
-
-            // Skip Bootstrap data-bs-toggle (modals, offcanvas, dropdowns)
             if (target.hasAttribute('data-bs-toggle')) return;
+            if (target.closest('.pagination')) return;
+            if (target.closest('#statusFilter') || target.closest('#searchBtn') || target.closest('#searchInput')) return;
 
-            // Skip pagination links (handled by AJAX, not full page navigation)
-if (target.closest('.pagination')) return;
-
- if (target.closest('#statusFilter') || 
-            target.closest('#searchBtn') || 
-            target.closest('#searchInput')) {
-            return;
-        }
-
-            // Skip pure hash links
-            var href = target.getAttribute('href') || '';
+            const href = target.getAttribute('href') || '';
             if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
 
-            // Skip external links
             try {
-                var url = new URL(href, window.location.href);
+                const url = new URL(href, window.location.href);
                 if (url.origin !== window.location.origin) return;
             } catch (err) {
                 return;
@@ -478,45 +720,48 @@ if (target.closest('.pagination')) return;
             showLoader();
         });
 
-        // Also show when a form is submitted (logout form only)
-        var logoutForm = document.querySelector('#logoutModal form');
-        if (logoutForm) {
-            logoutForm.addEventListener('submit', showLoader);
-        }
-
-        // Hide the loader once the new page has fully loaded.
-        window.addEventListener('pageshow', hideLoader);
-
-        // Safety net: hide after 8 s in case something goes wrong.
-        window.addEventListener('beforeunload', function () {
-            setTimeout(hideLoader, 8000);
+        // Intercept form submissions with class 'requires-loader'
+        document.addEventListener('submit', function (e) {
+            const form = e.target.closest('form.requires-loader');
+            if (form) showLoader();
         });
+
+        // Hide loader when page is fully loaded (including assets)
+        window.addEventListener('load', hideLoader);
+        // Also when returning via back/forward cache
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted) hideLoader();
+        });
+
+        // Safety: if loader stays visible for more than 8 seconds, hide it
+        setInterval(() => {
+            if (loader.classList.contains('visible') && activeRequests === 0) {
+                loader.classList.remove('visible');
+            }
+        }, 8000);
     })();
 
     // ── Notification badge polling ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         function fetchNotificationCounts() {
             fetch('/admin/api/pending-payments-count')
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    document.querySelectorAll('#payments-badge, #payments-badge-desktop')
-                        .forEach(function (b) {
-                            b.style.display = data.count > 0 ? 'inline-block' : 'none';
-                        });
+                .then(r => r.json())
+                .then(data => {
+                    document.querySelectorAll('#payments-badge, #payments-badge-desktop').forEach(b => {
+                        b.style.display = data.count > 0 ? 'inline-block' : 'none';
+                    });
                 })
-                .catch(function (err) { console.error('Payments count error:', err); });
+                .catch(err => console.error('Payments count error:', err));
 
             fetch('/admin/api/new-students-count')
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    document.querySelectorAll('#students-badge, #students-badge-desktop')
-                        .forEach(function (b) {
-                            b.style.display = data.count > 0 ? 'inline-block' : 'none';
-                        });
+                .then(r => r.json())
+                .then(data => {
+                    document.querySelectorAll('#students-badge, #students-badge-desktop').forEach(b => {
+                        b.style.display = data.count > 0 ? 'inline-block' : 'none';
+                    });
                 })
-                .catch(function (err) { console.error('Students count error:', err); });
+                .catch(err => console.error('Students count error:', err));
         }
-
         fetchNotificationCounts();
         setInterval(fetchNotificationCounts, 5000);
     });

@@ -3,127 +3,155 @@
 @section('title', 'Clearance Report')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-        <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-arrow-left"></i>
+        <a href="javascript:history.back()" class="btn-back rounded-circle d-flex align-items-center justify-content-center"
+           style="width: 42px; height: 42px; background: var(--input-bg); color: #0f3c91; transition: all 0.2s;">
+            <i class="fas fa-arrow-left fa-lg"></i>
         </a>
-        <h2 class="fw-bold mb-0" style="color: #0f3c91;">Student Clearance Status</h2>
+        <h2 class="fw-bold mb-0" style="color: var(--text-primary);">
+            <i class="fas fa-clipboard-list me-2"></i> Student Clearance Status
+        </h2>
     </div>
-    <div>
-        <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#downloadModal">
-            <i class="fas fa-download me-2"></i> Download PDF
-        </button>
-    </div>
+    <button type="button" class="btn-download-pdf rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#downloadModal">
+        <i class="fas fa-file-pdf me-2"></i> Download PDF
+    </button>
 </div>
 
-{{-- Current Semester Info --}}
+{{-- Current Semester Info Banner --}}
 @php
     $current = $currentSemester ?? null;
-@endphp 
+@endphp
 
 @if($current)
-<div class="alert alert-info d-flex align-items-center mb-4" role="alert" style="background: rgba(15,60,145,0.05); border: none; border-left: 4px solid #0f3c91;">
-    <i class="fas fa-calendar-alt me-3 fs-4" style="color:#0f3c91;"></i>
-    <div>
-        <strong>Current Academic Period:</strong> {{ $current->name }} – {{ $current->schoolYear->name ?? 'N/A' }}
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--banner-gradient-start) 0%, var(--banner-gradient-end) 100%);">
+    <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width: 48px; height: 48px; background: rgba(15,60,145,0.15);">
+                <i class="fas fa-calendar-alt fa-lg" style="color: #0f3c91;"></i>
+            </div>
+            <div>
+                <span class="text-uppercase small fw-semibold text-muted" style="letter-spacing: 0.5px; color: var(--text-muted) !important;">Current Academic Period</span>
+                <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
+                    {{ $current->name }} – {{ $current->schoolYear->name ?? 'N/A' }}
+                </h5>
+            </div>
+        </div>
     </div>
 </div>
 @endif
 
-<!-- Clearance Table Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">Clearance Report</h5>
+{{-- Clearance Table Card --}}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bg-main);">
+    <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: var(--bg-main);">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
+            <i class="fas fa-users me-2"></i> Clearance Report
+        </h5>
         <div class="d-flex gap-2">
-            <span class="badge rounded-pill px-3 py-2" style="background:rgba(76,175,80,0.15); color:#2e7d32;">
-                <i class="fas fa-check me-1"></i>Cleared: {{ $clearances->total() }}
+            <span class="badge-cleared">
+                <i class="fas fa-check-circle me-1"></i> Cleared: {{ $clearances->total() }}
             </span>
-            <span class="badge rounded-pill px-3 py-2" style="background:rgba(244,180,20,0.15); color:#b26a00;">
-                <i class="fas fa-clock me-1"></i>Pending: {{ $pendingCount }}
+            <span class="badge-pending-status">
+                <i class="fas fa-clock me-1"></i> Pending: {{ $pendingCount }}
             </span>
-        </div>
-
-        <div class="d-flex gap-2 ms-auto">
-    <form method="GET" action="{{ route('admin.reports.clearances') }}" id="filterForm" class="d-flex gap-2">
-        
-        <select name="course" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;">
-            <option value="">All Courses</option>
-            @foreach($courses as $course)
-                <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
-            @endforeach
-        </select>
-
-        <select name="year_level" class="form-select rounded-pill bg-light px-4 py-2" style="min-width: 150px;">
-            <option value="">All Year Levels</option>
-            @foreach($yearLevels as $level)
-                <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
-            @endforeach
-        </select>
-    </form>
-</div>
-
-            <!-- Search Form -->
-            <form method="GET" class="d-flex gap-2" action="{{ route('admin.reports.clearances') }}" id="searchForm">
-                <input type="search" name="search" class="form-control rounded-pill border-0 bg-light px-4 py-2"
-                       placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px;">
-                <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
-                    <i class="fas fa-search me-2"></i> Search
-                </button>
-            </form>
         </div>
     </div>
 
     <div class="card-body p-0">
+        {{-- Filter Row --}}
+        <div class="p-4 border-bottom" style="background: var(--table-header-bg); border-color: var(--border-color) !important;">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Course</label>
+                    <select name="course" form="filterForm" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
+                        <option value="">All Courses</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Year Level</label>
+                    <select name="year_level" form="filterForm" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
+                        <option value="">All Year Levels</option>
+                        @foreach($yearLevels as $level)
+                            <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Search Student</label>
+                    <div class="input-group">
+                        <input type="text" name="search" form="filterForm" class="form-control rounded-pill border-0 px-3 py-2"
+                               placeholder="Name or student number..." value="{{ request('search') }}"
+                               style="background: var(--input-bg); color: var(--text-primary);">
+                        <button type="submit" form="filterForm" class="btn btn-primary rounded-pill px-4 ms-2">
+                            <i class="fas fa-search me-1"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hidden form for auto-submit --}}
+        <form id="filterForm" method="GET" action="{{ route('admin.reports.clearances') }}" style="display: none;"></form>
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover align-middle mb-0 clearance-table">
+                <thead style="background: var(--table-header-bg);">
                     <tr>
-                        <th class="px-4 py-3">Student No.</th>
-                        <th class="py-3">Student Name</th>
-                        <th class="py-3">Course</th>
-                        <th class="py-3">Year Level</th>
-                        <th class="py-3">Semester</th>
-                        <th class="py-3">School Year</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3 pe-4">Last Payment</th>
+                        <th class="px-4 py-3" style="color: var(--text-primary);">Student No.</th>
+                        <th class="py-3" style="color: var(--text-primary);">Student Name</th>
+                        <th class="py-3" style="color: var(--text-primary);">Course</th>
+                        <th class="py-3" style="color: var(--text-primary);">Year Level</th>
+                        <th class="py-3" style="color: var(--text-primary);">Semester</th>
+                        <th class="py-3" style="color: var(--text-primary);">School Year</th>
+                        <th class="py-3" style="color: var(--text-primary);">Status</th>
+                        <th class="py-3 pe-4" style="color: var(--text-primary);">Last Payment</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($clearances as $student)
-                    <tr>
-                        <td class="px-4 py-3 text-muted">{{ $student->student_no ?? '—' }}</td>
-                        <td class="py-3 fw-medium">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                     style="width:36px; height:36px; background: rgba(15,60,145,0.1); font-size:14px; font-weight:700; color:#0f3c91;">
+                    <tr class="clearance-row">
+                        <td class="px-4 py-3 fw-medium" style="color: var(--text-secondary);">{{ $student->student_no ?? '—' }}</td>
+                        <td class="py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="student-avatar rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width: 42px; height: 42px; background: rgba(15,60,145,0.1); font-size: 1rem; font-weight: 700; color: #0f3c91;">
                                     {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                 </div>
-                                {{ $student->user->name }}
+                                <span class="fw-semibold" style="color: var(--text-primary);">{{ $student->user->name }}</span>
                             </div>
                         </td>
-                        <td class="py-3 text-muted">{{ $student->course ?? '—' }}</td>
-                        <td class="py-3 text-muted">
-                            {{ $student->year_level ? 'Year ' . $student->year_level : '—' }}
-                        </td>
-                        <td class="py-3 text-muted">
-                            {{ $current->name ?? '—' }}
-                        </td>
-                        <td class="py-3 text-muted">
-                            {{ $current->schoolYear->name ?? '—' }}
+                        <td class="py-3">
+                            @if($student->course)
+                                <span class="badge-course">{{ $student->course }}</span>
+                            @else
+                                <span class="text-muted" style="color: var(--text-muted) !important;">—</span>
+                            @endif
                         </td>
                         <td class="py-3">
+                            @if($student->year_level)
+                                <span class="badge-year-level">Year {{ $student->year_level }}</span>
+                            @else
+                                <span class="text-muted" style="color: var(--text-muted) !important;">—</span>
+                            @endif
+                        </td>
+                        <td class="py-3" style="color: var(--text-secondary);">{{ $current->name ?? '—' }}</td>
+                        <td class="py-3" style="color: var(--text-secondary);">{{ $current->schoolYear->name ?? '—' }}</td>
+                        <td class="py-3">
                             @if($student->clearance_status === 'cleared')
-                                <span class="badge-paid">
-                                    <i class="fas fa-check-circle me-1"></i>Cleared
+                                <span class="badge-cleared-status">
+                                    <i class="fas fa-check-circle me-1"></i> Cleared
                                 </span>
                             @else
-                                <span class="badge-pending">
-                                    <i class="fas fa-clock me-1"></i>Not Cleared
+                                <span class="badge-pending-status">
+                                    <i class="fas fa-clock me-1"></i> Not Cleared
                                 </span>
                             @endif
                         </td>
-                        <td class="py-3 pe-4 text-muted">
+                        <td class="py-3 pe-4" style="color: var(--text-secondary);">
                             @php
                                 $lastPayment = $student->payments()
                                             ->where('status', 'paid')
@@ -139,9 +167,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="fas fa-inbox fa-2x mb-3 d-block" style="color:#ccc;"></i>
-                            No cleared students found
+                        <td colspan="8" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash fa-4x" style="color: var(--text-muted);"></i>
+                                <h6 class="fw-semibold mt-3" style="color: var(--text-primary);">No students found</h6>
+                                <p class="small" style="color: var(--text-muted);">Try adjusting your filters or search term.</p>
+                            </div>
                         </td>
                     </tr>
                     @endforelse
@@ -149,29 +180,37 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if($clearances->hasPages())
-        <div class="d-flex justify-content-center py-4" id="clearances-pagination">
+        <div class="d-flex justify-content-center py-4">
             {{ $clearances->links('pagination::no-summary') }}
         </div>
         @endif
     </div>
 </div>
 
-<!-- Download Modal -->
-<div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" style="color: #ffffff;" id="downloadModalLabel">Download Clearance Report</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{{-- Download Modal (Dark mode compatible) --}}
+<div class="modal fade" id="downloadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-main);">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width: 48px; height: 48px; background: rgba(255,255,255,0.15);">
+                        <i class="fas fa-file-pdf fa-lg text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0">Download Clearance Report</h5>
+                        <small class="text-white-50">PDF format</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form id="downloadForm">
-                    @csrf
+            <form id="downloadForm">
+                @csrf
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label for="courseSelect" class="form-label fw-semibold">Select Course</label>
-                        <select name="course" id="courseSelect" class="form-select">
+                        <label class="form-label fw-semibold small text-uppercase mb-2" style="color: var(--text-muted);">Course</label>
+                        <select name="course" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                             <option value="">All Courses</option>
                             @foreach($courses as $course)
                                 <option value="{{ $course }}">{{ $course }}</option>
@@ -179,28 +218,28 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="yearLevelSelect" class="form-label fw-semibold">Select Year Level</label>
-                        <select name="year_level" id="yearLevelSelect" class="form-select">
+                        <label class="form-label fw-semibold small text-uppercase mb-2" style="color: var(--text-muted);">Year Level</label>
+                        <select name="year_level" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                             <option value="">All Year Levels</option>
                             @foreach($yearLevels as $level)
                                 <option value="{{ $level }}">Year {{ $level }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <input type="hidden" name="search" id="searchInput" value="{{ request('search') }}">
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">
-                            <i class="fas fa-download me-2"></i> Download PDF
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    <input type="hidden" name="search" id="modalSearchInput" value="{{ request('search') }}">
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4 flex-grow-1" data-bs-dismiss="modal" style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1">
+                        <i class="fas fa-download me-2"></i> Generate PDF
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-{{-- Loading Overlay for PDF Generation --}}
+{{-- Loading Overlay for PDF Generation (unchanged) --}}
 <div id="clearanceLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -223,55 +262,229 @@
         from { width: 15%; margin-left: 0; }
         to   { width: 70%; margin-left: 30%; }
     }
-    .badge-paid {
-        background: rgba(76, 175, 80, 0.15);
+
+    /* Dark mode variables for banner */
+    :root {
+        --banner-gradient-start: #e8f0fe;
+        --banner-gradient-end: #f0f4ff;
+    }
+    body.dark {
+        --banner-gradient-start: #1e293b;
+        --banner-gradient-end: #0f172a;
+    }
+
+    /* Back button */
+    .btn-back:hover {
+        background: #0f3c91 !important;
+        color: white !important;
+        transform: scale(1.05);
+    }
+    body.dark .btn-back {
+        background: var(--input-bg) !important;
+        color: #60a5fa !important;
+    }
+    body.dark .btn-back:hover {
+        background: #0f3c91 !important;
+        color: white !important;
+    }
+
+    /* Download PDF button */
+    .btn-download-pdf {
+        background: #dc3545;
+        color: white;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-download-pdf:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(220,53,69,0.2);
+        color: white;
+    }
+
+    /* Badges */
+    .badge-cleared, .badge-pending-status, .badge-course, .badge-year-level {
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 40px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.85rem;
+        gap: 0.4rem;
+    }
+    .badge-cleared {
+        background: rgba(76,175,80,0.12);
         color: #2e7d32;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
-        font-size: 13px;
     }
-    .badge-pending {
-        background: rgba(244, 180, 20, 0.15);
+    .badge-pending-status {
+        background: rgba(244,180,20,0.12);
         color: #b26a00;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
-        font-size: 13px;
     }
+    .badge-cleared-status {
+        background: rgba(76,175,80,0.12);
+        color: #2e7d32;
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+    }
+    .badge-course, .badge-year-level {
+        background: rgba(15,60,145,0.1);
+        color: #0f3c91;
+        font-weight: 500;
+        padding: 0.35rem 0.85rem;
+    }
+    body.dark .badge-cleared,
+    body.dark .badge-cleared-status {
+        background: rgba(76,175,80,0.25);
+        color: #81c784;
+    }
+    body.dark .badge-pending-status {
+        background: rgba(244,180,20,0.25);
+        color: #ffd54f;
+    }
+    body.dark .badge-course,
+    body.dark .badge-year-level {
+        background: rgba(59,130,246,0.2);
+        color: #93c5fd;
+    }
+
+    /* Clearance row hover */
+    .clearance-row {
+        transition: all 0.2s ease;
+    }
+    .clearance-row:hover {
+        background-color: var(--hover-bg) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .student-avatar {
+        transition: all 0.2s;
+    }
+    .clearance-row:hover .student-avatar {
+        background: rgba(15,60,145,0.15) !important;
+        transform: scale(1.05);
+    }
+
+    /* Dark mode table overrides */
+    .clearance-table,
+    .clearance-table tbody,
+    .clearance-table tr,
+    .clearance-table td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+    }
+    .clearance-table thead th {
+        background-color: var(--table-header-bg);
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .clearance-table tbody tr {
+        border-bottom: 1px solid var(--table-row-border);
+        transition: background 0.2s;
+    }
+    .clearance-table tbody td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+        border-bottom: none;
+    }
+    .clearance-table tbody td:first-child {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* Placeholder dark mode */
+    .form-control::placeholder,
+    input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+    body.dark .form-control::placeholder,
+    body.dark input::placeholder {
+        color: #94a3b8;
+        opacity: 0.6;
+    }
+
+    /* Table base styling */
     .table td {
-        border-bottom: 1px solid #f0f2f5;
-        color: #334155;
+        border-bottom: 1px solid var(--table-row-border);
+        color: var(--text-secondary);
+        vertical-align: middle;
     }
     .table th {
         font-weight: 600;
-        color: #475569;
-        border-bottom: 2px solid #e9ecef;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border-color);
+        background: var(--table-header-bg);
     }
 
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+        text-align: center;
+    }
+    .empty-state i {
+        opacity: 0.7;
+    }
+
+    /* Pagination */
     .pagination .page-link {
         border: none;
-        color: #64748b;
+        color: var(--text-muted);
         font-weight: 500;
         padding: 0.5rem 1rem;
         margin: 0 0.2rem;
-        border-radius: 8px;
+        border-radius: 10px;
         background: transparent;
     }
     .pagination .page-link:hover {
-        background: rgba(15, 60, 145, 0.1);
+        background: rgba(15,60,145,0.1);
         color: #0f3c91;
     }
     .pagination .active .page-link {
         background: #0f3c91;
         color: white;
-        box-shadow: 0 4px 8px rgba(15, 60, 145, 0.2);
+        box-shadow: 0 4px 8px rgba(15,60,145,0.2);
     }
     .pagination .disabled .page-link {
-        color: #cbd5e0;
+        color: var(--text-muted);
+        opacity: 0.5;
         background: transparent;
+    }
+
+    /* Form controls */
+    .form-select, .form-control {
+        background-color: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--text-primary);
+        transition: all 0.2s;
+    }
+    .form-select:focus, .form-control:focus {
+        border-color: #0f3c91;
+        box-shadow: 0 0 0 3px rgba(15,60,145,0.12);
+        background-color: var(--input-bg);
+    }
+    .btn-primary {
+        background: #0f3c91;
+        border: none;
+        font-weight: 500;
+    }
+    .btn-primary:hover {
+        background: #1a4da8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(15,60,145,0.2);
+    }
+    body.dark .btn-primary {
+        background: #3b82f6;
+    }
+    body.dark .btn-primary:hover {
+        background: #2563eb;
     }
 </style>
 @endsection
@@ -279,55 +492,69 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Auto-submit filter form on select changes
+    const filterForm = document.getElementById('filterForm');
+    const selects = document.querySelectorAll('select[form="filterForm"]');
+    selects.forEach(select => {
+        select.addEventListener('change', function () {
+            filterForm.submit();
+        });
+    });
+
+    // Search input debounce
+    const searchInput = document.querySelector('input[name="search"][form="filterForm"]');
+    let searchTimer;
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                filterForm.submit();
+            }, 500);
+        });
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimer);
+                filterForm.submit();
+            }
+        });
+    }
+
+    // PDF download via AJAX with loader
     const downloadForm = document.getElementById('downloadForm');
     const loader = document.getElementById('clearanceLoader');
     const modalEl = document.getElementById('downloadModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
 
     if (downloadForm) {
-        downloadForm.addEventListener('submit', async function(e) {
+        downloadForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            // Get form values
-            const course = document.getElementById('courseSelect').value;
-            const yearLevel = document.getElementById('yearLevelSelect').value;
-            const search = document.getElementById('searchInput').value;
+            const course = downloadForm.querySelector('select[name="course"]').value;
+            const yearLevel = downloadForm.querySelector('select[name="year_level"]').value;
+            const search = document.getElementById('modalSearchInput').value;
 
-            // Build URL with query parameters
             const url = new URL('{{ route("admin.reports.clearances.pdf") }}', window.location.origin);
             if (course) url.searchParams.append('course', course);
             if (yearLevel) url.searchParams.append('year_level', yearLevel);
             if (search) url.searchParams.append('search', search);
 
-            // Close the modal
             modal.hide();
-
-            // Show loader
             if (loader) loader.style.display = 'flex';
 
             try {
                 const response = await fetch(url.toString(), {
                     method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
-                if (!response.ok) {
-                    throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-                }
-
-                // Get filename from Content-Disposition header
                 const contentDisposition = response.headers.get('Content-Disposition');
                 let filename = 'clearance_report.pdf';
                 if (contentDisposition) {
                     const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                    if (match && match[1]) {
-                        filename = match[1].replace(/['"]/g, '');
-                    }
+                    if (match && match[1]) filename = match[1].replace(/['"]/g, '');
                 }
-
-                // Create blob and trigger download
                 const blob = await response.blob();
                 const blobUrl = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -337,48 +564,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 link.click();
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
-
             } catch (error) {
                 console.error('PDF download failed:', error);
                 alert('Failed to generate PDF report. Please try again.\n' + error.message);
             } finally {
-                // Hide loader
                 if (loader) loader.style.display = 'none';
             }
         });
     }
 });
-// ── Auto-submit filter form on any change ────────────────────────────────
-const filterForm = document.getElementById('filterForm');
-
-if (filterForm) {
-    // Dropdowns: submit immediately on change
-    filterForm.querySelectorAll('select').forEach(function (select) {
-        select.addEventListener('change', function () {
-            filterForm.submit();
-        });
-    });
-
-    // Search input: submit after 500ms debounce
-    const searchInput = filterForm.querySelector('input[name="search"]');
-    let searchTimer;
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(function () {
-                filterForm.submit();
-            }, 500);
-        });
-
-        // Prevent Enter from double-submitting
-        searchInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(searchTimer);
-                filterForm.submit();
-            }
-        });
-    }
-}
 </script>
 @endpush

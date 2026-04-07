@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold" style="color: #0f3c91;">Payment Management</h2>
+    <h2 class="fw-bold" style="color: var(--text-primary);">Payment Management</h2>
 </div>
 
 <!-- Main Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
-        <h5 class="mb-0 fw-bold" style="color: #0f3c91;">All Payments</h5>
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bg-main);">
+    <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3 flex-wrap" style="background: var(--bg-main);">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">All Payments</h5>
         <div class="d-flex align-items-center gap-2">
             <!-- Status Filter Dropdown -->
-            <select id="statusFilter" class="form-select rounded-pill bg-light px-4 py-2" style="width: auto; min-width: 150px;">
+            <select id="statusFilter" class="form-select rounded-pill px-4 py-2" style="width: auto; min-width: 150px; background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);">
                 <option value="">All Payments</option>
                 <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
@@ -22,9 +22,10 @@
 
             <!-- Search Input with Button -->
             <div class="input-group" style="width: 320px;">
-                <input type="text" id="searchInput" class="form-control rounded-start-pill border-0 bg-light"
-                       placeholder="Search student or reference..." value="{{ request('search') }}">
-                <button class="btn rounded-end-pill px-4" style="background: #0f3c91; color: white;" id="searchBtn">
+                <input type="text" id="searchInput" class="form-control rounded-start-pill border-0"
+                       placeholder="Search student or reference..." value="{{ request('search') }}"
+                       style="background: var(--input-bg); color: var(--text-primary);">
+                <button class="btn rounded-end-pill px-4" id="searchBtn" style="background: #0f3c91; color: white;">
                     <i class="fas fa-search me-2"></i> Search
                 </button>
             </div>
@@ -33,16 +34,16 @@
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover align-middle mb-0 payments-table">
+                <thead style="background: var(--table-header-bg);">
                     <tr>
-                        <th class="px-4 py-3">ID</th>
-                        <th class="py-3">Student</th>
-                        <th class="py-3">Amount</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3">Reference</th>
-                        <th class="py-3">Date</th>
-                        <th class="py-3 pe-4">Actions</th>
+                        <th class="px-4 py-3" style="color: var(--text-primary);">ID</th>
+                        <th class="py-3" style="color: var(--text-primary);">Student</th>
+                        <th class="py-3" style="color: var(--text-primary);">Amount</th>
+                        <th class="py-3" style="color: var(--text-primary);">Status</th>
+                        <th class="py-3" style="color: var(--text-primary);">Reference</th>
+                        <th class="py-3" style="color: var(--text-primary);">Date</th>
+                        <th class="py-3 pe-4" style="color: var(--text-primary);">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="paymentsTableBody">
@@ -53,25 +54,7 @@
 
         <!-- Pagination -->
         <div class="d-flex justify-content-center py-4" id="paymentsPagination">
-            <ul class="pagination pagination-sm mb-0">
-                @if ($payments->onFirstPage())
-                    <li class="page-item disabled"><span class="page-link rounded-start-3">&laquo;</span></li>
-                @else
-                    <li class="page-item"><a class="page-link rounded-start-3" href="{{ $payments->previousPageUrl() }}">&laquo;</a></li>
-                @endif
-
-                @foreach(range(1, $payments->lastPage()) as $i)
-                    <li class="page-item {{ $payments->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" href="{{ $payments->appends(request()->query())->url($i) }}">{{ $i }}</a>
-                    </li>
-                @endforeach
-
-                @if ($payments->hasMorePages())
-                    <li class="page-item"><a class="page-link rounded-end-3" href="{{ $payments->nextPageUrl() }}">&raquo;</a></li>
-                @else
-                    <li class="page-item disabled"><span class="page-link rounded-end-3">&raquo;</span></li>
-                @endif
-            </ul>
+            {!! $payments->appends(request()->query())->links('pagination::no-summary') !!}
         </div>
     </div>
 </div>
@@ -79,16 +62,16 @@
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
-                <h5 class="fw-bold mb-2" id="confirmTitle"></h5>
-                <p class="text-muted mb-0" id="confirmMessage"></p>
+                <h5 class="fw-bold mb-2" id="confirmTitle" style="color: var(--text-primary);"></h5>
+                <p class="mb-0" id="confirmMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
                 <button type="button" class="btn rounded-pill px-4 fw-semibold" id="confirmActionBtn"></button>
             </div>
         </div>
@@ -98,13 +81,13 @@
 <!-- Result Modal -->
 <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
-                <h5 class="fw-bold mb-2" id="resultTitle"></h5>
-                <p class="text-muted mb-0" id="resultMessage"></p>
+                <h5 class="fw-bold mb-2" id="resultTitle" style="color: var(--text-primary);"></h5>
+                <p class="mb-0" id="resultMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn rounded-pill px-5 fw-semibold" data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
@@ -116,7 +99,7 @@
 <!-- View Payment Modal -->
 <div class="modal fade" id="viewPaymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
                 <h5 class="modal-title fw-bold"><i class="fas fa-receipt me-2"></i> Payment Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -170,9 +153,41 @@
         from { width: 15%; margin-left: 0; }
         to   { width: 70%; margin-left: 30%; }
     }
+
+    /* Dark mode table overrides */
+    .payments-table,
+    .payments-table tbody,
+    .payments-table tr,
+    .payments-table td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+    }
+    .payments-table thead th {
+        background-color: var(--table-header-bg);
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .payments-table tbody tr {
+        border-bottom: 1px solid var(--table-row-border);
+        transition: background 0.2s;
+    }
+    .payments-table tbody tr:hover {
+        background-color: var(--hover-bg) !important;
+    }
+    .payments-table tbody td {
+        background-color: var(--bg-main);
+        color: var(--text-secondary);
+        border-bottom: none;
+    }
+    .payments-table tbody td:first-child {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* Pagination */
     .pagination .page-link {
         border: none;
-        color: #64748b;
+        color: var(--text-muted);
         font-weight: 500;
         padding: 0.5rem 1rem;
         margin: 0 0.2rem;
@@ -189,73 +204,73 @@
         box-shadow: 0 4px 8px rgba(15, 60, 145, 0.2);
     }
     .pagination .disabled .page-link {
-        color: #cbd5e0;
+        color: var(--text-muted);
+        opacity: 0.5;
         background: transparent;
     }
-    .badge-paid {
-        background: rgba(76, 175, 80, 0.15);
-        color: #2e7d32;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
-    }
-    .badge-pending {
-        background: rgba(244, 180, 20, 0.15);
-        color: #b26a00;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
-    }
-    .badge-failed {
-        background: rgba(220, 53, 69, 0.15);
-        color: #a71d2a;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        display: inline-block;
-    }
-    .table td {
-        border-bottom: 1px solid #f0f2f5;
-        color: #334155;
-    }
-    .table th {
+
+    /* Badges */
+    .badge-paid, .badge-pending, .badge-processing, .badge-failed {
         font-weight: 600;
-        color: #475569;
-        border-bottom: 2px solid #e9ecef;
+        padding: 0.45rem 1rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        min-width: 100px;
+        justify-content: center;
     }
-    .payment-row {
-        transition: all 0.2s ease;
-    }
-    .payment-row:hover {
-        background-color: rgba(15, 60, 145, 0.02) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-    }
-    .student-avatar { transition: all 0.2s; }
-    .payment-row:hover .student-avatar {
-        background: rgba(15,60,145,0.15) !important;
-        transform: scale(1.02);
-    }
+    .badge-paid       { background: rgba(76,175,80,0.15); color: #2e7d32; }
+    .badge-pending    { background: rgba(244,180,20,0.15); color: #b26a00; }
+    .badge-processing { background: rgba(13,110,253,0.15); color: #0a58ca; }
+    .badge-failed     { background: rgba(220,53,69,0.15); color: #a71d2a; }
+
+    body.dark .badge-paid       { background: rgba(76,175,80,0.25); color: #81c784; }
+    body.dark .badge-pending    { background: rgba(244,180,20,0.25); color: #ffd54f; }
+    body.dark .badge-processing { background: rgba(59,130,246,0.25); color: #93c5fd; }
+    body.dark .badge-failed     { background: rgba(220,53,69,0.25); color: #ef9a9a; }
+
+    /* Action buttons */
     .btn-action {
         width: 36px; height: 36px; border-radius: 50%; border: none;
         display: inline-flex; align-items: center; justify-content: center;
-        transition: all 0.2s; cursor: pointer; background: transparent; color: #64748b;
+        transition: all 0.2s; cursor: pointer; background: transparent; color: var(--text-muted);
     }
     .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
     .btn-action.verifyPaymentBtn:hover { background: rgba(40,167,69,0.1); color: #28a745; }
     .btn-action.rejectPaymentBtn:hover { background: rgba(220,53,69,0.1); color: #dc3545; }
-    .empty-state { padding: 2rem; }
-    .badge-paid, .badge-pending, .badge-processing, .badge-failed {
-        font-weight: 600; padding: 0.45rem 1rem; border-radius: 30px;
-        display: inline-flex; align-items: center; gap: 0.35rem;
-        font-size: 0.85rem; white-space: nowrap; min-width: 100px; justify-content: center;
+
+    /* Empty state */
+    .empty-state { padding: 2rem; text-align: center; }
+    .empty-state i { opacity: 0.7; color: var(--text-muted); }
+    .empty-state h6 { font-size: 1.1rem; color: var(--text-primary); }
+    .empty-state p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* Form controls */
+    .form-select, .form-control {
+        background-color: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--text-primary);
     }
-    .badge-paid       { background: rgba(76,175,80,0.15);   color: #2e7d32; }
-    .badge-pending    { background: rgba(244,180,20,0.15);  color: #b26a00; }
-    .badge-processing { background: rgba(13,110,253,0.15);  color: #0a58ca; }
-    .badge-failed     { background: rgba(220,53,69,0.15);   color: #a71d2a; }
+    .form-select:focus, .form-control:focus {
+        border-color: #0f3c91;
+        box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
+        background-color: var(--input-bg);
+    }
+    
+/* Placeholder dark mode */
+.form-control::placeholder,
+input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+body.dark .form-control::placeholder,
+body.dark input::placeholder {
+    color: #94a3b8;
+    opacity: 0.6;
+}
 </style>
 @endsection
 

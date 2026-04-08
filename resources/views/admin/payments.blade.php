@@ -271,6 +271,23 @@ body.dark input::placeholder {
     color: #94a3b8;
     opacity: 0.6;
 }
+
+/* Default (light mode) */
+.payment-id {
+    color: #1e293b;
+}
+
+/* Dark mode – automatically applied */
+@media (prefers-color-scheme: dark) {
+    .payment-id {
+        color: #e2e8f0;  /* light gray, readable on dark backgrounds */
+    }
+}
+
+/* If you toggle dark mode via a class on <body> or <html> */
+.dark-mode .payment-id {
+    color: #e2e8f0;
+}
 </style>
 @endsection
 

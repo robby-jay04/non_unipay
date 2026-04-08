@@ -598,26 +598,26 @@
     </div>
 
     <!-- Logout Modal -->
-    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Logout</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-0">Are you sure you want to logout?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-danger">Logout</button>
-                    </form>
-                </div>
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to logout?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline requires-loader">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">Logout</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
@@ -675,71 +675,85 @@
     })();
 
     // ── Enhanced Page Loading Overlay ─────────────────────────────────────
-    (function () {
-        const loader = document.getElementById('page-loader');
-        let activeRequests = 0;
-        let hideTimeout = null;
+    // ── Enhanced Page Loading Overlay with dynamic messages ─────────────────────
+(function () {
+    const loader = document.getElementById('page-loader');
+    const loaderText = loader?.querySelector('.loader-text');
+    const loaderSubtext = loader?.querySelector('.loader-subtext');
+    let activeRequests = 0;
+    let hideTimeout = null;
 
-        function showLoader() {
-            if (hideTimeout) clearTimeout(hideTimeout);
-            activeRequests++;
-            loader.classList.add('visible');
-        }
+    function showLoader(customMessage, customSubtext) {
+        if (hideTimeout) clearTimeout(hideTimeout);
+        activeRequests++;
+        if (loaderText && customMessage) loaderText.innerText = customMessage;
+        if (loaderSubtext && customSubtext) loaderSubtext.innerText = customSubtext;
+        loader.classList.add('visible');
+    }
 
-        function hideLoader() {
-            activeRequests--;
-            if (activeRequests <= 0) {
-                // Small delay to ensure the next page has rendered
-                hideTimeout = setTimeout(() => {
-                    loader.classList.remove('visible');
-                    hideTimeout = null;
-                }, 150);
-            }
-        }
-
-        // Intercept all link clicks (same-origin, non-special)
-        document.addEventListener('click', function (e) {
-            const target = e.target.closest('a');
-            if (!target) return;
-            if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-            if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
-            if (target.hasAttribute('data-bs-toggle')) return;
-            if (target.closest('.pagination')) return;
-            if (target.closest('#statusFilter') || target.closest('#searchBtn') || target.closest('#searchInput')) return;
-
-            const href = target.getAttribute('href') || '';
-            if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
-
-            try {
-                const url = new URL(href, window.location.href);
-                if (url.origin !== window.location.origin) return;
-            } catch (err) {
-                return;
-            }
-
-            showLoader();
-        });
-
-        // Intercept form submissions with class 'requires-loader'
-        document.addEventListener('submit', function (e) {
-            const form = e.target.closest('form.requires-loader');
-            if (form) showLoader();
-        });
-
-        // Hide loader when page is fully loaded (including assets)
-        window.addEventListener('load', hideLoader);
-        // Also when returning via back/forward cache
-        window.addEventListener('pageshow', function (e) {
-            if (e.persisted) hideLoader();
-        });
-
-        // Safety: if loader stays visible for more than 8 seconds, hide it
-        setInterval(() => {
-            if (loader.classList.contains('visible') && activeRequests === 0) {
+    function hideLoader() {
+        activeRequests--;
+        if (activeRequests <= 0) {
+            hideTimeout = setTimeout(() => {
                 loader.classList.remove('visible');
+                // Reset texts after hiding (optional)
+                if (loaderText) loaderText.innerText = 'Non-UniPay';
+                if (loaderSubtext) loaderSubtext.innerText = 'Loading your dashboard';
+                hideTimeout = null;
+            }, 150);
+        }
+    }
+
+    // Intercept all link clicks (same-origin, non-special)
+    document.addEventListener('click', function (e) {
+        const target = e.target.closest('a');
+        if (!target) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
+        if (target.hasAttribute('data-bs-toggle')) return;
+        if (target.closest('.pagination')) return;
+        if (target.closest('#statusFilter') || target.closest('#searchBtn') || target.closest('#searchInput')) return;
+
+        const href = target.getAttribute('href') || '';
+        if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+
+        try {
+            const url = new URL(href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+        } catch (err) {
+            return;
+        }
+
+        showLoader('Loading...', 'Please wait');
+    });
+
+    // Intercept form submissions
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('form');
+        if (!form) return;
+        if (form.classList.contains('requires-loader')) {
+            // Check if it's a logout form
+            if (form.action && form.action.includes('/logout')) {
+                showLoader('Logging out...', 'Redirecting to login');
+            } else {
+                showLoader('Processing...', 'Please wait');
             }
-        }, 8000);
-    })();
+        }
+    });
+
+    // Hide loader when page is fully loaded
+    window.addEventListener('load', hideLoader);
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) hideLoader();
+    });
+
+    // Safety: if loader stays visible for more than 8 seconds, hide it
+    setInterval(() => {
+        if (loader.classList.contains('visible') && activeRequests === 0) {
+            loader.classList.remove('visible');
+        }
+    }, 8000);
+})();
 
     // ── Notification badge polling ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {

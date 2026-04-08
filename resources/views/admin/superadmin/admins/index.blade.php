@@ -3,105 +3,30 @@
 
 @push('styles')
 <style>
-    /* ========================================
-       CSS CUSTOM PROPERTIES (Light & Dark)
-    ========================================= */
-    :root {
-        /* Light mode colors */
-        --bg-main: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #475569;
-        --text-muted: #94a3b8;
-        --border-color: #e2e8f0;
-        --input-bg: #f8fafc;
-        --input-border: #e2e8f0;
-        --table-header-bg: #f8fafc;
-        --table-row-border: #f1f5f9;
-        --hover-bg: #f1f5f9;
-        --primary-color: #0f3c91;
-        --primary-dark: #1a4da8;
-        --success-color: #28a745;
-        --danger-color: #dc3545;
-        --danger-dark: #b02a37;
-        --card-bg: #ffffff;
-        --modal-header-bg: linear-gradient(135deg, #0f3c91, #1a4da8);
-        --avatar-gradient: linear-gradient(135deg, #0f3c91, #1a4da8);
-        --page-header-bg: linear-gradient(135deg, #0f3c91, #1a4da8);
-    }
-
-    body.dark {
-        --bg-main: #0f172a;
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
-        --border-color: #1e293b;
-        --input-bg: #1e293b;
-        --input-border: #334155;
-        --table-header-bg: #1e293b;
-        --table-row-border: #1e293b;
-        --hover-bg: #1e293b;
-        --primary-color: #3b82f6;
-        --primary-dark: #2563eb;
-        --success-color: #22c55e;
-        --danger-color: #ef4444;
-        --danger-dark: #dc2626;
-        --card-bg: #1e293b;
-        --modal-header-bg: linear-gradient(135deg, #1e293b, #0f172a);
-        --avatar-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
-        --page-header-bg: linear-gradient(135deg, #0f172a, #1e293b);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root:not(.light) {
-            --bg-main: #0f172a;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border-color: #1e293b;
-            --input-bg: #1e293b;
-            --input-border: #334155;
-            --table-header-bg: #1e293b;
-            --table-row-border: #1e293b;
-            --hover-bg: #1e293b;
-            --primary-color: #3b82f6;
-            --primary-dark: #2563eb;
-            --success-color: #22c55e;
-            --danger-color: #ef4444;
-            --danger-dark: #dc2626;
-            --card-bg: #1e293b;
-            --modal-header-bg: linear-gradient(135deg, #1e293b, #0f172a);
-            --avatar-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
-            --page-header-bg: linear-gradient(135deg, #0f172a, #1e293b);
-        }
-    }
-
-    /* Global body styles using variables */
-    body {
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
+    /* =====================================================
+       NO :root overrides here — we inherit all CSS vars
+       from the layout (app.blade.php). Dark mode is
+       handled exclusively by body.dark in the layout.
+       ===================================================== */
 
     /* Page Header */
     .page-header {
-        background: var(--page-header-bg);
+        background: var(--modal-header-bg);
         border-radius: 20px;
         color: white;
         padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
     }
-    .page-header h2 { font-weight: 700; margin: 0; font-size: 1.6rem; }
+    .page-header h2 { font-weight: 700; margin: 0; font-size: 1.6rem; color: white; }
     .page-header p  { color: rgba(255,255,255,0.8); margin: 0; font-size: 0.9rem; }
 
     /* Card / Table Container */
     .card-table {
-        background: var(--card-bg);
+        background: var(--bg-main);
         border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        box-shadow: var(--card-shadow);
         overflow: hidden;
-    }
-    body.dark .card-table {
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transition: background 0.3s ease, box-shadow 0.3s ease;
     }
     .card-table .card-body {
         padding: 1.5rem;
@@ -115,43 +40,43 @@
         color: var(--text-primary);
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
+        transition: background 0.3s, color 0.3s, border-color 0.3s;
     }
+    .search-bar .form-control::placeholder { color: var(--text-muted); }
     .search-bar .form-control:focus {
-        border-color: var(--primary-color);
+        border-color: var(--btn-primary);
         box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
-    }
-    body.dark .search-bar .form-control:focus {
-        box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        background: var(--input-bg);
+        color: var(--text-primary);
     }
     .search-bar .btn-search {
         border-radius: 30px;
-        background: var(--primary-color);
+        background: var(--btn-primary);
         color: white;
         border: none;
         padding: 0.6rem 1.4rem;
+        transition: background 0.2s;
     }
-    .search-bar .btn-search:hover {
-        background: var(--primary-dark);
-    }
+    .search-bar .btn-search:hover { background: var(--btn-primary-hover); }
 
     /* Add Button */
     .btn-add {
-        background: var(--primary-color);
-        color: white;
+        background: white;
+        color: var(--btn-primary);
         border: none;
         border-radius: 30px;
         padding: 0.6rem 1.4rem;
-        font-weight: 500;
+        font-weight: 600;
         font-size: 0.9rem;
         transition: all 0.2s;
     }
     .btn-add:hover {
-        background: var(--primary-dark);
+        background: rgba(255,255,255,0.85);
         transform: translateY(-1px);
-        color: white;
+        color: var(--btn-primary);
     }
 
-    /* Table Styles */
+    /* Table */
     .table {
         margin: 0;
         color: var(--text-secondary);
@@ -165,28 +90,25 @@
         letter-spacing: 0.5px;
         color: var(--text-muted);
         padding: 1rem 1.2rem;
+        transition: background 0.3s, color 0.3s;
     }
     .table tbody td {
         padding: 1rem 1.2rem;
         vertical-align: middle;
         border-bottom: 1px solid var(--table-row-border);
         font-size: 0.9rem;
-        background-color: var(--card-bg);
+        background-color: var(--bg-main);
         color: var(--text-secondary);
+        transition: background 0.3s, color 0.3s;
     }
-    .table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .table tbody tr:hover td {
-        background-color: var(--hover-bg);
-    }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .table tbody tr:hover td     { background-color: var(--hover-bg); }
 
     /* Avatar */
     .avatar {
-        width: 38px;
-        height: 38px;
+        width: 38px; height: 38px;
         border-radius: 50%;
-        background: var(--avatar-gradient);
+        background: var(--modal-header-bg);
         color: white;
         display: flex;
         align-items: center;
@@ -236,71 +158,35 @@
         font-weight: 500;
         transition: all 0.15s;
     }
-    .btn-edit {
-        background: #e8f0fe;
-        color: #174ea6;
-    }
-    .btn-edit:hover {
-        background: #174ea6;
-        color: white;
-    }
-    .btn-del {
-        background: #fce8e6;
-        color: #b31412;
-    }
-    .btn-del:hover {
-        background: #b31412;
-        color: white;
-    }
-    body.dark .btn-edit {
-        background: #1e2a4a;
-        color: #90caf9;
-    }
-    body.dark .btn-edit:hover {
-        background: #3b82f6;
-        color: white;
-    }
-    body.dark .btn-del {
-        background: #3b1e1e;
-        color: #f87171;
-    }
-    body.dark .btn-del:hover {
-        background: #ef4444;
-        color: white;
-    }
+    .btn-edit { background: #e8f0fe; color: #174ea6; }
+    .btn-edit:hover { background: #174ea6; color: white; }
+    .btn-del  { background: #fce8e6; color: #b31412; }
+    .btn-del:hover  { background: #b31412; color: white; }
+
+    body.dark .btn-edit { background: #1e2a4a; color: #90caf9; }
+    body.dark .btn-edit:hover { background: #3b82f6; color: white; }
+    body.dark .btn-del  { background: #3b1e1e; color: #f87171; }
+    body.dark .btn-del:hover  { background: #ef4444; color: white; }
 
     /* You Badge */
     .you-badge {
-        background: #e6f4ea;
-        color: #137333;
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-left: 6px;
+        background: #e6f4ea; color: #137333;
+        font-size: 0.72rem; font-weight: 600;
+        padding: 2px 8px; border-radius: 12px; margin-left: 6px;
     }
-    body.dark .you-badge {
-        background: #1e3a2f;
-        color: #4ade80;
-    }
+    body.dark .you-badge { background: #1e3a2f; color: #4ade80; }
 
     /* Empty State */
-    .empty-state {
-        padding: 3rem;
-        text-align: center;
-        color: var(--text-muted);
-    }
-    .empty-state i {
-        font-size: 2.5rem;
-        margin-bottom: 0.75rem;
-    }
+    .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 0.75rem; }
 
-    /* Modal Styles */
+    /* Modal */
     .modal-content {
         background: var(--bg-main);
         border-radius: 20px;
         border: none;
         box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        transition: background 0.3s;
     }
     .modal-header {
         border-bottom: 1px solid var(--border-color);
@@ -308,146 +194,122 @@
         background: var(--modal-header-bg);
         border-radius: 20px 20px 0 0;
     }
-    .modal-header .modal-title {
-        color: white;
-    }
-    .modal-header .btn-close {
-        filter: brightness(0) invert(1);
-    }
+    .modal-header .modal-title { color: white; }
+    .modal-header .btn-close { filter: brightness(0) invert(1); }
     .modal-footer {
         border-top: 1px solid var(--border-color);
         padding: 1rem 1.5rem;
         background: var(--bg-main);
+        transition: background 0.3s;
     }
     .modal-body {
         padding: 1.5rem;
+        background: var(--bg-main);
+        transition: background 0.3s;
     }
+
     .section-title {
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        font-size: 0.75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px;
         color: var(--text-muted);
-        margin-bottom: 1rem;
-        margin-top: 1.25rem;
+        margin-bottom: 1rem; margin-top: 1.25rem;
     }
-    .section-title:first-child {
-        margin-top: 0;
-    }
+    .section-title:first-child { margin-top: 0; }
+
     .form-label {
-        font-weight: 600;
-        font-size: 0.88rem;
+        font-weight: 600; font-size: 0.88rem;
         color: var(--text-primary);
     }
-    .form-control, .form-select {
+
+    /* Modal inputs — must explicitly track dark mode */
+    .modal .form-control,
+    .modal .form-select {
         background: var(--input-bg);
         border: 1.5px solid var(--input-border);
         border-radius: 12px;
         padding: 0.65rem 1rem;
         font-size: 0.92rem;
         color: var(--text-primary);
+        transition: background 0.3s, color 0.3s, border-color 0.3s;
     }
-    /* Placeholder styling for better visibility in dark mode */
-    .form-control::placeholder,
-    .form-select::placeholder {
-        color: var(--text-muted);
-        opacity: 0.8;
-    }
-    body.dark .form-control::placeholder,
-    body.dark .form-select::placeholder {
-        color: #cbd5e1;  /* Light gray-blue for dark mode */
-        opacity: 0.8;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
+    .modal .form-control::placeholder,
+    .modal .form-select option { color: var(--text-muted); }
+
+    .modal .form-control:focus,
+    .modal .form-select:focus {
+        border-color: var(--btn-primary);
         box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
         background: var(--input-bg);
-    }
-    body.dark .form-control:focus, body.dark .form-select:focus {
-        box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-    }
-    .form-control.is-invalid, .form-select.is-invalid {
-        border-color: var(--danger-color);
-    }
-    .invalid-feedback {
-        color: var(--danger-color);
-    }
-    .pw-hint {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-top: 4px;
-    }
-
-    /* ========== FIX: Ensure modal input text is light in dark mode ========== */
-    .modal .form-control,
-    .modal .form-select {
         color: var(--text-primary);
     }
-    body.dark .modal .form-control,
-    body.dark .modal .form-select {
-        color: #f1f5f9; /* explicit light color for dark mode */
+    .modal .form-control.is-invalid,
+    .modal .form-select.is-invalid { border-color: #dc3545; }
+    .invalid-feedback { color: #dc3545; }
+    body.dark .invalid-feedback { color: #f87171; }
+
+    /* Autofill override */
+    body:not(.dark) .modal .form-control:-webkit-autofill,
+    body:not(.dark) .modal .form-select:-webkit-autofill {
+        -webkit-text-fill-color: #1e293b;
+        -webkit-box-shadow: 0 0 0px 1000px #f8fafc inset;
     }
-    /* Override browser autofill background in dark mode */
     body.dark .modal .form-control:-webkit-autofill,
     body.dark .modal .form-select:-webkit-autofill {
         -webkit-text-fill-color: #f1f5f9;
-        -webkit-box-shadow: 0 0 0px 1000px #1e293b inset;
-        transition: background-color 5000s ease-in-out 0s;
+        -webkit-box-shadow: 0 0 0px 1000px #334155 inset;
     }
 
+    .pw-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
     .btn-submit {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 30px;
-        padding: 0.6rem 1.6rem;
-        font-weight: 600;
-        transition: all 0.2s;
+        background: var(--btn-primary);
+        color: white; border: none;
+        border-radius: 30px; padding: 0.6rem 1.6rem;
+        font-weight: 600; transition: all 0.2s;
     }
     .btn-submit:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-        color: white;
+        background: var(--btn-primary-hover);
+        transform: translateY(-1px); color: white;
     }
     .btn-cancel-modal {
-        border-radius: 30px;
-        padding: 0.6rem 1.2rem;
-        font-weight: 500;
+        border-radius: 30px; padding: 0.6rem 1.2rem; font-weight: 500;
         color: var(--text-secondary);
         background: var(--input-bg);
         border: 1px solid var(--input-border);
+        transition: background 0.2s, color 0.2s;
     }
-    .btn-cancel-modal:hover {
-        background: var(--hover-bg);
-    }
-    .modal-spinner {
-        display: none;
-        text-align: center;
-        padding: 2rem 0;
-    }
-    .modal-spinner.active {
-        display: block;
-    }
-    .modal-form-content.loading {
-        display: none;
-    }
+    .btn-cancel-modal:hover { background: var(--hover-bg); }
 
-    /* Alert adjustments for dark mode */
+    /* Alerts */
     .alert-success {
         background-color: rgba(34,197,94,0.1);
-        border-color: var(--success-color);
-        color: var(--success-color);
+        border-color: #22c55e;
+        color: #15803d;
     }
+    body.dark .alert-success { color: #4ade80; }
     .alert-danger {
         background-color: rgba(239,68,68,0.1);
-        border-color: var(--danger-color);
-        color: var(--danger-color);
+        border-color: #ef4444;
+        color: #b91c1c;
     }
-    .alert .btn-close {
-        filter: invert(1);
+    body.dark .alert-danger { color: #f87171; }
+    .alert .btn-close { filter: none; }
+    body.dark .alert .btn-close { filter: invert(0.8); }
+
+    /* Pagination dark fix */
+    body.dark .pagination .page-link {
+        background: var(--bg-main);
+        border-color: var(--border-color);
+        color: var(--text-secondary);
     }
-    body.dark .alert .btn-close {
-        filter: invert(0.8);
+    body.dark .pagination .page-item.active .page-link {
+        background: var(--btn-primary);
+        border-color: var(--btn-primary);
+        color: white;
+    }
+    body.dark .pagination .page-item.disabled .page-link {
+        background: var(--bg-main);
+        color: var(--text-muted);
     }
 </style>
 @endpush
@@ -482,21 +344,30 @@
 <div class="card-table">
     <div class="card-body">
         <form method="GET" class="search-bar d-flex gap-2 mb-4">
-            <input type="text" name="search" class="form-control" placeholder="Search by name or email…" value="{{ $search ?? '' }}">
-            <button type="submit" class="btn btn-search"><i class="fas fa-search me-1"></i> Search</button>
+            <input type="text" name="search" class="form-control"
+                   placeholder="Search by name or email…"
+                   value="{{ $search ?? '' }}">
+            <button type="submit" class="btn btn-search">
+                <i class="fas fa-search me-1"></i> Search
+            </button>
         </form>
 
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th class="text-end">Actions</th>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($admins as $index => $admin)
                         <tr>
-                            <td class="text-muted">{{ $admins->firstItem() + $index }}</td>
+                            <td>{{ $admins->firstItem() + $index }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="avatar">{{ strtoupper(substr($admin->name, 0, 1)) }}</div>
@@ -508,7 +379,7 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="text-muted">{{ $admin->email }}</td>
+                            <td>{{ $admin->email }}</td>
                             <td>
                                 <span class="role-pill {{ $admin->role }}">
                                     @if($admin->role === 'superadmin')
@@ -518,7 +389,7 @@
                                     @endif
                                 </span>
                             </td>
-                            <td class="text-muted">{{ $admin->created_at->format('M d, Y') }}</td>
+                            <td>{{ $admin->created_at->format('M d, Y') }}</td>
                             <td class="text-end">
                                 @if($admin->id !== auth()->id())
                                     <button type="button" class="btn btn-action btn-edit me-1"
@@ -531,11 +402,12 @@
                                     </button>
                                     <button type="button" class="btn btn-action btn-del"
                                             data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                            data-id="{{ $admin->id }}" data-name="{{ $admin->name }}">
+                                            data-id="{{ $admin->id }}"
+                                            data-name="{{ $admin->name }}">
                                         <i class="fas fa-trash me-1"></i>Delete
                                     </button>
                                 @else
-                                    <span class="text-muted" style="font-size:0.82rem;">—</span>
+                                    <span style="font-size:0.82rem; color: var(--text-muted);">—</span>
                                 @endif
                             </td>
                         </tr>
@@ -554,7 +426,9 @@
         </div>
 
         @if($admins->hasPages())
-            <div class="mt-3 d-flex justify-content-end">{{ $admins->links() }}</div>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $admins->links() }}
+            </div>
         @endif
     </div>
 </div>
@@ -588,39 +462,56 @@
                                 <label class="form-label">Full Name</label>
                                 <input type="text" name="name"
                                        class="form-control @error('name', 'createBag') is-invalid @enderror"
-                                       value="{{ old('name') }}" placeholder="e.g. Maria Santos" required autofocus>
-                                @error('name', 'createBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                       value="{{ old('name') }}"
+                                       placeholder="e.g. Maria Santos"
+                                       required autofocus>
+                                @error('name', 'createBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="email"
                                        class="form-control @error('email', 'createBag') is-invalid @enderror"
-                                       value="{{ old('email') }}" placeholder="admin@example.com" required>
-                                @error('email', 'createBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                       value="{{ old('email') }}"
+                                       placeholder="admin@example.com"
+                                       required>
+                                @error('email', 'createBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Role</label>
-                                <select name="role" class="form-select @error('role', 'createBag') is-invalid @enderror" required>
+                                <select name="role"
+                                        class="form-select @error('role', 'createBag') is-invalid @enderror"
+                                        required>
                                     <option value="" disabled {{ old('role') ? '' : 'selected' }}>Select role…</option>
                                     <option value="admin"      {{ old('role') === 'admin'      ? 'selected' : '' }}>Admin</option>
                                     <option value="superadmin" {{ old('role') === 'superadmin' ? 'selected' : '' }}>Super Admin</option>
                                 </select>
-                                @error('role', 'createBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                @error('role', 'createBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="section-title">Password</div>
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
-                                <input type="password" id="create_password" name="password"
+                                <input type="password" name="password"
                                        class="form-control @error('password', 'createBag') is-invalid @enderror"
-                                       placeholder="Min. 8 chars, upper + lower + number" required>
-                                @error('password', 'createBag')<div class="text-danger mt-1" style="font-size:0.82rem;">{{ $message }}</div>@enderror
+                                       placeholder="Min. 8 chars, upper + lower + number"
+                                       required>
+                                @error('password', 'createBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Confirm Password</label>
-                                <input type="password" id="create_password_confirmation" name="password_confirmation"
-                                       class="form-control" placeholder="Repeat password" required>
+                                <input type="password" name="password_confirmation"
+                                       class="form-control"
+                                       placeholder="Repeat password"
+                                       required>
                             </div>
                         </div>
                     </div>
@@ -628,7 +519,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-submit"><i class="fas fa-save me-1"></i> Create Admin</button>
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save me-1"></i> Create Admin
+                    </button>
                 </div>
             </form>
         </div>
@@ -665,22 +558,30 @@
                                 <input type="text" id="edit_name" name="name"
                                        class="form-control @error('name', 'editBag') is-invalid @enderror"
                                        value="{{ old('name') }}" required>
-                                @error('name', 'editBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                @error('name', 'editBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" id="edit_email" name="email"
                                        class="form-control @error('email', 'editBag') is-invalid @enderror"
                                        value="{{ old('email') }}" required>
-                                @error('email', 'editBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                @error('email', 'editBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Role</label>
-                                <select id="edit_role" name="role" class="form-select @error('role', 'editBag') is-invalid @enderror" required>
+                                <select id="edit_role" name="role"
+                                        class="form-select @error('role', 'editBag') is-invalid @enderror"
+                                        required>
                                     <option value="admin">Admin</option>
                                     <option value="superadmin">Super Admin</option>
                                 </select>
-                                @error('role', 'editBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                @error('role', 'editBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -691,12 +592,15 @@
                                        class="form-control @error('password', 'editBag') is-invalid @enderror"
                                        placeholder="Leave blank to keep current password">
                                 <div class="pw-hint">Min. 8 characters, upper &amp; lowercase, at least one number.</div>
-                                @error('password', 'editBag')<div class="text-danger mt-1" style="font-size:0.82rem;">{{ $message }}</div>@enderror
+                                @error('password', 'editBag')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Confirm New Password</label>
                                 <input type="password" id="edit_password_confirmation" name="password_confirmation"
-                                       class="form-control" placeholder="Repeat new password">
+                                       class="form-control"
+                                       placeholder="Repeat new password">
                             </div>
                         </div>
                     </div>
@@ -704,7 +608,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-submit"><i class="fas fa-save me-1"></i> Save Changes</button>
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save me-1"></i> Save Changes
+                    </button>
                 </div>
             </form>
         </div>
@@ -720,13 +626,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Are you sure you want to delete <strong id="deleteAdminName"></strong>? This cannot be undone.</p>
+                <p class="mb-0">
+                    Are you sure you want to delete <strong id="deleteAdminName"></strong>?
+                    This cannot be undone.
+                </p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteForm" method="POST" class="d-inline requires-loader">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-submit" style="background: var(--danger-color);">Delete</button>
+                    <button type="submit" class="btn btn-submit" style="background:#dc3545;">
+                        <i class="fas fa-trash me-1"></i> Delete
+                    </button>
                 </form>
             </div>
         </div>
@@ -737,31 +648,27 @@
 
 @push('scripts')
 <script>
-// --- Delete modal ---
+// Delete modal — populate name + action URL
 document.getElementById('deleteModal').addEventListener('show.bs.modal', function (e) {
     const btn = e.relatedTarget;
     document.getElementById('deleteAdminName').textContent = btn.dataset.name;
-    document.getElementById('deleteForm').action = '{{ url("admin/superadmin/admins") }}/' + btn.dataset.id;
+    document.getElementById('deleteForm').action =
+        '{{ url("admin/superadmin/admins") }}/' + btn.dataset.id;
 });
 
-// --- Edit modal: populate fields from data attributes ---
+// Edit modal — populate fields from data attributes
 document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
     const btn = e.relatedTarget;
-    const id    = btn.dataset.id;
-    const name  = btn.dataset.name;
-    const email = btn.dataset.email;
-    const role  = btn.dataset.role;
-
-    document.getElementById('edit_name').value  = name;
-    document.getElementById('edit_email').value = email;
-    document.getElementById('edit_role').value  = role;
-
-    // Clear password fields on open
+    document.getElementById('edit_name').value  = btn.dataset.name;
+    document.getElementById('edit_email').value = btn.dataset.email;
+    document.getElementById('edit_role').value  = btn.dataset.role;
     document.getElementById('edit_password').value = '';
     document.getElementById('edit_password_confirmation').value = '';
-
-    document.getElementById('editForm').action = '{{ url("admin/superadmin/admins") }}/' + id;
+    document.getElementById('editForm').action =
+        '{{ url("admin/superadmin/admins") }}/' + btn.dataset.id;
 });
+
+// Re-open modals on validation errors
 
 <?php if($errors->createBag->any()): ?>
     var createModal = new bootstrap.Modal(document.getElementById('createModal'));
@@ -776,5 +683,7 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function 
         document.getElementById('editForm').action = '<?php echo url("admin/superadmin/admins") . '/' . old("_edit_id"); ?>';
     <?php endif; ?>
 <?php endif; ?>
+
+
 </script>
 @endpush

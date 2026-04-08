@@ -1,6 +1,8 @@
 @forelse($payments as $payment)
 <tr id="payment-row-{{ $payment->id }}" class="payment-row">
-    <td class="px-4 py-3 fw-semibold" style="color: #1e293b;">#{{ $payment->id }}</td>
+<td class="px-4 py-3 fw-semibold payment-id">
+    #{{ $payment->id }}
+</td>
     <td class="py-3">
         <div class="d-flex align-items-center gap-2">
             <div class="student-avatar rounded-circle d-flex align-items-center justify-content-center"

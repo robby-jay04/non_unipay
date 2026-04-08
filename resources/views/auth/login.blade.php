@@ -33,7 +33,7 @@
         }
 
         /* ═══════════════════════════════════════════
-           SPLASH SCREEN — improved animation
+           SPLASH SCREEN
         ═══════════════════════════════════════════ */
         #splash-screen {
             position: fixed;
@@ -56,7 +56,6 @@
             pointer-events: none;
         }
 
-        /* Pulse rings */
         .splash-ring {
             position: absolute;
             border-radius: 50%;
@@ -73,7 +72,6 @@
             50%      { opacity: 0.1; transform: translate(-50%,-50%) scale(1.06); }
         }
 
-        /* Floating particles container */
         #splash-particles {
             position: absolute;
             inset: 0;
@@ -93,7 +91,6 @@
             50%      { opacity: 0.4; transform: translateY(-110px) scale(1);   }
         }
 
-        /* Logo wrapper — bounces in */
         .splash-logo-wrap {
             position: relative;
             opacity: 0;
@@ -105,7 +102,6 @@
             to   { opacity: 1; transform: scale(1)   translateY(0);    }
         }
 
-        /* Logo box */
         .splash-logo-box {
             width: 96px;
             height: 96px;
@@ -122,7 +118,6 @@
             object-fit: contain;
             display: block;
         }
-        /* Gloss overlay */
         .splash-logo-box::after {
             content: '';
             position: absolute; inset: 0;
@@ -135,7 +130,6 @@
             50%      { box-shadow: 0 0 0 20px rgba(232,184,75,0);   }
         }
 
-        /* Orbiting dot */
         .splash-orbit {
             position: absolute;
             width: 132px; height: 132px;
@@ -158,7 +152,6 @@
             to   { transform: rotate(360deg); }
         }
 
-        /* App name */
         .splash-text {
             color: white;
             font-family: 'Playfair Display', serif;
@@ -170,7 +163,6 @@
             margin-bottom: 0.3rem;
         }
 
-        /* Tagline */
         .splash-sub {
             color: rgba(255,255,255,0.6);
             font-size: 0.78rem;
@@ -186,7 +178,6 @@
             to   { opacity: 1; transform: translateY(0);    }
         }
 
-        /* Progress bar */
         .splash-bar-track {
             width: 160px; height: 3px;
             background: rgba(255,255,255,0.15);
@@ -209,7 +200,6 @@
             100% { width: 100%; }
         }
 
-        /* Loading dots */
         .splash-dots {
             display: flex;
             gap: 6px;
@@ -230,7 +220,6 @@
             50%      { background: rgba(255,255,255,0.9); transform: scale(1.4); }
         }
 
-        /* ── Content panels hidden until splash ends ── */
         .left-panel, .right-panel {
             opacity: 0;
             transition: opacity 0.5s ease;
@@ -247,12 +236,24 @@
             flex: 0 0 55%;
             position: relative;
             overflow: hidden;
+            transition: flex 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+        .left-panel.expanded {
+            flex: 0 0 100%;
+            overflow: visible;
         }
 
         .left-panel .bg-cover {
             position: absolute;
             inset: 0;
             background: url("{{ asset('bg.PNG') }}") center/cover no-repeat;
+            transition: background-position 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .left-panel.expanded .bg-cover {
+            background-position: center top;
+            background-size: 100% 55%;
+            background-repeat: no-repeat;
+            background-color: #0a2a6b;
         }
 
         .left-panel .overlay {
@@ -264,6 +265,15 @@
                 rgba(15, 60, 145, 0.55) 50%,
                 rgba(232, 184, 75, 0.20) 100%
             );
+            transition: background 0.6s ease;
+        }
+        .left-panel.expanded .overlay {
+            background: linear-gradient(
+                135deg,
+                rgba(10, 42, 107, 0.65) 0%,
+                rgba(15, 60, 145, 0.35) 60%,
+                rgba(232, 184, 75, 0.12) 100%
+            );
         }
 
         .left-panel .panel-content {
@@ -274,6 +284,11 @@
             flex-direction: column;
             justify-content: flex-end;
             padding: 3.5rem;
+            transition: opacity 0.25s ease, padding 0.6s ease;
+        }
+        .left-panel.expanded .panel-content {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .left-panel .brand-badge {
@@ -337,7 +352,6 @@
             backdrop-filter: blur(6px);
             transition: background 0.2s;
         }
-
         .feature-chip i { color: var(--accent); font-size: 0.9rem; }
 
         .deco-circle {
@@ -357,6 +371,383 @@
             z-index: 2;
         }
 
+
+
+        /* ── EXPANDED FULLSCREEN SCROLLABLE ABOUT PAGE ── */
+        .expanded-center {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            overflow-y: auto;
+            overflow-x: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s 0.15s ease;
+            scroll-behavior: smooth;
+        }
+        .expanded-center::-webkit-scrollbar { width: 4px; }
+        .expanded-center::-webkit-scrollbar-track { background: transparent; }
+        .expanded-center::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
+
+        .left-panel.expanded .expanded-center {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Hero section — sits below the background image */
+        .about-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 2.5rem 4rem 4rem;
+            text-align: center;
+        }
+        .about-hero .exp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.30);
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+            margin-bottom: 1.2rem;
+        }
+        .about-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+            font-weight: 800;
+            color: white;
+            line-height: 1.12;
+            margin-bottom: 1rem;
+        }
+        .about-hero h1 em { font-style: italic; color: var(--accent); }
+        .about-hero p {
+            color: rgba(255,255,255,0.72);
+            font-size: 1rem;
+            max-width: 560px;
+            line-height: 1.75;
+            margin-bottom: 2rem;
+        }
+        .about-hero .hero-chips {
+            display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .about-hero .hero-chip {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 10px; padding: 0.5rem 1rem;
+            color: white; font-size: 0.82rem; font-weight: 500;
+        }
+        .about-hero .hero-chip-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--accent); flex-shrink: 0;
+        }
+        .exp-signin-btn {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            background: white; color: var(--navy); border: none;
+            border-radius: 14px; padding: 0.85rem 2.5rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .exp-signin-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(0,0,0,0.28); }
+        .exp-signin-btn:active { transform: translateY(0); }
+
+        /* About body — dark navy background */
+        .about-body {
+            background: #07193d;
+            padding: 4rem 0 3rem;
+        }
+
+        .about-section {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 3rem 3.5rem;
+        }
+
+        .about-section-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.6rem;
+        }
+        .about-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            line-height: 1.25;
+        }
+        .about-section p {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .about-divider {
+            max-width: 860px;
+            margin: 0 auto 3.5rem;
+            padding: 0 3rem;
+        }
+        .about-divider hr {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        /* Stats row */
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.8rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 16px;
+            padding: 1.2rem 1rem;
+            text-align: center;
+        }
+        .stat-card .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+        .stat-card .stat-label {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 400;
+        }
+
+        /* Feature grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1.8rem;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 16px;
+            padding: 1.4rem;
+            transition: background 0.2s;
+        }
+        .feature-card:hover { background: rgba(255,255,255,0.07); }
+        .feature-card .fc-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: rgba(232,184,75,0.15);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        .feature-card h3 {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.4rem;
+        }
+        .feature-card p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.65;
+        }
+
+        /* Tech stack */
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .tech-pill {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 0.55rem 1rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .tech-pill i { color: var(--accent); font-size: 0.85rem; }
+
+        /* Team grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 1.8rem;
+        }
+        .team-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 20px;
+            padding: 1.6rem 1rem 1.2rem;
+            text-align: center;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+        .team-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+        }
+
+        /* Avatar wrapper — holds the circle + role badge */
+        .team-avatar-wrap {
+            position: relative;
+            width: 72px; height: 72px;
+            margin: 0 auto 1rem;
+        }
+        .team-avatar-img {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .team-avatar-img::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+        }
+        .team-initials {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.02em;
+        }
+        .team-avatar-ring {
+            position: absolute; inset: -3px;
+            border-radius: 50%;
+            border: 2px solid rgba(232,184,75,0.4);
+            pointer-events: none;
+        }
+        /* Small role badge bottom-right */
+        .team-role-badge {
+            position: absolute;
+            bottom: -2px; right: -2px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: #07193d;
+            border: 2px solid rgba(232,184,75,0.5);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            font-size: 0.6rem;
+        }
+
+        .team-card h3 {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.2rem;
+            line-height: 1.3;
+        }
+        .team-card .team-role {
+            font-size: 0.74rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+        }
+        .team-card .team-dept {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.38);
+            margin-bottom: 0.75rem;
+        }
+        /* Skill tags */
+        .team-skills {
+            display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center;
+        }
+        .team-skills span {
+            font-size: 0.65rem;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            padding: 0.2rem 0.5rem;
+            color: rgba(255,255,255,0.55);
+        }
+
+      .about-footer {
+    background: #040f25;
+     padding: 2rem 3rem 10rem; 
+    text-align: center;
+}
+.about-footer p {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.7;
+}
+.about-footer strong { 
+    color: rgba(255,255,255,0.55); 
+    font-weight: 500; 
+}
+        /* ── TOGGLE ARROW BUTTON ── */
+        .toggle-btn {
+            position: absolute;
+            top: 50%;
+            right: -18px;
+            transform: translateY(-50%);
+            z-index: 50;
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+        .toggle-btn:hover {
+            background: #f0f3fa;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+        }
+        .toggle-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        .toggle-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: var(--navy);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .left-panel.expanded .toggle-btn {
+            right: 24px;
+        }
+        .left-panel.expanded .toggle-btn svg {
+            transform: rotate(180deg);
+        }
+
         /* ═══════════════════════════════════════════
            RIGHT PANEL
         ═══════════════════════════════════════════ */
@@ -369,7 +760,18 @@
             padding: 2.5rem 3rem;
             background: var(--card-bg);
             position: relative;
-            overflow-y: auto;
+            overflow: hidden;
+            transition: flex 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.35s ease,
+                        padding 0.6s ease;
+        }
+        .right-panel.hidden {
+            flex: 0 0 0%;
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .right-panel::before {
@@ -393,7 +795,6 @@
             to   { opacity: 1; transform: translateY(0);    }
         }
 
-        /* Logo */
         .logo-wrap {
             display: flex;
             align-items: center;
@@ -441,7 +842,6 @@
             margin-bottom: 2rem;
         }
 
-        /* Input fields */
         .field-wrap {
             position: relative;
             margin-bottom: 1rem;
@@ -494,7 +894,6 @@
         }
         .field-wrap .toggle-pw:hover { color: var(--navy); }
 
-        /* Login button */
         .btn-login {
             width: 100%;
             background: var(--navy);
@@ -528,7 +927,6 @@
         .btn-login:active { transform: translateY(0); }
         .btn-login.disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        /* Error */
         .error-msg {
             background: #fef2f2;
             border: 1px solid #fecaca;
@@ -590,7 +988,6 @@
             align-self: flex-start;
         }
 
-        /* Divider + footer */
         .form-divider {
             height: 1px;
             background: #e5e7eb;
@@ -603,7 +1000,7 @@
         }
 
         /* ═══════════════════════════════════════════
-           LOADING OVERLAY (on form submit)
+           LOGIN LOADING OVERLAY
         ═══════════════════════════════════════════ */
         #loginLoader {
             display: none;
@@ -636,6 +1033,20 @@
             padding: 6px;
             object-fit: contain;
         }
+        .team-avatar-img {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.team-avatar-img img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
         .loader-spinner {
             position: absolute; inset: -5px;
             border-radius: 50%;
@@ -669,15 +1080,67 @@
         ═══════════════════════════════════════════ */
         @media (max-width: 860px) {
             body { flex-direction: column; overflow: auto; }
-            .left-panel { flex: 0 0 240px; min-height: 240px; }
+            .left-panel { flex: 0 0 240px !important; min-height: 240px; }
+            .left-panel.expanded { flex: 0 0 100vh !important; }
             .left-panel .panel-content { padding: 2rem; }
             .left-panel h2 { font-size: 1.7rem; }
             .features-row { display: none; }
             .right-panel { padding: 2rem 1.5rem; }
+            .right-panel.hidden { flex: 0 0 0 !important; max-height: 0; }
+            .toggle-btn { right: 50%; transform: translateX(50%) rotate(-90deg); bottom: -18px; top: auto; }
+            .left-panel.expanded .toggle-btn { bottom: 24px; right: 50%; top: auto; transform: translateX(50%) rotate(90deg); }
         }
         @media (max-width: 480px) {
-            .left-panel { flex: 0 0 180px; min-height: 180px; }
+            .left-panel { flex: 0 0 180px !important; min-height: 180px; }
         }
+        /* ═════════ LIGHT BEAMS EFFECT ═════════ */
+.light-beams {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.light-beams span {
+    position: absolute;
+    width: 200%;
+    height: 120%;
+    top: -10%;
+    left: -50%;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255,255,255,0.08) 20%,
+        rgba(232,184,75,0.12) 40%,
+        transparent 70%
+    );
+    transform: rotate(25deg);
+    animation: beamMove 8s linear infinite;
+    filter: blur(8px);
+}
+
+/* Different speeds + delay */
+.light-beams span:nth-child(2) {
+    animation-duration: 12s;
+    animation-delay: 2s;
+    opacity: 0.7;
+}
+.light-beams span:nth-child(3) {
+    animation-duration: 10s;
+    animation-delay: 4s;
+    opacity: 0.5;
+}
+
+@keyframes beamMove {
+    0% {
+        transform: translateX(-60%) rotate(25deg);
+    }
+    100% {
+        transform: translateX(60%) rotate(25deg);
+    }
+}
+        
     </style>
 </head>
 <body>
@@ -711,12 +1174,19 @@
     </div>
 
     <!-- ══ LEFT PANEL ══════════════════════════════════ -->
-    <div class="left-panel">
+    <div class="left-panel" id="leftPanel">
         <div class="bg-cover"></div>
         <div class="overlay"></div>
+
+        <div class="light-beams">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
         <div class="deco-circle"></div>
         <div class="deco-circle-sm"></div>
 
+        <!-- Normal bottom content -->
         <div class="panel-content">
             <div class="brand-badge">
                 <i class="fas fa-university"></i>
@@ -735,10 +1205,274 @@
                 <div class="feature-chip"><i class="fas fa-bell"></i> Real-time Alerts</div>
             </div>
         </div>
+
+        <!-- Expanded fullscreen scrollable about page -->
+        <div class="expanded-center" id="expandedCenter">
+
+            <!-- HERO — sits over the bg image top half -->
+            <div class="about-hero">
+                <div class="exp-badge">
+                    <i class="fas fa-university"></i>
+                    Non-UniPay &nbsp;·&nbsp; School Management Portal
+                </div>
+                <h1>Smart Payments,<br><em>Seamless</em> Clearance.</h1>
+                <p>
+                    A centralized, secure platform for managing school fees, tracking student balances,
+                    and issuing exam clearances — built specifically for higher education institutions.
+                </p>
+                <div class="hero-chips">
+                    <div class="hero-chip"><div class="hero-chip-dot"></div> Secure Payments</div>
+                    <div class="hero-chip"><div class="hero-chip-dot"></div> Instant Clearance</div>
+                    <div class="hero-chip"><div class="hero-chip-dot"></div> Real-time Alerts</div>
+                    <div class="hero-chip"><div class="hero-chip-dot"></div> Smart Dashboard</div>
+                </div>
+                <button class="exp-signin-btn" onclick="togglePanel()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In to Your Account
+                </button>
+            </div>
+
+            <!-- ABOUT BODY -->
+            <div class="about-body">
+
+                <!-- System Overview -->
+                <div class="about-section">
+                    <div class="about-section-label">About the System</div>
+                    <h2>What is Non-UniPay?</h2>
+                    <p>
+                        Non-UniPay is a web-based school fee management and exam clearance system designed to digitize and
+                        streamline the entire payment workflow in academic institutions. It replaces manual, paper-based
+                        processes with a fast, transparent, and auditable digital platform — accessible to administrators,
+                        cashiers, registrars, and department heads from a single secure portal.
+                    </p>
+                    <p style="margin-top:0.9rem;">
+                        Students settle their balances through the companion mobile app, while staff and administrators
+                        manage records, approve clearances, generate reports, and monitor payment statuses in real time
+                        through this web portal.
+                    </p>
+
+                    <div class="about-stats">
+                        <div class="stat-card">
+                            <span class="stat-num">100%</span>
+                            <span class="stat-label">Paperless Workflow</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num">∞</span>
+                            <span class="stat-label">Concurrent Users</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num">24/7</span>
+                            <span class="stat-label">System Availability</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num">AES</span>
+                            <span class="stat-label">Encrypted Data</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-divider"><hr></div>
+
+                <!-- Key Features -->
+                <div class="about-section">
+                    <div class="about-section-label">Core Features</div>
+                    <h2>Everything you need in one place</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-money-check-alt"></i></div>
+                            <h3>Fee Management</h3>
+                            <p>Create, assign, and track tuition fees, miscellaneous charges, and payment schemes per student or per course.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-clipboard-check"></i></div>
+                            <h3>Exam Clearance</h3>
+                            <p>Automatically issue or withhold exam clearances based on outstanding balances — no manual checking required.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-chart-bar"></i></div>
+                            <h3>Reports & Analytics</h3>
+                            <p>Generate daily, monthly, and semester-end financial reports with exportable PDFs and Excel summaries.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-bell"></i></div>
+                            <h3>Real-time Notifications</h3>
+                            <p>Instant push and in-app alerts for payment confirmations, clearance approvals, and balance reminders.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-users-cog"></i></div>
+                            <h3>Role-based Access</h3>
+                            <p>Granular permissions for Super Admin, Admin, Cashier, Registrar, and Department Head roles.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="fc-icon"><i class="fas fa-history"></i></div>
+                            <h3>Audit Trail</h3>
+                            <p>Full activity logs for every transaction, clearance action, and user login — tamper-proof and searchable.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-divider"><hr></div>
+
+                <!-- Tech Stack -->
+                <div class="about-section">
+                    <div class="about-section-label">Technology</div>
+                    <h2>Built with modern, reliable tools</h2>
+                    <p>Non-UniPay is engineered using a robust, industry-standard stack chosen for performance, security, and maintainability.</p>
+                    <div class="tech-grid">
+                        <div class="tech-pill"><i class="fab fa-laravel"></i> Laravel 11</div>
+                        <div class="tech-pill"><i class="fab fa-php"></i> PHP 8.3</div>
+                        <div class="tech-pill"><i class="fas fa-database"></i> MySQL 8</div>
+                        <div class="tech-pill"><i class="fab fa-bootstrap"></i> Bootstrap 5</div>
+                        <div class="tech-pill"><i class="fab fa-js"></i> Vanilla JS</div>
+                        <div class="tech-pill"><i class="fas fa-mobile-alt"></i> Flutter (Mobile)</div>
+                        <div class="tech-pill"><i class="fas fa-server"></i> Apache / Nginx</div>
+                        <div class="tech-pill"><i class="fab fa-git-alt"></i> Git / GitHub</div>
+                        <div class="tech-pill"><i class="fas fa-shield-alt"></i> Laravel Sanctum</div>
+                        <div class="tech-pill"><i class="fas fa-file-pdf"></i> DomPDF</div>
+                        <div class="tech-pill"><i class="fas fa-envelope"></i> Laravel Mail</div>
+                        <div class="tech-pill"><i class="fas fa-bell"></i> Firebase FCM</div>
+                    </div>
+                </div>
+
+                <div class="about-divider"><hr></div>
+
+                <!-- Development Team -->
+                <div class="about-section">
+                    <div class="about-section-label">Development Team</div>
+                    <h2>The people behind Non-UniPay</h2>
+                    <p>Developed by a dedicated team of IT students committed to solving real problems in institutional finance management.</p>
+                    <div class="team-grid">
+
+                     <!-- Robby Jay Ibale -->
+<div class="team-card">
+    <div class="team-avatar-wrap">
+        <div class="team-avatar-img" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
+           <img src="{{ asset('images/robby.jpg') }}" alt="Robby Jay Ibale" onerror="this.style.display='none'">
+            <div class="team-avatar-ring"></div>
+        </div>
+        <div class="team-role-badge"><i class="fas fa-code"></i></div>
+    </div>
+    <h3>Robby Jay Ibale</h3>
+    <div class="team-role">Full Stack Developer</div>
+    <div class="team-dept">Frontend &amp; Backend</div>
+    <div class="team-skills">
+        <span>Laravel</span><span>JavaScript</span><span>MySQL</span><span>ReactNative</span>
+    </div>
+</div>
+
+<!-- James Cuso -->
+<div class="team-card">
+    <div class="team-avatar-wrap">
+        <div class="team-avatar-img" style="background: linear-gradient(135deg, #1a6b3c, #2a9a58);">
+            <img src="{{ asset('images/james.jpg') }}" alt="James Cuso" onerror="this.style.display='none'">
+           
+            <div class="team-avatar-ring"></div>
+        </div>
+        <div class="team-role-badge"><i class="fas fa-bug"></i></div>
+    </div>
+    <h3>James Cuso</h3>
+    <div class="team-role">QA Tester</div>
+    <div class="team-dept">Quality Assurance</div>
+    <div class="team-skills">
+        <span>Testing</span><span>Bug Reports</span>
+    </div>
+</div>
+
+<!-- Khey Marie Jardenero -->
+<div class="team-card">
+    <div class="team-avatar-wrap">
+        <div class="team-avatar-img" style="background: linear-gradient(135deg, #7b1fa2, #ab47bc);">
+           <img src="{{ asset('images/khey.jpg') }}" alt="Khey Marie Jardenero" onerror="this.style.display='none'">
+
+          
+            <div class="team-avatar-ring"></div>
+        </div>
+        <div class="team-role-badge"><i class="fas fa-paint-brush"></i></div>
+    </div>
+    <h3>Khey Marie Jardenero</h3>
+    <div class="team-role">UI/UX Designer</div>
+    <div class="team-dept">Interface &amp; Experience</div>
+    <div class="team-skills">
+        <span>Figma</span><span>Prototyping</span>
+    </div>
+</div>
+
+<!-- Ricianin Bontog -->
+<div class="team-card">
+    <div class="team-avatar-wrap">
+        <div class="team-avatar-img" style="background: linear-gradient(135deg, #b8600a, #e8a020);">
+            <img src="{{ asset('images/ricianin.jpg') }}" alt="Ricianin Bontog" onerror="this.style.display='none'">
+            
+            <div class="team-avatar-ring"></div>
+        </div>
+        <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
+    </div>
+    <h3>Ricianin Bontog</h3>
+    <div class="team-role">Documentation</div>
+    <div class="team-dept">Technical Writing</div>
+    <div class="team-skills">
+        <span>SRS</span><span>User Manuals</span>
+    </div>
+</div>
+
+<!-- Novy Mapute -->
+<div class="team-card">
+    <div class="team-avatar-wrap">
+        <div class="team-avatar-img" style="background: linear-gradient(135deg, #c62828, #ef5350);">
+            <img src="{{ asset('images/novy.jpg') }}" alt="Novy Mapute" onerror="this.style.display='none'">
+           
+            <div class="team-avatar-ring"></div>
+        </div>
+        <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
+    </div>
+    <h3>Novy Mapute</h3>
+    <div class="team-role">Documentation</div>
+    <div class="team-dept">Technical Writing</div>
+    <div class="team-skills">
+        <span>Reports</span><span>Research</span>
+    </div>
+</div>
+                    </div>
+                </div>
+
+                <div class="about-divider"><hr></div>
+
+                <!-- Version & Info -->
+                <div class="about-section" style="padding-bottom:1rem;">
+                    <div class="about-section-label">Release Info</div>
+                    <h2>System Version</h2>
+                    <div class="tech-grid">
+                        <div class="tech-pill"><i class="fas fa-code-branch"></i> Version 1.0.0</div>
+                        <div class="tech-pill"><i class="fas fa-calendar-alt"></i> Released {{ date('Y') }}</div>
+                        <div class="tech-pill"><i class="fas fa-university"></i> Academic System</div>
+                        <div class="tech-pill"><i class="fas fa-lock"></i> Staff & Admin Only</div>
+                    </div>
+                </div>
+
+            </div><!-- /.about-body -->
+
+            <!-- Footer -->
+            <div class="about-footer">
+                <p>
+                    <strong>Non-UniPay</strong> &copy; {{ date('Y') }} &nbsp;·&nbsp;
+                    Fee Payment &amp; Exam Clearance System &nbsp;·&nbsp;
+                    Staff &amp; Admin Portal<br>
+                    <span style="font-size:0.72rem;">Students must use the Non-UniPay mobile app to access their accounts.</span>
+                </p>
+            </div>
+
+        </div><!-- /.expanded-center -->
+
+        <!-- ══ TOGGLE ARROW BUTTON ══ -->
+        <button class="toggle-btn" id="toggleBtn" onclick="togglePanel()" title="Toggle login form">
+            <svg viewBox="0 0 24 24">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
     </div>
 
     <!-- ══ RIGHT PANEL ══════════════════════════════════ -->
-    <div class="right-panel">
+    <div class="right-panel" id="rightPanel">
         <div class="login-inner">
 
             <div class="logo-wrap">
@@ -779,6 +1513,7 @@
                         required
                         autocomplete="current-password"
                     >
+                
                 </div>
 
                 <button type="submit" class="btn-login" id="loginBtn">
@@ -857,7 +1592,6 @@
         var splash = document.getElementById('splash-screen');
         var body   = document.body;
 
-        // Progress bar animation is 1s delay + 1.6s fill = ~2.7s total; dismiss at 2.8s
         setTimeout(function () {
             if (splash) {
                 splash.classList.add('fade-out');
@@ -869,6 +1603,38 @@
                 body.classList.add('content-visible');
             }
         }, 2800);
+
+        // ══ PANEL TOGGLE ══════════════════════════════════
+        var panelExpanded = false;
+
+        function togglePanel() {
+            panelExpanded = !panelExpanded;
+            var leftPanel  = document.getElementById('leftPanel');
+            var rightPanel = document.getElementById('rightPanel');
+
+            if (panelExpanded) {
+                leftPanel.classList.add('expanded');
+                rightPanel.classList.add('hidden');
+            } else {
+                leftPanel.classList.remove('expanded');
+                rightPanel.classList.remove('hidden');
+            }
+        }
+
+        // ══ PASSWORD TOGGLE ══════════════════════════════
+        function togglePassword() {
+            var pwInput   = document.getElementById('password');
+            var pwEyeIcon = document.getElementById('pwEyeIcon');
+            if (pwInput.type === 'password') {
+                pwInput.type = 'text';
+                pwEyeIcon.classList.remove('fa-eye');
+                pwEyeIcon.classList.add('fa-eye-slash');
+            } else {
+                pwInput.type = 'password';
+                pwEyeIcon.classList.remove('fa-eye-slash');
+                pwEyeIcon.classList.add('fa-eye');
+            }
+        }
 
         // ══ LOGIN FORM: show loader on submit ═════════════
         var loginForm   = document.getElementById('loginForm');
@@ -941,9 +1707,11 @@
             }, 500);
         });
 
-        loginForm.addEventListener('submit', function () {
-            checkStudentEmail(document.getElementById('emailInput').value.trim());
-        });
+        if (loginForm) {
+            loginForm.addEventListener('submit', function () {
+                checkStudentEmail(document.getElementById('emailInput').value.trim());
+            });
+        }
     </script>
 </body>
 </html>

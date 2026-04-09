@@ -143,7 +143,7 @@ public function downloadExcel()
 {
     $search = $request->get('search');
     $course = $request->get('course');
-    $yearLevel = $request->get('year_level'); // new filter
+    $yearLevel = $request->get('year_level');
 
     $query = Student::with('user')
         ->where('clearance_status', 'cleared');
@@ -165,17 +165,20 @@ public function downloadExcel()
         });
     }
 
-    $clearances = $query->orderBy('student_no')
-                        ->paginate(20)
-                        ->appends(request()->only(['search', 'course', 'year_level']));
-
-    $pendingCount = Student::where('clearance_status', 'pending')->count();
+    $clearances = $query->orderBy('student_no')->paginate(20);
     $currentSemester = Semester::where('is_current', true)->with('schoolYear')->first();
 
-    // Get distinct courses for the dropdown
-    $courses = Student::distinct()->pluck('course')->filter()->values();
+    // Check if it's an AJAX request
+    if ($request->ajax()) {
+        return response()->json([
+            'rows' => view('admin.reports.partials.clearance_rows', compact('clearances', 'currentSemester'))->render(),
+            'pagination' => $clearances->appends($request->only(['search', 'course', 'year_level']))->links('pagination::no-summary')->render(),
+            'totalCleared' => $clearances->total()
+        ]);
+    }
 
-    // Get distinct year levels for the dropdown
+    $pendingCount = Student::where('clearance_status', 'pending')->count();
+    $courses = Student::distinct()->pluck('course')->filter()->values();
     $yearLevels = Student::distinct()->pluck('year_level')->filter()->sort()->values();
 
     return view('admin.reports.clearances', compact('clearances', 'pendingCount', 'currentSemester', 'courses', 'yearLevels'));

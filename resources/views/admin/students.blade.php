@@ -46,12 +46,9 @@
                 @endforeach
             </select>
 
-            <input type="search" name="search" class="form-control rounded-pill border-0 px-4 py-2"
-                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <input type="search" name="search" id="searchInput" class="form-control rounded-pill border-0 px-4 py-2"
+                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);" autocomplete="off">
 
-            <button type="submit" class="btn rounded-pill px-4" style="background: #0f3c91; color: white;">
-                <i class="fas fa-search me-2"></i> Search
-            </button>
         </form>
     </div>
 
@@ -162,7 +159,7 @@
     </div>
 </div>
 
-<!-- Confirmation Modal (dark mode compatible) -->
+<!-- Confirmation Modal -->
 <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
@@ -181,7 +178,7 @@
     </div>
 </div>
 
-<!-- Result Modal (dark mode compatible) -->
+<!-- Result Modal -->
 <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
@@ -199,7 +196,7 @@
     </div>
 </div>
 
-<!-- Student Details Modal (dark mode compatible) -->
+<!-- Student Details Modal -->
 <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
@@ -259,7 +256,7 @@
     </div>
 </div>
 
-<!-- Loaders (same as before, but we keep the original styling) -->
+<!-- Page Loader (used for dropdowns, pagination, polling only) -->
 <div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -274,6 +271,7 @@
     </div>
 </div>
 
+<!-- Action Loader (confirm/delete) -->
 <div id="studentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -297,7 +295,6 @@
         to   { width: 70%; margin-left: 30%; }
     }
 
-    /* Dark mode table overrides */
     .students-table,
     .students-table tbody,
     .students-table tr,
@@ -327,7 +324,6 @@
         font-weight: 500;
     }
 
-    /* Placeholder dark mode */
     .form-control::placeholder,
     input::placeholder {
         color: var(--text-muted);
@@ -339,118 +335,42 @@
         opacity: 0.6;
     }
 
-    /* Student row hover effects */
-    .student-row {
-        transition: all 0.2s ease;
-    }
-    .student-row:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-    }
-    .student-avatar {
-        transition: all 0.2s;
-    }
-    .student-row:hover .student-avatar {
-        background: rgba(15,60,145,0.15) !important;
-        transform: scale(1.02);
-    }
+    .student-row { transition: all 0.2s ease; }
+    .student-row:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.02); }
+    .student-avatar { transition: all 0.2s; }
+    .student-row:hover .student-avatar { background: rgba(15,60,145,0.15) !important; transform: scale(1.02); }
 
-    /* Action buttons */
     .btn-action {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        cursor: pointer;
-        background: transparent;
-        color: var(--text-muted);
-        padding: 0;
+        width: 36px; height: 36px; border-radius: 50%; border: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; cursor: pointer; background: transparent;
+        color: var(--text-muted); padding: 0;
     }
-    .btn-action:hover {
-        background: rgba(15,60,145,0.1);
-        color: #0f3c91;
-        transform: scale(1.1);
-    }
-    .btn-action.confirm-student:hover {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
-    }
-    .btn-action.delete-student:hover {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-    }
+    .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
+    .btn-action.confirm-student:hover { background: rgba(40,167,69,0.1); color: #28a745; }
+    .btn-action.delete-student:hover { background: rgba(220,53,69,0.1); color: #dc3545; }
 
-    /* Badges (light and dark) */
     .badge-paid, .badge-pending, .badge-confirmed {
-        font-weight: 600;
-        padding: 0.45rem 1rem;
-        border-radius: 30px;
-        display: inline-flex;
-        align-items: center;
-        font-size: 0.85rem;
-        gap: 0.35rem;
+        font-weight: 600; padding: 0.45rem 1rem; border-radius: 30px;
+        display: inline-flex; align-items: center; font-size: 0.85rem; gap: 0.35rem;
     }
-    .badge-paid {
-        background: rgba(76, 175, 80, 0.15);
-        color: #2e7d32;
-    }
-    .badge-pending {
-        background: rgba(244, 180, 20, 0.15);
-        color: #b26a00;
-    }
-    .badge-confirmed {
-        background: rgba(15, 60, 145, 0.1);
-        color: #0f3c91;
-    }
-    body.dark .badge-paid {
-        background: rgba(76, 175, 80, 0.25);
-        color: #81c784;
-    }
-    body.dark .badge-pending {
-        background: rgba(244, 180, 20, 0.25);
-        color: #ffd54f;
-    }
-    body.dark .badge-confirmed {
-        background: rgba(59, 130, 246, 0.2);
-        color: #93c5fd;
-    }
+    .badge-paid    { background: rgba(76,175,80,0.15);  color: #2e7d32; }
+    .badge-pending { background: rgba(244,180,20,0.15); color: #b26a00; }
+    .badge-confirmed { background: rgba(15,60,145,0.1); color: #0f3c91; }
+    body.dark .badge-paid      { background: rgba(76,175,80,0.25);  color: #81c784; }
+    body.dark .badge-pending   { background: rgba(244,180,20,0.25); color: #ffd54f; }
+    body.dark .badge-confirmed { background: rgba(59,130,246,0.2);  color: #93c5fd; }
 
-    /* Student detail modal cards */
-    .student-detail-card {
-        background: var(--input-bg);
-        transition: background 0.3s ease;
-    }
+    .student-detail-card { background: var(--input-bg); transition: background 0.3s ease; }
 
-    /* Pagination */
     .pagination .page-link {
-        border: none;
-        color: var(--text-muted);
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        margin: 0 0.2rem;
-        border-radius: 8px;
-        background: transparent;
+        border: none; color: var(--text-muted); font-weight: 500;
+        padding: 0.5rem 1rem; margin: 0 0.2rem; border-radius: 8px; background: transparent;
     }
-    .pagination .page-link:hover {
-        background: rgba(15, 60, 145, 0.1);
-        color: #0f3c91;
-    }
-    .pagination .active .page-link {
-        background: #0f3c91;
-        color: white;
-        box-shadow: 0 4px 8px rgba(15, 60, 145, 0.2);
-    }
-    .pagination .disabled .page-link {
-        color: var(--text-muted);
-        opacity: 0.5;
-        background: transparent;
-    }
+    .pagination .page-link:hover { background: rgba(15,60,145,0.1); color: #0f3c91; }
+    .pagination .active .page-link { background: #0f3c91; color: white; box-shadow: 0 4px 8px rgba(15,60,145,0.2); }
+    .pagination .disabled .page-link { color: var(--text-muted); opacity: 0.5; background: transparent; }
 
-    /* Form controls */
     .form-select, .form-control {
         background-color: var(--input-bg);
         border-color: var(--input-border);
@@ -462,14 +382,20 @@
         background-color: var(--input-bg);
     }
 
-    /* Empty state */
-    .empty-state {
-        padding: 2rem;
-        text-align: center;
+    .empty-state { padding: 2rem; text-align: center; }
+    .empty-state i { opacity: 0.7; }
+
+    /* Inline search spinner shown while typing */
+    #searchSpinner {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #0f3c91;
+        font-size: 0.8rem;
+        display: none;
     }
-    .empty-state i {
-        opacity: 0.7;
-    }
+    .search-wrap { position: relative; }
 </style>
 @endsection
 
@@ -479,26 +405,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
     const actionLoader = document.getElementById('studentActionLoader');
-    const pageLoader = document.getElementById('pageLoader');
+    const pageLoader   = document.getElementById('pageLoader');
 
     function showActionLoader() { if (actionLoader) actionLoader.style.display = 'flex'; }
     function hideActionLoader() { if (actionLoader) actionLoader.style.display = 'none'; }
-    function showPageLoader()  { if (pageLoader) pageLoader.style.display = 'flex'; }
-    function hidePageLoader()  { if (pageLoader) pageLoader.style.display = 'none'; }
+    function showPageLoader()   { if (pageLoader)   pageLoader.style.display   = 'flex'; }
+    function hidePageLoader()   { if (pageLoader)   pageLoader.style.display   = 'none'; }
 
-    // --- Modal helpers (unchanged) ---
+    // ── Modal helpers ──────────────────────────────────────────────────────────
     function showConfirm({ title, message, confirmText, confirmStyle, onConfirm }) {
-        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmTitle').textContent   = title;
         document.getElementById('confirmMessage').textContent = message;
         const iconWrap = document.getElementById('confirmIconWrap');
         iconWrap.style.background = confirmStyle.iconBg;
         iconWrap.innerHTML = `<i class="${confirmStyle.icon}" style="font-size:1.6rem;color:${confirmStyle.iconColor};"></i>`;
-        const oldBtn = document.getElementById('confirmActionBtn');
+        const oldBtn   = document.getElementById('confirmActionBtn');
         const freshBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(freshBtn, oldBtn);
-        freshBtn.textContent = confirmText;
-        freshBtn.style.background = confirmStyle.btnBg;
-        freshBtn.style.color = 'white';
+        freshBtn.textContent       = confirmText;
+        freshBtn.style.background  = confirmStyle.btnBg;
+        freshBtn.style.color       = 'white';
         freshBtn.addEventListener('click', () => {
             bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
             onConfirm();
@@ -508,17 +434,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showResult({ type, title, message, onOk }) {
         const palettes = {
-            success: { iconBg: 'rgba(76,175,80,0.12)', icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
-            error: { iconBg: 'rgba(220,53,69,0.12)', icon: 'fas fa-times-circle', iconColor: '#a71d2a' },
-            info: { iconBg: 'rgba(15,60,145,0.12)', icon: 'fas fa-info-circle', iconColor: '#0f3c91' },
+            success: { iconBg: 'rgba(76,175,80,0.12)',  icon: 'fas fa-check-circle', iconColor: '#2e7d32' },
+            error:   { iconBg: 'rgba(220,53,69,0.12)',   icon: 'fas fa-times-circle', iconColor: '#a71d2a' },
+            info:    { iconBg: 'rgba(15,60,145,0.12)',   icon: 'fas fa-info-circle',  iconColor: '#0f3c91' },
         };
         const p = palettes[type] || palettes.info;
-        document.getElementById('resultTitle').textContent = title;
+        document.getElementById('resultTitle').textContent   = title;
         document.getElementById('resultMessage').textContent = message;
         const iconWrap = document.getElementById('resultIconWrap');
         iconWrap.style.background = p.iconBg;
         iconWrap.innerHTML = `<i class="${p.icon}" style="font-size:1.6rem;color:${p.iconColor};"></i>`;
-        const oldOkBtn = document.getElementById('resultOkBtn');
+        const oldOkBtn   = document.getElementById('resultOkBtn');
         const freshOkBtn = oldOkBtn.cloneNode(true);
         oldOkBtn.parentNode.replaceChild(freshOkBtn, oldOkBtn);
         if (onOk) freshOkBtn.addEventListener('click', onOk);
@@ -532,20 +458,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return await fetch(action, { method: 'POST', body: formData });
     }
 
-    // --- Action handlers (confirm/delete) ---
+    // ── Action handlers (confirm / delete) ────────────────────────────────────
     function attachActionHandlers() {
         document.querySelectorAll('.trigger-confirm').forEach(btn => {
+            btn.removeEventListener('click', btn._listener);
             const handler = function () {
-                const action = this.dataset.action;
-                const method = this.dataset.method;
-                const type = this.dataset.type;
-                const title = this.dataset.title;
-                const message = this.dataset.message;
-                const confirmText = this.dataset.confirmText;
-                const iconBg = this.dataset.iconBg;
-                const icon = this.dataset.icon;
-                const iconColor = this.dataset.iconColor;
-                const btnBg = this.dataset.btnBg;
+                const { action, method, type, title, message, confirmText,
+                        iconBg, icon, iconColor, btnBg } = this.dataset;
                 const row = this.closest('tr');
                 showConfirm({
                     title, message, confirmText,
@@ -565,14 +484,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 showResult({ type: 'error', title: 'Action Failed', message: 'Something went wrong. Please try again.' });
                             }
-                        } catch (error) {
+                        } catch {
                             hideActionLoader();
                             showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
                         }
                     }
                 });
             };
-            btn.removeEventListener('click', btn._listener);
             btn.addEventListener('click', handler);
             btn._listener = handler;
         });
@@ -580,25 +498,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function attachViewHandlers() {
         document.querySelectorAll('.view-student').forEach(btn => {
+            btn.removeEventListener('click', btn._viewListener);
             const handler = function () {
                 const studentId = this.dataset.id;
                 fetch(`/admin/students/${studentId}/json`)
-                    .then(res => res.json())
+                    .then(r => r.json())
                     .then(data => {
-                        document.getElementById('modalStudentName').textContent = data.name;
-                        document.getElementById('modalStudentNo').textContent = data.student_no;
-                        document.getElementById('modalStudentEmail').textContent = data.email;
+                        document.getElementById('modalStudentName').textContent    = data.name;
+                        document.getElementById('modalStudentNo').textContent      = data.student_no;
+                        document.getElementById('modalStudentEmail').textContent   = data.email;
                         document.getElementById('modalStudentContact').textContent = data.contact || 'N/A';
-                        document.getElementById('modalStudentCourse').textContent = data.course;
-                        document.getElementById('modalStudentYear').textContent = `Year ${data.year_level}`;
-                        const avatar = document.getElementById('modalStudentAvatar');
+                        document.getElementById('modalStudentCourse').textContent  = data.course;
+                        document.getElementById('modalStudentYear').textContent    = `Year ${data.year_level}`;
+                        const avatar   = document.getElementById('modalStudentAvatar');
                         const fallback = document.getElementById('modalStudentAvatarFallback');
                         if (data.profile_picture) {
-                            avatar.src = data.profile_picture;
-                            avatar.style.display = 'block';
+                            avatar.src            = data.profile_picture;
+                            avatar.style.display  = 'block';
                             fallback.style.display = 'none';
                         } else {
-                            avatar.style.display = 'none';
+                            avatar.style.display  = 'none';
                             fallback.style.display = 'flex';
                         }
                         document.getElementById('modalStudentConfirmed').innerHTML = data.is_confirmed
@@ -611,23 +530,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
                     .catch(err => console.error(err));
             };
-            btn.removeEventListener('click', btn._viewListener);
             btn.addEventListener('click', handler);
             btn._viewListener = handler;
         });
     }
 
-    // --- AJAX Filtering & Pagination (with global loader) ---
+    // ── AJAX load ──────────────────────────────────────────────────────────────
     let currentStudentPage = parseInt(document.getElementById('initialPage').dataset.page) || 1;
-    let isLoading = false;
+    let isLoading          = false;
+    let searchAbortCtrl    = null;
 
     function buildFilterUrl(page) {
         const formData = new FormData(document.getElementById('searchForm'));
-        const url = new URL(window.location.href);
-        url.searchParams.set('search', formData.get('search') || '');
-        url.searchParams.set('course', formData.get('course') || '');
-        url.searchParams.set('year_level', formData.get('year_level') || '');
-        url.searchParams.set('clearance_status', formData.get('clearance_status') || '');
+        const url      = new URL(window.location.href);
+        url.searchParams.set('search',           formData.get('search')           || '');
+        url.searchParams.set('course',            formData.get('course')            || '');
+        url.searchParams.set('year_level',        formData.get('year_level')        || '');
+        url.searchParams.set('clearance_status',  formData.get('clearance_status')  || '');
         if (page && page > 1) {
             url.searchParams.set('page', page);
         } else {
@@ -636,75 +555,103 @@ document.addEventListener('DOMContentLoaded', function () {
         return url.toString();
     }
 
-    async function loadStudents(url) {
-        if (isLoading) return;
-        isLoading = true;
-        showPageLoader();
+    // silent = true  → no full-screen loader (used while typing)
+    // silent = false → show full-screen loader (dropdowns, pagination, polling)
+    async function loadStudents(url, silent = false) {
+        // Abort any in-flight silent (search) request
+        if (searchAbortCtrl) { searchAbortCtrl.abort(); searchAbortCtrl = null; }
+        if (isLoading && !silent) return;
+
+        if (!silent) {
+            isLoading = true;
+            showPageLoader();
+        } else {
+            searchAbortCtrl = new AbortController();
+        }
+
         try {
-            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            const html = await response.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            const newTbody = doc.getElementById('students-table-body');
+            const fetchOpts = { headers: { 'X-Requested-With': 'XMLHttpRequest' } };
+            if (silent) fetchOpts.signal = searchAbortCtrl.signal;
+
+            const response = await fetch(url, fetchOpts);
+            const html     = await response.text();
+            const doc      = new DOMParser().parseFromString(html, 'text/html');
+
+            const newTbody      = doc.getElementById('students-table-body');
             const newPagination = doc.getElementById('students-pagination');
-            if (newTbody) document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
-            if (newPagination) document.getElementById('students-pagination').innerHTML = newPagination.innerHTML;
+
+            if (newTbody)      document.getElementById('students-table-body').innerHTML  = newTbody.innerHTML;
+            if (newPagination) document.getElementById('students-pagination').innerHTML  = newPagination.innerHTML;
+            else               document.getElementById('students-pagination') && (document.getElementById('students-pagination').innerHTML = '');
+
             attachViewHandlers();
             attachActionHandlers();
         } catch (err) {
-            console.error(err);
+            if (err.name !== 'AbortError') console.error(err);
         } finally {
-            hidePageLoader();
-            isLoading = false;
+            if (!silent) { hidePageLoader(); isLoading = false; }
+            searchAbortCtrl = null;
         }
     }
 
+    // Called by dropdowns — shows loader
     function applyFiltersAndLoad() {
         currentStudentPage = 1;
-        loadStudents(buildFilterUrl(1));
+        loadStudents(buildFilterUrl(1), false);
     }
 
-    // Filters: change events and search input (debounced)
-    const searchInput = document.querySelector('input[name="search"]');
+    // Called while typing — silent, debounced
+    function applyFiltersLive() {
+        currentStudentPage = 1;
+        loadStudents(buildFilterUrl(1), true);
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────────────
+
+    // Live search — debounced, no loader
+    const searchInput = document.getElementById('searchInput');
     let debounceTimer;
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFiltersAndLoad, 500);
+            debounceTimer = setTimeout(applyFiltersLive, 350);
         });
     }
 
-    const courseSelect = document.querySelector('select[name="course"]');
-    if (courseSelect) courseSelect.addEventListener('change', applyFiltersAndLoad);
-    const yearSelect = document.querySelector('select[name="year_level"]');
-    if (yearSelect) yearSelect.addEventListener('change', applyFiltersAndLoad);
+    // Dropdowns — immediate with loader
+    const courseSelect    = document.querySelector('select[name="course"]');
+    const yearSelect      = document.querySelector('select[name="year_level"]');
     const clearanceSelect = document.querySelector('select[name="clearance_status"]');
+    if (courseSelect)    courseSelect.addEventListener('change',    applyFiltersAndLoad);
+    if (yearSelect)      yearSelect.addEventListener('change',      applyFiltersAndLoad);
     if (clearanceSelect) clearanceSelect.addEventListener('change', applyFiltersAndLoad);
 
-    // Form submit (search button)
+    // Form submit (enter key fallback) — no loader since it's essentially the same as live search
     document.getElementById('searchForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        applyFiltersAndLoad();
+        clearTimeout(debounceTimer);
+        applyFiltersLive();
     });
 
-    // Pagination clicks
+    // Pagination — with loader
     document.addEventListener('click', function (e) {
         const link = e.target.closest('.pagination a');
         if (link && !link.classList.contains('disabled')) {
             e.preventDefault();
             const targetUrl = new URL(link.href);
             currentStudentPage = parseInt(targetUrl.searchParams.get('page') || '1');
-            loadStudents(link.href);
+            loadStudents(link.href, false);
         }
     });
 
-    // Poll for new students (also uses global loader)
+    // ── Polling (silent — no loader) ──────────────────────────────────────────
     let lastUnconfirmedCount = null;
     function pollForNewStudents() {
         fetch('/admin/api/new-students-count')
-            .then(res => res.json())
+            .then(r => r.json())
             .then(data => {
                 if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
-                    loadStudents(buildFilterUrl(currentStudentPage));
+                    loadStudents(buildFilterUrl(currentStudentPage), true);
                 }
                 lastUnconfirmedCount = data.count;
             })
@@ -713,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(pollForNewStudents, 5000);
     pollForNewStudents();
 
-    // Initial attachments
+    // ── Initial bindings ──────────────────────────────────────────────────────
     attachViewHandlers();
     attachActionHandlers();
 });

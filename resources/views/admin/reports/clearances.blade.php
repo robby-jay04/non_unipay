@@ -18,30 +18,6 @@
     </button>
 </div>
 
-{{-- Current Semester Info Banner --}}
-@php
-    $current = $currentSemester ?? null;
-@endphp
-
-@if($current)
-<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--banner-gradient-start) 0%, var(--banner-gradient-end) 100%);">
-    <div class="card-body p-3">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                 style="width: 48px; height: 48px; background: rgba(15,60,145,0.15);">
-                <i class="fas fa-calendar-alt fa-lg" style="color: #0f3c91;"></i>
-            </div>
-            <div>
-                <span class="text-uppercase small fw-semibold text-muted" style="letter-spacing: 0.5px; color: var(--text-muted) !important;">Current Academic Period</span>
-                <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
-                    {{ $current->name }} – {{ $current->schoolYear->name ?? 'N/A' }}
-                </h5>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
 {{-- Clearance Table Card --}}
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bg-main);">
     <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: var(--bg-main);">
@@ -49,7 +25,7 @@
             <i class="fas fa-users me-2"></i> Clearance Report
         </h5>
         <div class="d-flex gap-2">
-            <span class="badge-cleared">
+            <span class="badge-cleared" id="clearedCountBadge">
                 <i class="fas fa-check-circle me-1"></i> Cleared: {{ $clearances->total() }}
             </span>
             <span class="badge-pending-status">
@@ -59,135 +35,62 @@
     </div>
 
     <div class="card-body p-0">
-        {{-- Filter Row --}}
         <div class="p-4 border-bottom" style="background: var(--table-header-bg); border-color: var(--border-color) !important;">
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Course</label>
-                    <select name="course" form="filterForm" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
+                    <select name="course" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                         <option value="">All Courses</option>
                         @foreach($courses as $course)
-                            <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                            <option value="{{ $course }}">{{ $course }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Year Level</label>
-                    <select name="year_level" form="filterForm" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
+                    <select name="year_level" class="form-select rounded-pill border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                         <option value="">All Year Levels</option>
                         @foreach($yearLevels as $level)
-                            <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>Year {{ $level }}</option>
+                            <option value="{{ $level }}">Year {{ $level }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-semibold mb-1" style="color: var(--text-muted);">Search Student</label>
                     <div class="input-group">
-                        <input type="text" name="search" form="filterForm" class="form-control rounded-pill border-0 px-3 py-2"
-                               placeholder="Name or student number..." value="{{ request('search') }}"
+                        <input type="text" name="search" class="form-control rounded-pill border-0 px-3 py-2"
+                               placeholder="Name or student number..."
                                style="background: var(--input-bg); color: var(--text-primary);">
-                        <button type="submit" form="filterForm" class="btn btn-primary rounded-pill px-4 ms-2">
-                            <i class="fas fa-search me-1"></i> Search
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Hidden form for auto-submit --}}
-        <form id="filterForm" method="GET" action="{{ route('admin.reports.clearances') }}" style="display: none;"></form>
-
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 clearance-table">
                 <thead style="background: var(--table-header-bg);">
                     <tr>
-                        <th class="px-4 py-3" style="color: var(--text-primary);">Student No.</th>
-                        <th class="py-3" style="color: var(--text-primary);">Student Name</th>
-                        <th class="py-3" style="color: var(--text-primary);">Course</th>
-                        <th class="py-3" style="color: var(--text-primary);">Year Level</th>
-                        <th class="py-3" style="color: var(--text-primary);">Semester</th>
-                        <th class="py-3" style="color: var(--text-primary);">School Year</th>
-                        <th class="py-3" style="color: var(--text-primary);">Status</th>
-                        <th class="py-3 pe-4" style="color: var(--text-primary);">Last Payment</th>
+                        <th class="px-4 py-3">Student No.</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Year Level</th>
+                        <th>Semester</th>
+                        <th>School Year</th>
+                        <th>Status</th>
+                        <th class="pe-4">Last Payment</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($clearances as $student)
-                    <tr class="clearance-row">
-                        <td class="px-4 py-3 fw-medium" style="color: var(--text-secondary);">{{ $student->student_no ?? '—' }}</td>
-                        <td class="py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="student-avatar rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                     style="width: 42px; height: 42px; background: rgba(15,60,145,0.1); font-size: 1rem; font-weight: 700; color: #0f3c91;">
-                                    {{ strtoupper(substr($student->user->name, 0, 1)) }}
-                                </div>
-                                <span class="fw-semibold" style="color: var(--text-primary);">{{ $student->user->name }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3">
-                            @if($student->course)
-                                <span class="badge-course">{{ $student->course }}</span>
-                            @else
-                                <span class="text-muted" style="color: var(--text-muted) !important;">—</span>
-                            @endif
-                        </td>
-                        <td class="py-3">
-                            @if($student->year_level)
-                                <span class="badge-year-level">Year {{ $student->year_level }}</span>
-                            @else
-                                <span class="text-muted" style="color: var(--text-muted) !important;">—</span>
-                            @endif
-                        </td>
-                        <td class="py-3" style="color: var(--text-secondary);">{{ $current->name ?? '—' }}</td>
-                        <td class="py-3" style="color: var(--text-secondary);">{{ $current->schoolYear->name ?? '—' }}</td>
-                        <td class="py-3">
-                            @if($student->clearance_status === 'cleared')
-                                <span class="badge-cleared-status">
-                                    <i class="fas fa-check-circle me-1"></i> Cleared
-                                </span>
-                            @else
-                                <span class="badge-pending-status">
-                                    <i class="fas fa-clock me-1"></i> Not Cleared
-                                </span>
-                            @endif
-                        </td>
-                        <td class="py-3 pe-4" style="color: var(--text-secondary);">
-                            @php
-                                $lastPayment = $student->payments()
-                                            ->where('status', 'paid')
-                                            ->latest('payment_date')
-                                            ->first();
-                            @endphp
-                            @if($lastPayment && $lastPayment->payment_date)
-                                {{ \Carbon\Carbon::parse($lastPayment->payment_date)->format('M d, Y') }}
-                            @else
-                                {{ $student->updated_at->format('M d, Y') }}
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-5">
-                            <div class="empty-state">
-                                <i class="fas fa-user-slash fa-4x" style="color: var(--text-muted);"></i>
-                                <h6 class="fw-semibold mt-3" style="color: var(--text-primary);">No students found</h6>
-                                <p class="small" style="color: var(--text-muted);">Try adjusting your filters or search term.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                <tbody id="clearanceTableBody">
+                    @include('admin.reports.partials.clearance_rows')
                 </tbody>
             </table>
         </div>
 
-        @if($clearances->hasPages())
-        <div class="d-flex justify-content-center py-4">
+        <div class="d-flex justify-content-center py-4" id="clearancePagination">
             {{ $clearances->links('pagination::no-summary') }}
         </div>
-        @endif
     </div>
 </div>
-
 {{-- Download Modal (Dark mode compatible) --}}
 <div class="modal fade" id="downloadModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
@@ -492,86 +395,65 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Auto-submit filter form on select changes
-    const filterForm = document.getElementById('filterForm');
-    const selects = document.querySelectorAll('select[form="filterForm"]');
-    selects.forEach(select => {
-        select.addEventListener('change', function () {
-            filterForm.submit();
+    const searchInput = document.querySelector('input[name="search"]');
+    const courseSelect = document.querySelector('select[name="course"]');
+    const yearSelect = document.querySelector('select[name="year_level"]');
+    const tableBody = document.getElementById('clearanceTableBody');
+    const paginationWrap = document.getElementById('clearancePagination');
+    const clearedCountBadge = document.getElementById('clearedCountBadge');
+    const loader = document.getElementById('clearanceLoader');
+
+    let searchTimer;
+
+    async function fetchClearances(url, silent = false) {
+        if (!silent && loader) loader.style.display = 'flex';
+        
+        try {
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            tableBody.innerHTML = data.rows;
+            if(paginationWrap) paginationWrap.innerHTML = data.pagination;
+            if(clearedCountBadge) clearedCountBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> Cleared: ${data.totalCleared}`;
+            
+            // Sync modal search hidden input
+            const modalSearch = document.getElementById('modalSearchInput');
+            if(modalSearch) modalSearch.value = searchInput.value;
+            
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            if(loader) loader.style.display = 'none';
+        }
+    }
+
+    function buildUrl() {
+        const params = new URLSearchParams({
+            search: searchInput.value,
+            course: courseSelect.value,
+            year_level: yearSelect.value
         });
+        return `{{ route('admin.reports.clearances') }}?${params.toString()}`;
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => fetchClearances(buildUrl(), true), 500);
     });
 
-    // Search input debounce
-    const searchInput = document.querySelector('input[name="search"][form="filterForm"]');
-    let searchTimer;
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                filterForm.submit();
-            }, 500);
-        });
-        searchInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(searchTimer);
-                filterForm.submit();
-            }
-        });
-    }
+    [courseSelect, yearSelect].forEach(select => {
+        select.addEventListener('change', () => fetchClearances(buildUrl(), false));
+    });
 
-    // PDF download via AJAX with loader
-    const downloadForm = document.getElementById('downloadForm');
-    const loader = document.getElementById('clearanceLoader');
-    const modalEl = document.getElementById('downloadModal');
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-
-    if (downloadForm) {
-        downloadForm.addEventListener('submit', async function (e) {
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('#clearancePagination a');
+        if (link) {
             e.preventDefault();
-
-            const course = downloadForm.querySelector('select[name="course"]').value;
-            const yearLevel = downloadForm.querySelector('select[name="year_level"]').value;
-            const search = document.getElementById('modalSearchInput').value;
-
-            const url = new URL('{{ route("admin.reports.clearances.pdf") }}', window.location.origin);
-            if (course) url.searchParams.append('course', course);
-            if (yearLevel) url.searchParams.append('year_level', yearLevel);
-            if (search) url.searchParams.append('search', search);
-
-            modal.hide();
-            if (loader) loader.style.display = 'flex';
-
-            try {
-                const response = await fetch(url.toString(), {
-                    method: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (!response.ok) throw new Error(`Server error: ${response.status}`);
-
-                const contentDisposition = response.headers.get('Content-Disposition');
-                let filename = 'clearance_report.pdf';
-                if (contentDisposition) {
-                    const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                    if (match && match[1]) filename = match[1].replace(/['"]/g, '');
-                }
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-            } catch (error) {
-                console.error('PDF download failed:', error);
-                alert('Failed to generate PDF report. Please try again.\n' + error.message);
-            } finally {
-                if (loader) loader.style.display = 'none';
-            }
-        });
-    }
+            fetchClearances(link.href, false);
+        }
+    });
 });
 </script>
 @endpush

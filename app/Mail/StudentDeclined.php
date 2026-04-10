@@ -13,7 +13,10 @@ class StudentDeclined extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Student $student) {}
+    public function __construct(
+        public Student $student,
+        public string $reason
+    ) {}
 
     public function envelope(): Envelope
     {

@@ -139,26 +139,27 @@ class AdminController extends Controller
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
 }
 
-   public function destroy(Student $student)
+ public function destroy(Student $student)
 {
-    // Capture data before deletion
-    $studentName = $student->user->name;
-    $studentNo   = $student->student_no;
+    $reason       = request('reason') ?: 'No reason provided.';
+    $studentName  = $student->user->name;
+    $studentNo    = $student->student_no;
     $studentEmail = $student->user->email;
 
     $student->user()->delete();
     $student->delete();
 
-    // Send deletion email after removing the record
-    Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo));
+    Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
 
     return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
 }
+
 public function declineStudent(Student $student)
 {
-    $email = $student->user->email;
+    $reason = request('reason') ?: 'No reason provided.';
+    $email  = $student->user->email;
 
-    Mail::to($email)->send(new StudentDeclined($student));
+    Mail::to($email)->send(new StudentDeclined($student, $reason));
 
     $student->user()->delete();
     $student->delete();

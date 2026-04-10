@@ -15,6 +15,8 @@
         .info-box p { margin: 0 0 6px; }
         .info-box p:last-child { margin: 0; }
         .info-box span { font-weight: 600; color: #b71c1c; }
+        .reason-box { background: #fff5f5; border-left: 4px solid #b71c1c; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; color: #333; }
+        .reason-box strong { display: block; margin-bottom: 4px; color: #b71c1c; }
         .footer { text-align: center; padding: 20px 32px; font-size: 12px; color: #999; border-top: 1px solid #eee; }
     </style>
 </head>
@@ -33,7 +35,11 @@
                 <p>Course: <span>{{ $student->course }}</span></p>
                 <p>Year Level: <span>{{ $student->year_level }}</span></p>
             </div>
-            <p>This may be due to incomplete or incorrect registration details. If you believe this is a mistake or need further clarification, please contact your administrator directly.</p>
+            <div class="reason-box">
+                <strong>Reason for Decline:</strong>
+                {{ $reason }}
+            </div>
+           <p>If you believe this is a mistake or need further clarification, please contact your administrator directly at <a href="mailto:nonunipay@gmail.com" style="color:#b71c1c;font-weight:600;">nonunipay@gmail.com</a>.</p>
             <p>— The Non-UniPay Team</p>
         </div>
         <div class="footer">

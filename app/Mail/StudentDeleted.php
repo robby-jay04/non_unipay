@@ -14,7 +14,8 @@ class StudentDeleted extends Mailable
 
     public function __construct(
         public string $studentName,
-        public string $studentNo
+        public string $studentNo,
+        public string $reason
     ) {}
 
     public function envelope(): Envelope

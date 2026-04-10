@@ -96,62 +96,44 @@
                                         data-id="{{ $student->id }}">
                                     <i class="fas fa-eye"></i>
                                 </button>
+@if(!$student->is_confirmed)
+    <!-- Confirm Button -->
+    <button type="button"
+            class="btn-action confirm-student trigger-confirm"
+            title="Confirm account"
+            data-action="{{ route('admin.students.confirm', $student) }}"
+            data-method="POST"
+            data-type="confirm"
+            data-title="Confirm Student Account"
+            data-message="Are you sure you want to confirm this student account?"
+            data-confirm-text="Yes, Confirm"
+            data-icon-bg="rgba(15,60,145,0.12)"
+            data-icon="fas fa-check-circle"
+            data-icon-color="#0f3c91"
+            data-btn-bg="#0f3c91">
+        <i class="fas fa-check-circle"></i>
+    </button>
 
-                                @if(!$student->is_confirmed)
-                                    <!-- Confirm Button -->
-                                    <button type="button"
-                                            class="btn-action confirm-student trigger-confirm"
-                                            title="Confirm account"
-                                            data-action="{{ route('admin.students.confirm', $student) }}"
-                                            data-method="POST"
-                                            data-type="confirm"
-                                            data-title="Confirm Student Account"
-                                            data-message="Are you sure you want to confirm this student account?"
-                                            data-confirm-text="Yes, Confirm"
-                                            data-icon-bg="rgba(15,60,145,0.12)"
-                                            data-icon="fas fa-check-circle"
-                                            data-icon-color="#0f3c91"
-                                            data-btn-bg="#0f3c91">
-                                        <i class="fas fa-check-circle"></i>
-                                    </button>
+    <!-- Decline Button -->
+    <button type="button"
+            class="btn-action decline-student"
+            title="Decline account"
+            data-action="{{ route('admin.students.decline', $student) }}"
+            data-student-name="{{ $student->user->name }}">
+        <i class="fas fa-times-circle"></i>
+    </button>
+@else
+    <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
 
-                                    <!-- Decline Button -->
-                                    <button type="button"
-                                            class="btn-action decline-student trigger-confirm"
-                                            title="Decline account"
-                                            data-action="{{ route('admin.students.decline', $student) }}"
-                                            data-method="POST"
-                                            data-type="delete"
-                                            data-title="Decline Student Account"
-                                            data-message="Are you sure you want to decline this student? They will be notified by email and their account will be removed."
-                                            data-confirm-text="Yes, Decline"
-                                            data-icon-bg="rgba(183,28,28,0.12)"
-                                            data-icon="fas fa-times-circle"
-                                            data-icon-color="#b71c1c"
-                                            data-btn-bg="#b71c1c">
-                                        <i class="fas fa-times-circle"></i>
-                                    </button>
-                                @else
-                                    <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
-                                @endif
-
-                                <!-- Delete Button -->
-                                <button type="button"
-                                        class="btn-action delete-student trigger-confirm"
-                                        title="Delete student"
-                                        data-action="{{ route('admin.students.destroy', $student) }}"
-                                        data-method="DELETE"
-                                        data-type="delete"
-                                        data-title="Delete Student"
-                                        data-message="Are you sure you want to delete this student? They will be notified by email and this action cannot be undone."
-                                        data-confirm-text="Yes, Delete"
-                                        data-icon-bg="rgba(220,53,69,0.12)"
-                                        data-icon="fas fa-trash-alt"
-                                        data-icon-color="#a71d2a"
-                                        data-btn-bg="#a71d2a">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-
+    <!-- Delete Button — only for confirmed students -->
+    <button type="button"
+            class="btn-action delete-student"
+            title="Delete student"
+            data-action="{{ route('admin.students.destroy', $student) }}"
+            data-student-name="{{ $student->user->name }}">
+        <i class="fas fa-trash-alt"></i>
+    </button>
+@endif
                             </div>
                         </td>
                     </tr>
@@ -284,6 +266,112 @@
     </div>
 </div>
 
+<!-- Decline Reason Modal -->
+<div class="modal fade" id="declineReasonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                     style="width:64px;height:64px;background:rgba(183,28,28,0.12);">
+                    <i class="fas fa-times-circle" style="font-size:1.6rem;color:#b71c1c;"></i>
+                </div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-1" style="color: var(--text-primary);">Decline Student Account</h5>
+                <p class="mb-3" style="color: var(--text-secondary); font-size:0.9rem;">
+                    Please select a reason for declining <strong id="declineStudentName"></strong>'s account.
+                </p>
+                <div class="text-start">
+                    <div class="mb-2">
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="declineReason" value="The registered user is not a UniFast beneficiary."
+                                   class="mt-1 decline-radio" style="accent-color:#b71c1c;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">Not a UniFast beneficiary</span>
+                        </label>
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="declineReason" value="The information you provided during registration is incorrect."
+                                   class="mt-1 decline-radio" style="accent-color:#b71c1c;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">Incorrect registration information</span>
+                        </label>
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="declineReason" value="other"
+                                   class="mt-1 decline-radio" style="accent-color:#b71c1c;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">Other reason</span>
+                        </label>
+                    </div>
+                    <textarea id="declineOtherText" rows="3"
+                              placeholder="Please describe the reason..."
+                              class="form-control rounded-3 border-0 mt-1"
+                              style="display:none;background:var(--input-bg);color:var(--text-primary);resize:none;font-size:0.9rem;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4"
+                        data-bs-dismiss="modal"
+                        style="background:var(--input-bg);color:var(--text-primary);">Cancel</button>
+                <button type="button" class="btn rounded-pill px-4 fw-semibold" id="declineSubmitBtn"
+                        style="background:#b71c1c;color:white;" disabled>Yes, Decline</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Reason Modal -->
+<div class="modal fade" id="deleteReasonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                     style="width:64px;height:64px;background:rgba(220,53,69,0.12);">
+                    <i class="fas fa-trash-alt" style="font-size:1.6rem;color:#a71d2a;"></i>
+                </div>
+            </div>
+            <div class="modal-body text-center px-4 pb-2 mt-2">
+                <h5 class="fw-bold mb-1" style="color: var(--text-primary);">Delete Student Account</h5>
+                <p class="mb-3" style="color: var(--text-secondary); font-size:0.9rem;">
+                    Please select a reason for deleting <strong id="deleteStudentName"></strong>'s account.
+                </p>
+                <div class="text-start">
+                    <div class="mb-2">
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="deleteReason" value="The student has violated the portal's rules and policies."
+                                   class="mt-1 delete-radio" style="accent-color:#a71d2a;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">Student violated rules and policies</span>
+                        </label>
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="deleteReason" value="The student is no longer enrolled or is not a current UniFAST student."
+                                   class="mt-1 delete-radio" style="accent-color:#a71d2a;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">No longer a UniFast student</span>
+                        </label>
+                        <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
+                               style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
+                            <input type="radio" name="deleteReason" value="other"
+                                   class="mt-1 delete-radio" style="accent-color:#a71d2a;">
+                            <span style="color:var(--text-primary);font-size:0.9rem;">Other reason</span>
+                        </label>
+                    </div>
+                    <textarea id="deleteOtherText" rows="3"
+                              placeholder="Please describe the reason..."
+                              class="form-control rounded-3 border-0 mt-1"
+                              style="display:none;background:var(--input-bg);color:var(--text-primary);resize:none;font-size:0.9rem;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4 px-4">
+                <button type="button" class="btn btn-light rounded-pill px-4"
+                        data-bs-dismiss="modal"
+                        style="background:var(--input-bg);color:var(--text-primary);">Cancel</button>
+                <button type="button" class="btn rounded-pill px-4 fw-semibold" id="deleteSubmitBtn"
+                        style="background:#a71d2a;color:white;" disabled>Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Page Loader -->
 <div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
@@ -379,7 +467,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const csrfToken   = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const csrfToken    = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
     const actionLoader = document.getElementById('studentActionLoader');
     const pageLoader   = document.getElementById('pageLoader');
@@ -428,62 +516,187 @@ document.addEventListener('DOMContentLoaded', function () {
         new bootstrap.Modal(document.getElementById('resultModal')).show();
     }
 
-    async function submitFormAjax(action, method) {
+    async function submitWithReason(action, method, reason) {
         const formData = new FormData();
         formData.append('_token', csrfToken);
+        formData.append('reason', reason);
         if (method === 'DELETE') formData.append('_method', 'DELETE');
         return await fetch(action, { method: 'POST', body: formData });
     }
 
+    // ── Reason modal logic — shared helper ────────────────────────────────────
+    function setupReasonModal({ modalId, radioClass, otherTextId, submitBtnId, accentColor, onSubmit }) {
+        const modalEl   = document.getElementById(modalId);
+        const submitBtn = document.getElementById(submitBtnId);
+        const otherTxt  = document.getElementById(otherTextId);
+
+        // Reset state every time modal opens
+        modalEl.addEventListener('show.bs.modal', function () {
+            modalEl.querySelectorAll(`input[type=radio]`).forEach(r => r.checked = false);
+            otherTxt.style.display = 'none';
+            otherTxt.value = '';
+            submitBtn.disabled = true;
+            // Reset border highlights
+            modalEl.querySelectorAll('.reason-option').forEach(l => l.style.border = '2px solid transparent');
+        });
+
+        // Radio change
+        modalEl.addEventListener('change', function (e) {
+            if (!e.target.matches(`.${radioClass}`)) return;
+            const val = e.target.value;
+
+            // Highlight selected
+            modalEl.querySelectorAll('.reason-option').forEach(l => l.style.border = '2px solid transparent');
+            e.target.closest('.reason-option').style.border = `2px solid ${accentColor}`;
+
+            if (val === 'other') {
+                otherTxt.style.display = 'block';
+                submitBtn.disabled = otherTxt.value.trim() === '';
+            } else {
+                otherTxt.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Typing in other box
+        otherTxt.addEventListener('input', function () {
+            const selected = modalEl.querySelector(`.${radioClass}:checked`);
+            if (selected && selected.value === 'other') {
+                submitBtn.disabled = this.value.trim() === '';
+            }
+        });
+
+        // Submit
+        submitBtn.addEventListener('click', function () {
+            const selected = modalEl.querySelector(`.${radioClass}:checked`);
+            if (!selected) return;
+            const reason = selected.value === 'other' ? otherTxt.value.trim() : selected.value;
+            bootstrap.Modal.getInstance(modalEl).hide();
+            onSubmit(reason);
+        });
+    }
+
+    // ── Decline reason modal ──────────────────────────────────────────────────
+    let pendingDeclineAction = null;
+    let pendingDeclineRow    = null;
+
+    setupReasonModal({
+        modalId:     'declineReasonModal',
+        radioClass:  'decline-radio',
+        otherTextId: 'declineOtherText',
+        submitBtnId: 'declineSubmitBtn',
+        accentColor: '#b71c1c',
+        onSubmit: async (reason) => {
+            showActionLoader();
+            try {
+                const res = await submitWithReason(pendingDeclineAction, 'POST', reason);
+                hideActionLoader();
+                if (res.ok) {
+                    pendingDeclineRow?.remove();
+                    showResult({ type: 'success', title: 'Account Declined', message: 'The student account has been declined and the student has been notified by email.' });
+                } else {
+                    showResult({ type: 'error', title: 'Action Failed', message: 'Something went wrong. Please try again.' });
+                }
+            } catch {
+                hideActionLoader();
+                showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
+            }
+        }
+    });
+
+    // ── Delete reason modal ───────────────────────────────────────────────────
+    let pendingDeleteAction = null;
+    let pendingDeleteRow    = null;
+
+    setupReasonModal({
+        modalId:     'deleteReasonModal',
+        radioClass:  'delete-radio',
+        otherTextId: 'deleteOtherText',
+        submitBtnId: 'deleteSubmitBtn',
+        accentColor: '#a71d2a',
+        onSubmit: async (reason) => {
+            showActionLoader();
+            try {
+                const res = await submitWithReason(pendingDeleteAction, 'DELETE', reason);
+                hideActionLoader();
+                if (res.ok) {
+                    pendingDeleteRow?.remove();
+                    showResult({ type: 'success', title: 'Student Deleted', message: 'The student account has been permanently removed and the student has been notified by email.' });
+                } else {
+                    showResult({ type: 'error', title: 'Action Failed', message: 'Something went wrong. Please try again.' });
+                }
+            } catch {
+                hideActionLoader();
+                showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
+            }
+        }
+    });
+
     // ── Action handlers ───────────────────────────────────────────────────────
     function attachActionHandlers() {
+        // Confirm buttons (unchanged flow)
         document.querySelectorAll('.trigger-confirm').forEach(btn => {
             btn.removeEventListener('click', btn._listener);
             const handler = function () {
                 const { action, method, type, title, message, confirmText,
                         iconBg, icon, iconColor, btnBg } = this.dataset;
                 const row = this.closest('tr');
-
                 showConfirm({
                     title, message, confirmText,
                     confirmStyle: { iconBg, icon, iconColor, btnBg },
                     onConfirm: async () => {
                         showActionLoader();
                         try {
-                            const res = await submitFormAjax(action, method);
+                            const formData = new FormData();
+                            formData.append('_token', csrfToken);
+                            if (method === 'DELETE') formData.append('_method', 'DELETE');
+                            const res = await fetch(action, { method: 'POST', body: formData });
                             hideActionLoader();
                             if (res.ok) {
-                                if (type === 'delete') {
-                                    row?.remove();
-                                    // Distinguish decline vs delete by the action URL
-                                    const isDecline = action.includes('/decline');
-                                    showResult({
-                                        type: 'success',
-                                        title: isDecline ? 'Account Declined' : 'Student Deleted',
-                                        message: isDecline
-                                            ? 'The student account has been declined and the student has been notified by email.'
-                                            : 'The student account has been permanently removed and the student has been notified by email.',
-                                    });
-                                } else {
-                                    showResult({
-                                        type: 'success',
-                                        title: 'Account Confirmed',
-                                        message: 'The student account has been confirmed and the student has been notified by email.',
-                                        onOk: () => window.location.reload(),
-                                    });
-                                }
+                                showResult({
+                                    type: 'success',
+                                    title: 'Account Confirmed',
+                                    message: 'The student account has been confirmed and the student has been notified by email.',
+                                    onOk: () => window.location.reload(),
+                                });
                             } else {
                                 showResult({ type: 'error', title: 'Action Failed', message: 'Something went wrong. Please try again.' });
                             }
                         } catch {
                             hideActionLoader();
-                            showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred. Please try again.' });
+                            showResult({ type: 'error', title: 'Error', message: 'An unexpected error occurred.' });
                         }
                     }
                 });
             };
             btn.addEventListener('click', handler);
             btn._listener = handler;
+        });
+
+        // Decline buttons — open reason modal
+        document.querySelectorAll('.decline-student').forEach(btn => {
+            btn.removeEventListener('click', btn._declineListener);
+            const handler = function () {
+                pendingDeclineAction = this.dataset.action;
+                pendingDeclineRow    = this.closest('tr');
+                document.getElementById('declineStudentName').textContent = this.dataset.studentName;
+                new bootstrap.Modal(document.getElementById('declineReasonModal')).show();
+            };
+            btn.addEventListener('click', handler);
+            btn._declineListener = handler;
+        });
+
+        // Delete buttons — open reason modal
+        document.querySelectorAll('.delete-student').forEach(btn => {
+            btn.removeEventListener('click', btn._deleteListener);
+            const handler = function () {
+                pendingDeleteAction = this.dataset.action;
+                pendingDeleteRow    = this.closest('tr');
+                document.getElementById('deleteStudentName').textContent = this.dataset.studentName;
+                new bootstrap.Modal(document.getElementById('deleteReasonModal')).show();
+            };
+            btn.addEventListener('click', handler);
+            btn._deleteListener = handler;
         });
     }
 

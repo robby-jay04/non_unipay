@@ -15,6 +15,8 @@
         .info-box p { margin: 0 0 6px; }
         .info-box p:last-child { margin: 0; }
         .info-box span { font-weight: 600; color: #37474f; }
+        .reason-box { background: #f8f9fa; border-left: 4px solid #546e7a; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; color: #333; }
+        .reason-box strong { display: block; margin-bottom: 4px; color: #37474f; }
         .footer { text-align: center; padding: 20px 32px; font-size: 12px; color: #999; border-top: 1px solid #eee; }
     </style>
 </head>
@@ -31,7 +33,11 @@
             <div class="info-box">
                 <p>Student No.: <span>{{ $studentNo }}</span></p>
             </div>
-            <p>All your data associated with this account has been removed. If you think this was done in error, please contact your school administrator as soon as possible.</p>
+            <div class="reason-box">
+                <strong>Reason for Removal:</strong>
+                {{ $reason }}
+            </div>
+           <p>If you think this was done in error, please contact your school administrator as soon as possible at <a href="mailto:nonunipay@gmail.com" style="color:#37474f;font-weight:600;">nonunipay@gmail.com</a>.</p>
             <p>— The Non-UniPay Team</p>
         </div>
         <div class="footer">

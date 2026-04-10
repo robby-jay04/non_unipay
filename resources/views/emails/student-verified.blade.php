@@ -5,7 +5,7 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 0; }
         .container { max-width: 560px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-        .header { background: linear-gradient(135deg, #0f3c91, #1a4da8); padding: 36px 32px; text-align: center; }
+       .header { background: linear-gradient(135deg, #1b5e20, #2e7d32); padding: 36px 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
         .header p { color: rgba(255,255,255,0.75); margin: 6px 0 0; font-size: 14px; }
         .body { padding: 32px; color: #333; }
@@ -34,7 +34,7 @@
                 <p>Year Level: <span>{{ $student->year_level }}</span></p>
             </div>
             <p>You can now view your clearance status, track your payments, and use all features of the portal.</p>
-            <p>If you have any questions, please contact your administrator.</p>
+            <p>If you have any questions, please contact your administrator at <a href="mailto:nonunipay@gmail.com" style="color:#2e7d32;font-weight:600;">nonunipay@gmail.com</a>.</p>
             <p>— The Non-UniPay Team</p>
         </div>
         <div class="footer">

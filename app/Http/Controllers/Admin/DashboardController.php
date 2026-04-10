@@ -12,16 +12,16 @@ class DashboardController extends Controller
 {
    public function index()
 {
-    // Generate last 7 days labels and revenue data
-    $revenueLabels = [];
-    $revenueData = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $date = now()->subDays($i);
-        $revenueLabels[] = $date->format('D'); // e.g., Mon, Tue
-        $revenueData[] = Payment::paid()
-            ->whereDate('payment_date', $date)
-            ->sum('total_amount');
-    }
+   // Generate last 90 days of revenue data (supports 7/30/90 day tabs)
+$revenueLabels = [];
+$revenueData   = [];
+for ($i = 89; $i >= 0; $i--) {
+    $date            = now()->subDays($i);
+    $revenueLabels[] = $date->format('M d'); // e.g., Jan 01
+    $revenueData[]   = Payment::paid()
+                            ->whereDate('payment_date', $date)
+                            ->sum('total_amount');
+}
 
     // Top student (highest total paid)
     $topStudent = Student::withSum(['payments' => function ($query) {

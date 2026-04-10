@@ -955,17 +955,21 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ------------------------------------------------
        Period tabs
     ------------------------------------------------ */
+    function updatePeriod(period) {
+        const labels = (raw.revenueLabels || []).slice(-period);
+        const data   = (raw.revenueData   || []).slice(-period);
+        buildRevenueChart(labels, data);
+        const total = data.reduce((a, b) => Number(a) + Number(b), 0);
+        const el = document.getElementById('chartPeriodTotal');
+        if (el) el.textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+    }
+
     document.querySelectorAll('.period-tab').forEach(btn => {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentPeriod = parseInt(this.dataset.period);
-            const labels = (raw.revenueLabels || []).slice(-currentPeriod);
-            const data   = (raw.revenueData   || []).slice(-currentPeriod);
-            buildRevenueChart(labels, data);
-           const total = data.reduce((a, b) => Number(a) + Number(b), 0);
-            const el = document.getElementById('chartPeriodTotal');
-            if (el) el.textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2 });
+            updatePeriod(currentPeriod);
         });
     });
 
@@ -1056,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ------------------------------------------------
        Initialization
     ------------------------------------------------ */
-    buildRevenueChart(raw.revenueLabels, raw.revenueData);
+   updatePeriod(currentPeriod);  // builds chart AND sets correct initial total
     buildStatusChart();
     setProgressWidths();  // <-- CRITICAL: set progress bar widths on load
 });

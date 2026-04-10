@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/students', [AdminController::class, 'students'])->name('students');
         Route::get('/students/{student}/json', [AdminController::class, 'studentJson'])->name('students.json');
         Route::post('/students/{student}/confirm', [AdminController::class, 'confirmStudent'])->name('students.confirm');
+        Route::post('/students/{student}/decline', [AdminController::class, 'declineStudent'])->name('students.decline');
         Route::delete('/students/{student}', [AdminController::class, 'destroy'])->name('students.destroy');
         Route::get('/api/new-students-count', [AdminController::class, 'newStudentsCount'])->name('students.new-count');
 
@@ -82,7 +83,7 @@ Route::middleware(['auth'])->group(function () {
         // EXAM PERIODS
         Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurrent'])->name('exam-periods.setCurrent');
 
-        // FEE MANAGEMENT — index, store, update, destroy only (create/edit are modals on index)
+        // FEE MANAGEMENT
         Route::get('/fees', [FeeController::class, 'adminIndex'])->name('fees.index');
         Route::post('/fees', [FeeController::class, 'storeWeb'])->name('fees.store');
         Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])->name('fees.update');
@@ -102,8 +103,6 @@ Route::middleware(['auth'])->group(function () {
         })->name('api.exam-periods');
 
         // SUPER ADMIN ONLY
-        // Route::resource handles all 7 RESTful verbs.
-        // create() and edit() now redirect back to index — all UI is modal-based on the index page.
         Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
             Route::resource('admins', SuperAdminController::class);
         });

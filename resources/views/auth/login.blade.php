@@ -1301,7 +1301,7 @@
                         <div class="feature-card">
                             <div class="fc-icon"><i class="fas fa-users-cog"></i></div>
                             <h3>Role-based Access</h3>
-                            <p>Granular permissions for Super Admin, Admin, Cashier, Registrar, and Department Head roles.</p>
+                            <p>Granular permissions for Super Admin, Admin (Cashier, Registrar, and Department Head roles).</p>
                         </div>
                         <div class="feature-card">
                             <div class="fc-icon"><i class="fas fa-history"></i></div>

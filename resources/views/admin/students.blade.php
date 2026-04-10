@@ -47,8 +47,9 @@
             </select>
 
             <input type="search" name="search" id="searchInput" class="form-control rounded-pill border-0 px-4 py-2"
-                   placeholder="Search students..." value="{{ request('search') }}" style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);" autocomplete="off">
-
+                   placeholder="Search students..." value="{{ request('search') }}"
+                   style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
+                   autocomplete="off">
         </form>
     </div>
 
@@ -89,6 +90,7 @@
                         </td>
                         <td class="py-3 pe-4">
                             <div class="d-flex gap-2 align-items-center">
+
                                 <!-- View Button -->
                                 <button class="btn-action view-student" title="View details"
                                         data-id="{{ $student->id }}">
@@ -112,6 +114,23 @@
                                             data-btn-bg="#0f3c91">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
+
+                                    <!-- Decline Button -->
+                                    <button type="button"
+                                            class="btn-action decline-student trigger-confirm"
+                                            title="Decline account"
+                                            data-action="{{ route('admin.students.decline', $student) }}"
+                                            data-method="POST"
+                                            data-type="delete"
+                                            data-title="Decline Student Account"
+                                            data-message="Are you sure you want to decline this student? They will be notified by email and their account will be removed."
+                                            data-confirm-text="Yes, Decline"
+                                            data-icon-bg="rgba(183,28,28,0.12)"
+                                            data-icon="fas fa-times-circle"
+                                            data-icon-color="#b71c1c"
+                                            data-btn-bg="#b71c1c">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
                                 @else
                                     <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
                                 @endif
@@ -124,7 +143,7 @@
                                         data-method="DELETE"
                                         data-type="delete"
                                         data-title="Delete Student"
-                                        data-message="Are you sure you want to delete this student? This action cannot be undone."
+                                        data-message="Are you sure you want to delete this student? They will be notified by email and this action cannot be undone."
                                         data-confirm-text="Yes, Delete"
                                         data-icon-bg="rgba(220,53,69,0.12)"
                                         data-icon="fas fa-trash-alt"
@@ -132,6 +151,7 @@
                                         data-btn-bg="#a71d2a">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
+
                             </div>
                         </td>
                     </tr>
@@ -171,7 +191,8 @@
                 <p class="mb-0" id="confirmMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal"
+                        style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
                 <button type="button" class="btn rounded-pill px-4 fw-semibold" id="confirmActionBtn"></button>
             </div>
         </div>
@@ -190,7 +211,8 @@
                 <p class="mb-0" id="resultMessage" style="color: var(--text-secondary);"></p>
             </div>
             <div class="modal-footer border-0 justify-content-center pb-4">
-                <button type="button" class="btn rounded-pill px-5 fw-semibold" id="resultOkBtn" data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
+                <button type="button" class="btn rounded-pill px-5 fw-semibold" id="resultOkBtn"
+                        data-bs-dismiss="modal" style="background:#0f3c91;color:white;">OK</button>
             </div>
         </div>
     </div>
@@ -200,18 +222,24 @@
 <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
-            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #0f3c91, #1a4da8); border-radius: 20px 20px 0 0;">
+            <div class="modal-header border-0 pb-0"
+                 style="background: linear-gradient(135deg, #0f3c91, #1a4da8); border-radius: 20px 20px 0 0;">
                 <div class="w-100 text-center py-3">
-                    <div class="mx-auto mb-2" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.5);">
-                        <img id="modalStudentAvatar" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                        <div id="modalStudentAvatarFallback" class="d-flex align-items-center justify-content-center w-100 h-100" style="background: rgba(255,255,255,0.2);">
+                    <div class="mx-auto mb-2"
+                         style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.5);">
+                        <img id="modalStudentAvatar" src="" alt="Profile"
+                             style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <div id="modalStudentAvatarFallback"
+                             class="d-flex align-items-center justify-content-center w-100 h-100"
+                             style="background: rgba(255,255,255,0.2);">
                             <i class="fas fa-user-graduate fa-2x text-white"></i>
                         </div>
                     </div>
                     <h5 class="fw-bold text-white mb-0" id="modalStudentName">—</h5>
                     <small class="text-white-50" id="modalStudentNo">—</small>
                 </div>
-                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="d-flex justify-content-center gap-2 mb-4">
@@ -256,7 +284,7 @@
     </div>
 </div>
 
-<!-- Page Loader (used for dropdowns, pagination, polling only) -->
+<!-- Page Loader -->
 <div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -271,7 +299,7 @@
     </div>
 </div>
 
-<!-- Action Loader (confirm/delete) -->
+<!-- Action Loader -->
 <div id="studentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -287,9 +315,7 @@
 </div>
 
 <style>
-    @keyframes loader-spin {
-        to { transform: rotate(360deg); }
-    }
+    @keyframes loader-spin { to { transform: rotate(360deg); } }
     @keyframes loader-bar {
         from { width: 15%; margin-left: 0; }
         to   { width: 70%; margin-left: 30%; }
@@ -298,42 +324,15 @@
     .students-table,
     .students-table tbody,
     .students-table tr,
-    .students-table td {
-        background-color: var(--bg-main);
-        color: var(--text-secondary);
-    }
-    .students-table thead th {
-        background-color: var(--table-header-bg);
-        color: var(--text-primary);
-        border-bottom: 1px solid var(--border-color);
-    }
-    .students-table tbody tr {
-        border-bottom: 1px solid var(--table-row-border);
-        transition: background 0.2s;
-    }
-    .students-table tbody tr:hover {
-        background-color: var(--hover-bg) !important;
-    }
-    .students-table tbody td {
-        background-color: var(--bg-main);
-        color: var(--text-secondary);
-        border-bottom: none;
-    }
-    .students-table tbody td:first-child {
-        color: var(--text-primary);
-        font-weight: 500;
-    }
+    .students-table td { background-color: var(--bg-main); color: var(--text-secondary); }
+    .students-table thead th { background-color: var(--table-header-bg); color: var(--text-primary); border-bottom: 1px solid var(--border-color); }
+    .students-table tbody tr { border-bottom: 1px solid var(--table-row-border); transition: background 0.2s; }
+    .students-table tbody tr:hover { background-color: var(--hover-bg) !important; }
+    .students-table tbody td { background-color: var(--bg-main); color: var(--text-secondary); border-bottom: none; }
+    .students-table tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 
-    .form-control::placeholder,
-    input::placeholder {
-        color: var(--text-muted);
-        opacity: 0.7;
-    }
-    body.dark .form-control::placeholder,
-    body.dark input::placeholder {
-        color: #94a3b8;
-        opacity: 0.6;
-    }
+    .form-control::placeholder, input::placeholder { color: var(--text-muted); opacity: 0.7; }
+    body.dark .form-control::placeholder, body.dark input::placeholder { color: #94a3b8; opacity: 0.6; }
 
     .student-row { transition: all 0.2s ease; }
     .student-row:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.02); }
@@ -348,61 +347,39 @@
     }
     .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
     .btn-action.confirm-student:hover { background: rgba(40,167,69,0.1); color: #28a745; }
-    .btn-action.delete-student:hover { background: rgba(220,53,69,0.1); color: #dc3545; }
+    .btn-action.decline-student:hover { background: rgba(183,28,28,0.1); color: #b71c1c; }
+    .btn-action.delete-student:hover  { background: rgba(220,53,69,0.1);  color: #dc3545; }
 
     .badge-paid, .badge-pending, .badge-confirmed {
         font-weight: 600; padding: 0.45rem 1rem; border-radius: 30px;
         display: inline-flex; align-items: center; font-size: 0.85rem; gap: 0.35rem;
     }
-    .badge-paid    { background: rgba(76,175,80,0.15);  color: #2e7d32; }
-    .badge-pending { background: rgba(244,180,20,0.15); color: #b26a00; }
-    .badge-confirmed { background: rgba(15,60,145,0.1); color: #0f3c91; }
+    .badge-paid      { background: rgba(76,175,80,0.15);  color: #2e7d32; }
+    .badge-pending   { background: rgba(244,180,20,0.15); color: #b26a00; }
+    .badge-confirmed { background: rgba(15,60,145,0.1);   color: #0f3c91; }
     body.dark .badge-paid      { background: rgba(76,175,80,0.25);  color: #81c784; }
     body.dark .badge-pending   { background: rgba(244,180,20,0.25); color: #ffd54f; }
     body.dark .badge-confirmed { background: rgba(59,130,246,0.2);  color: #93c5fd; }
 
     .student-detail-card { background: var(--input-bg); transition: background 0.3s ease; }
 
-    .pagination .page-link {
-        border: none; color: var(--text-muted); font-weight: 500;
-        padding: 0.5rem 1rem; margin: 0 0.2rem; border-radius: 8px; background: transparent;
-    }
+    .pagination .page-link { border: none; color: var(--text-muted); font-weight: 500; padding: 0.5rem 1rem; margin: 0 0.2rem; border-radius: 8px; background: transparent; }
     .pagination .page-link:hover { background: rgba(15,60,145,0.1); color: #0f3c91; }
     .pagination .active .page-link { background: #0f3c91; color: white; box-shadow: 0 4px 8px rgba(15,60,145,0.2); }
     .pagination .disabled .page-link { color: var(--text-muted); opacity: 0.5; background: transparent; }
 
-    .form-select, .form-control {
-        background-color: var(--input-bg);
-        border-color: var(--input-border);
-        color: var(--text-primary);
-    }
-    .form-select:focus, .form-control:focus {
-        border-color: #0f3c91;
-        box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
-        background-color: var(--input-bg);
-    }
+    .form-select, .form-control { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary); }
+    .form-select:focus, .form-control:focus { border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1); background-color: var(--input-bg); }
 
     .empty-state { padding: 2rem; text-align: center; }
     .empty-state i { opacity: 0.7; }
-
-    /* Inline search spinner shown while typing */
-    #searchSpinner {
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #0f3c91;
-        font-size: 0.8rem;
-        display: none;
-    }
-    .search-wrap { position: relative; }
 </style>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const csrfToken   = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
     const actionLoader = document.getElementById('studentActionLoader');
     const pageLoader   = document.getElementById('pageLoader');
@@ -412,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function showPageLoader()   { if (pageLoader)   pageLoader.style.display   = 'flex'; }
     function hidePageLoader()   { if (pageLoader)   pageLoader.style.display   = 'none'; }
 
-    // ── Modal helpers ──────────────────────────────────────────────────────────
+    // ── Modal helpers ─────────────────────────────────────────────────────────
     function showConfirm({ title, message, confirmText, confirmStyle, onConfirm }) {
         document.getElementById('confirmTitle').textContent   = title;
         document.getElementById('confirmMessage').textContent = message;
@@ -422,9 +399,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const oldBtn   = document.getElementById('confirmActionBtn');
         const freshBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(freshBtn, oldBtn);
-        freshBtn.textContent       = confirmText;
-        freshBtn.style.background  = confirmStyle.btnBg;
-        freshBtn.style.color       = 'white';
+        freshBtn.textContent      = confirmText;
+        freshBtn.style.background = confirmStyle.btnBg;
+        freshBtn.style.color      = 'white';
         freshBtn.addEventListener('click', () => {
             bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
             onConfirm();
@@ -458,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return await fetch(action, { method: 'POST', body: formData });
     }
 
-    // ── Action handlers (confirm / delete) ────────────────────────────────────
+    // ── Action handlers ───────────────────────────────────────────────────────
     function attachActionHandlers() {
         document.querySelectorAll('.trigger-confirm').forEach(btn => {
             btn.removeEventListener('click', btn._listener);
@@ -466,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const { action, method, type, title, message, confirmText,
                         iconBg, icon, iconColor, btnBg } = this.dataset;
                 const row = this.closest('tr');
+
                 showConfirm({
                     title, message, confirmText,
                     confirmStyle: { iconBg, icon, iconColor, btnBg },
@@ -477,9 +455,22 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (res.ok) {
                                 if (type === 'delete') {
                                     row?.remove();
-                                    showResult({ type: 'success', title: 'Student Deleted', message: 'The student account has been permanently removed.' });
+                                    // Distinguish decline vs delete by the action URL
+                                    const isDecline = action.includes('/decline');
+                                    showResult({
+                                        type: 'success',
+                                        title: isDecline ? 'Account Declined' : 'Student Deleted',
+                                        message: isDecline
+                                            ? 'The student account has been declined and the student has been notified by email.'
+                                            : 'The student account has been permanently removed and the student has been notified by email.',
+                                    });
                                 } else {
-                                    showResult({ type: 'success', title: 'Account Confirmed', message: 'The student account has been confirmed successfully.', onOk: () => window.location.reload() });
+                                    showResult({
+                                        type: 'success',
+                                        title: 'Account Confirmed',
+                                        message: 'The student account has been confirmed and the student has been notified by email.',
+                                        onOk: () => window.location.reload(),
+                                    });
                                 }
                             } else {
                                 showResult({ type: 'error', title: 'Action Failed', message: 'Something went wrong. Please try again.' });
@@ -513,11 +504,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         const avatar   = document.getElementById('modalStudentAvatar');
                         const fallback = document.getElementById('modalStudentAvatarFallback');
                         if (data.profile_picture) {
-                            avatar.src            = data.profile_picture;
-                            avatar.style.display  = 'block';
+                            avatar.src             = data.profile_picture;
+                            avatar.style.display   = 'block';
                             fallback.style.display = 'none';
                         } else {
-                            avatar.style.display  = 'none';
+                            avatar.style.display   = 'none';
                             fallback.style.display = 'flex';
                         }
                         document.getElementById('modalStudentConfirmed').innerHTML = data.is_confirmed
@@ -535,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── AJAX load ──────────────────────────────────────────────────────────────
+    // ── AJAX load ─────────────────────────────────────────────────────────────
     let currentStudentPage = parseInt(document.getElementById('initialPage').dataset.page) || 1;
     let isLoading          = false;
     let searchAbortCtrl    = null;
@@ -543,31 +534,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildFilterUrl(page) {
         const formData = new FormData(document.getElementById('searchForm'));
         const url      = new URL(window.location.href);
-        url.searchParams.set('search',           formData.get('search')           || '');
-        url.searchParams.set('course',            formData.get('course')            || '');
-        url.searchParams.set('year_level',        formData.get('year_level')        || '');
-        url.searchParams.set('clearance_status',  formData.get('clearance_status')  || '');
-        if (page && page > 1) {
-            url.searchParams.set('page', page);
-        } else {
-            url.searchParams.delete('page');
-        }
+        url.searchParams.set('search',          formData.get('search')          || '');
+        url.searchParams.set('course',           formData.get('course')           || '');
+        url.searchParams.set('year_level',       formData.get('year_level')       || '');
+        url.searchParams.set('clearance_status', formData.get('clearance_status') || '');
+        if (page && page > 1) url.searchParams.set('page', page);
+        else                   url.searchParams.delete('page');
         return url.toString();
     }
 
-    // silent = true  → no full-screen loader (used while typing)
-    // silent = false → show full-screen loader (dropdowns, pagination, polling)
     async function loadStudents(url, silent = false) {
-        // Abort any in-flight silent (search) request
         if (searchAbortCtrl) { searchAbortCtrl.abort(); searchAbortCtrl = null; }
         if (isLoading && !silent) return;
 
-        if (!silent) {
-            isLoading = true;
-            showPageLoader();
-        } else {
-            searchAbortCtrl = new AbortController();
-        }
+        if (!silent) { isLoading = true; showPageLoader(); }
+        else         { searchAbortCtrl = new AbortController(); }
 
         try {
             const fetchOpts = { headers: { 'X-Requested-With': 'XMLHttpRequest' } };
@@ -580,9 +561,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const newTbody      = doc.getElementById('students-table-body');
             const newPagination = doc.getElementById('students-pagination');
 
-            if (newTbody)      document.getElementById('students-table-body').innerHTML  = newTbody.innerHTML;
-            if (newPagination) document.getElementById('students-pagination').innerHTML  = newPagination.innerHTML;
-            else               document.getElementById('students-pagination') && (document.getElementById('students-pagination').innerHTML = '');
+            if (newTbody)      document.getElementById('students-table-body').innerHTML = newTbody.innerHTML;
+            if (newPagination) document.getElementById('students-pagination').innerHTML = newPagination.innerHTML;
+            else if (document.getElementById('students-pagination'))
+                               document.getElementById('students-pagination').innerHTML = '';
 
             attachViewHandlers();
             attachActionHandlers();
@@ -594,21 +576,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Called by dropdowns — shows loader
-    function applyFiltersAndLoad() {
-        currentStudentPage = 1;
-        loadStudents(buildFilterUrl(1), false);
-    }
+    function applyFiltersAndLoad() { currentStudentPage = 1; loadStudents(buildFilterUrl(1), false); }
+    function applyFiltersLive()    { currentStudentPage = 1; loadStudents(buildFilterUrl(1), true);  }
 
-    // Called while typing — silent, debounced
-    function applyFiltersLive() {
-        currentStudentPage = 1;
-        loadStudents(buildFilterUrl(1), true);
-    }
-
-    // ── Event listeners ────────────────────────────────────────────────────────
-
-    // Live search — debounced, no loader
+    // ── Event listeners ───────────────────────────────────────────────────────
     const searchInput = document.getElementById('searchInput');
     let debounceTimer;
     if (searchInput) {
@@ -618,7 +589,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Dropdowns — immediate with loader
     const courseSelect    = document.querySelector('select[name="course"]');
     const yearSelect      = document.querySelector('select[name="year_level"]');
     const clearanceSelect = document.querySelector('select[name="clearance_status"]');
@@ -626,14 +596,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (yearSelect)      yearSelect.addEventListener('change',      applyFiltersAndLoad);
     if (clearanceSelect) clearanceSelect.addEventListener('change', applyFiltersAndLoad);
 
-    // Form submit (enter key fallback) — no loader since it's essentially the same as live search
     document.getElementById('searchForm').addEventListener('submit', function (e) {
         e.preventDefault();
         clearTimeout(debounceTimer);
         applyFiltersLive();
     });
 
-    // Pagination — with loader
     document.addEventListener('click', function (e) {
         const link = e.target.closest('.pagination a');
         if (link && !link.classList.contains('disabled')) {
@@ -644,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ── Polling (silent — no loader) ──────────────────────────────────────────
+    // ── Polling ───────────────────────────────────────────────────────────────
     let lastUnconfirmedCount = null;
     function pollForNewStudents() {
         fetch('/admin/api/new-students-count')

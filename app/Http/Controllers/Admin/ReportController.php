@@ -25,7 +25,7 @@ public function index()
     // Existing payments query
     $payments = Payment::with('student.user')
         ->whereNotNull('payment_date')
-        ->orderBy('payment_date', 'asc')
+        ->orderBy('payment_date', 'desc')
         ->paginate(10);
 
     // ─── Statistics for charts ─────────────────────────────────

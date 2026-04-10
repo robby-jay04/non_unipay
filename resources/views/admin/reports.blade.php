@@ -486,6 +486,14 @@
     const pdfRoute   = "{{ route('admin.reports.pdf') }}";
     const excelRoute = "{{ route('admin.reports.excel') }}";
 
+    // ─── Helper: format a Date object as YYYY-MM-DD in LOCAL timezone ───
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     function openExportModal(type) {
         const loader = document.getElementById('reportLoader');
         if (loader) loader.style.display = 'none';
@@ -519,7 +527,7 @@
             document.getElementById('exportBtnLabel').textContent        = 'Generate Excel';
         }
 
-        // Set default preset to "Today"
+        // Set default preset to "Today" using LOCAL date
         applyPresetByName('today');
         const todayBtn = document.querySelector('.preset-btn[data-preset="today"]');
         if (todayBtn) todayBtn.classList.add('active');
@@ -535,28 +543,29 @@
 
     function applyPresetByName(preset) {
         const today = new Date();
-        const formatDate = (d) => d.toISOString().split('T')[0];
-
-        let from = '', to = formatDate(today);
+        let from = '', to = '';
 
         if (preset === 'today') {
-            from = to;
+            from = formatLocalDate(today);
+            to = from;
         } else if (preset === 'yesterday') {
             const yest = new Date(today);
             yest.setDate(today.getDate() - 1);
-            from = formatDate(yest);
-            to   = from;
+            from = formatLocalDate(yest);
+            to = from;
         } else if (preset === 'this_week') {
             const start = new Date(today);
             const day = today.getDay();
             const diff = day === 0 ? -6 : 1 - day;
             start.setDate(today.getDate() + diff);
-            from = formatDate(start);
+            from = formatLocalDate(start);
+            to = formatLocalDate(today);
         } else if (preset === 'this_month') {
-            from = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+            from = formatLocalDate(new Date(today.getFullYear(), today.getMonth(), 1));
+            to = formatLocalDate(today);
         } else if (preset === 'all') {
             from = '';
-            to   = '';
+            to = '';
         }
 
         document.getElementById('exportFromDate').value = from;

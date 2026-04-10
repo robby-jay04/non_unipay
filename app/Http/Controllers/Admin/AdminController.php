@@ -8,6 +8,11 @@ use App\Exports\PaymentExport;
 use App\Services\ClearanceService;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use App\Mail\StudentVerified;
+use Illuminate\Support\Facades\Mail;
+
+use App\Mail\StudentDeclined;
+use App\Mail\StudentDeleted;
 
 class AdminController extends Controller
 {
@@ -123,22 +128,43 @@ class AdminController extends Controller
         return Excel::download(new PaymentExport($filters), 'payments.xlsx');
     }
 
-    public function confirmStudent(Student $student)
-    {
-        $student->is_confirmed = true;
-        $student->save();
+   public function confirmStudent(Student $student)
+{
+    $student->is_confirmed = true;
+    $student->save();
 
-        return back()->with('success', 'Student confirmed successfully.');
-    }
+    // Send verification email to the student
+    Mail::to($student->user->email)->send(new StudentVerified($student));
 
-    public function destroy(Student $student)
-    {
-        $student->user()->delete();
-        $student->delete();
+    return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
+}
 
-        return redirect()->route('admin.students')
-            ->with('success', 'Student deleted successfully.');
-    }
+   public function destroy(Student $student)
+{
+    // Capture data before deletion
+    $studentName = $student->user->name;
+    $studentNo   = $student->student_no;
+    $studentEmail = $student->user->email;
+
+    $student->user()->delete();
+    $student->delete();
+
+    // Send deletion email after removing the record
+    Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo));
+
+    return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
+}
+public function declineStudent(Student $student)
+{
+    $email = $student->user->email;
+
+    Mail::to($email)->send(new StudentDeclined($student));
+
+    $student->user()->delete();
+    $student->delete();
+
+    return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
+}
 
     public function newStudentsCount()
     {

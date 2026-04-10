@@ -35,34 +35,40 @@ class AuthController extends Controller
     // Web Login for Admin Only
     // Students cannot log in via web
     // -------------------------------
-    public function loginWeb(Request $request)
+  public function loginWeb(Request $request)
 {
     $credentials = $request->validate([
-        'email' => 'required|email',
+        'email'    => 'required|email',
         'password' => 'required',
     ]);
 
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
+    // Find the user first before attempting auth
+    $user = User::where('email', $request->email)->first();
 
-        $user = Auth::user();
-
-        // Allow both admin and superadmin to log in via web
-        if ($user->role === 'admin' || $user->role === 'superadmin') {
-            return redirect()->route('admin.dashboard');
-        } elseif ($user->role === 'student') {
-            Auth::logout();
-            return back()->withErrors([
-                'email' => 'Students are not allowed to log in via web. Please use the mobile app.',
-            ])->onlyInput('email');
-        }
+    // Check existence and role before anything else
+    if (!$user || !in_array($user->role, ['admin', 'superadmin'])) {
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
     }
 
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ])->onlyInput('email');
-}
+    // Block inactive accounts before even checking password
+    if (!$user->isActive()) {
+        return back()->withErrors([
+            'email' => 'Your account has been deactivated. Please contact the super admin.',
+        ])->onlyInput('email');
+    }
 
+    if (!Auth::attempt($credentials)) {
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+    $request->session()->regenerate();
+
+    return redirect()->route('admin.dashboard');
+}
     // -------------------------------
     // Web Logout
     // -------------------------------

@@ -1516,17 +1516,22 @@
                 
                 </div>
 
-                <button type="submit" class="btn-login" id="loginBtn">
+             <button type="submit" class="btn-login" id="loginBtn">
                     <i class="fas fa-sign-in-alt me-2"></i> Sign In
                 </button>
             </form>
 
-            @if(session('error'))
-                <div class="error-msg">
-                    <i class="fas fa-exclamation-circle"></i>
-                    {{ session('error') }}
+            <?php if($errors->any()): ?>
+                <div class="error-msg" id="loginErrorMsg">
+                    <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
+                    <span><?php echo e($errors->first()); ?></span>
                 </div>
-            @endif
+            <?php elseif(session('error')): ?>
+                <div class="error-msg" id="loginErrorMsg">
+                    <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
+                    <span><?php echo e(session('error')); ?></span>
+                </div>
+            <?php endif; ?>
 
             <div class="form-divider"></div>
             <p class="footer-note">Non-UniPay &copy; {{ date('Y') }} &nbsp;·&nbsp; Staff &amp; Admin Portal</p>
@@ -1707,11 +1712,55 @@
             }, 500);
         });
 
-        if (loginForm) {
+       if (loginForm) {
             loginForm.addEventListener('submit', function () {
                 checkStudentEmail(document.getElementById('emailInput').value.trim());
             });
         }
+
+      // ══ KEEP RIGHT PANEL OPEN ON ERRORS ══════════════
+        <?php if($errors->any() || session('error')): ?>
+            (function () {
+                // Show login panel immediately — skip splash
+                var leftPanel  = document.getElementById('leftPanel');
+                var rightPanel = document.getElementById('rightPanel');
+                leftPanel.classList.remove('expanded');
+                rightPanel.classList.remove('hidden');
+
+                var splash = document.getElementById('splash-screen');
+                if (splash) splash.style.display = 'none';
+                document.body.classList.add('content-visible');
+
+                // Highlight the input fields that failed
+                <?php if($errors->has('email') || session('error')): ?>
+                    var emailEl = document.getElementById('emailInput');
+                    if (emailEl) emailEl.classList.add('input-error');
+                <?php endif; ?>
+
+                <?php if($errors->has('password')): ?>
+                    var pwEl = document.getElementById('password');
+                    if (pwEl) pwEl.classList.add('input-error');
+                <?php endif; ?>
+
+                // Remove red border as soon as the user starts typing again
+                ['emailInput', 'password'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', function () {
+                            this.classList.remove('input-error');
+                        }, { once: true });
+                    }
+                });
+
+                // Scroll error into view on mobile
+                var errEl = document.getElementById('loginErrorMsg');
+                if (errEl) {
+                    setTimeout(function () {
+                        errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                }
+            })();
+        <?php endif; ?>
     </script>
 </body>
 </html>

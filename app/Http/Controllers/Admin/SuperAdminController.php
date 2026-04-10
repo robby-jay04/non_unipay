@@ -26,69 +26,73 @@ class SuperAdminController extends Controller
             ->paginate(10)
             ->appends($request->query());
 
+        if ($request->has('ajax')) {
+            $html = view('admin.superadmin.admins.partials.admins_table', compact('admins', 'search'))->render();
+            return response()->json(['html' => $html]);
+        }
+
         return view('admin.superadmin.admins.index', compact('admins', 'search'));
     }
 
-    // These are kept for RESTful completeness but are no longer used as standalone pages.
-    // create() and edit() are now handled entirely by the index blade modals.
     public function create()
     {
         return redirect()->route('admin.superadmin.admins.index');
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validateWithBag('createBag', [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'role'     => ['required', 'in:admin,superadmin'],
-            'password' => ['required', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
-        ]);
+{
+    $validated = $request->validateWithBag('createBag', [
+        'name'      => ['required', 'string', 'max:255'],
+        'email'     => ['required', 'email', 'unique:users,email'],
+        'role'      => ['required', 'in:admin,superadmin'],
+        'password'  => ['required', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
+    ]);
 
-        User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'role'     => $validated['role'],
-            'password' => Hash::make($validated['password']),
-        ]);
+    User::create([
+        'name'      => $validated['name'],
+        'email'     => $validated['email'],
+        'role'      => $validated['role'],
+        'is_active' => $request->has('is_active'), // true if checkbox sent, false if not
+        'password'  => Hash::make($validated['password']),
+    ]);
 
-        return redirect()->route('admin.superadmin.admins.index')
-            ->with('success', 'Admin account created successfully.');
-    }
+    return redirect()->route('admin.superadmin.admins.index')
+        ->with('success', 'Admin account created successfully.');
+}
 
     public function edit(User $admin)
     {
-        // No longer used as a standalone page; redirect back to index.
         return redirect()->route('admin.superadmin.admins.index');
     }
 
-    public function update(Request $request, User $admin)
-    {
-        if ($admin->id === auth()->id()) {
-            return redirect()->route('admin.superadmin.admins.index')
-                ->with('error', 'You cannot edit your own account here.');
-        }
-
-        $validated = $request->validateWithBag('editBag', [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email,' . $admin->id],
-            'role'     => ['required', 'in:admin,superadmin'],
-            'password' => ['nullable', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
-        ]);
-
-        $admin->name  = $validated['name'];
-        $admin->email = $validated['email'];
-        $admin->role  = $validated['role'];
-
-        if (!empty($validated['password'])) {
-            $admin->password = Hash::make($validated['password']);
-        }
-
-        $admin->save();
-
+   public function update(Request $request, User $admin)
+{
+    if ($admin->id === auth()->id()) {
         return redirect()->route('admin.superadmin.admins.index')
-            ->with('success', 'Admin account updated successfully.');
+            ->with('error', 'You cannot edit your own account here.');
     }
+
+    $validated = $request->validateWithBag('editBag', [
+        'name'      => ['required', 'string', 'max:255'],
+        'email'     => ['required', 'email', 'unique:users,email,' . $admin->id],
+        'role'      => ['required', 'in:admin,superadmin'],
+        'password'  => ['nullable', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
+    ]);
+
+    $admin->name      = $validated['name'];
+    $admin->email     = $validated['email'];
+    $admin->role      = $validated['role'];
+    $admin->is_active = $request->has('is_active'); // true if checkbox sent, false if not
+
+    if (!empty($validated['password'])) {
+        $admin->password = Hash::make($validated['password']);
+    }
+
+    $admin->save();
+
+    return redirect()->route('admin.superadmin.admins.index')
+        ->with('success', 'Admin account updated successfully.');
+}
 
     public function destroy(User $admin)
     {

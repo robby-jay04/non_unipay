@@ -15,9 +15,9 @@
     <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: var(--bg-main);">
         <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">All Students</h5>
 
-        <form method="GET" class="d-flex gap-2" action="{{ route('admin.students') }}" id="searchForm">
+        <form method="GET" class="d-flex gap-2 flex-wrap w-100 justify-content-end" action="{{ route('admin.students') }}" id="searchForm">
             <!-- Course filter -->
-            <select name="course" class="form-select rounded-pill border-0 px-4 py-2" style="width: 150px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="course" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Courses</option>
                 @foreach($courses as $course)
                     <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>
@@ -27,7 +27,7 @@
             </select>
 
             <!-- Year Level filter -->
-            <select name="year_level" class="form-select rounded-pill border-0 px-4 py-2" style="width: 190px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="year_level" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 150px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Year Level</option>
                 @foreach($yearLevels as $level)
                     <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>
@@ -37,7 +37,7 @@
             </select>
 
             <!-- Clearance Status filter -->
-            <select name="clearance_status" class="form-select rounded-pill border-0 px-4 py-2" style="width: 150px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="clearance_status" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Status</option>
                 @foreach($clearanceStatuses as $status)
                     <option value="{{ $status }}" {{ request('clearance_status') == $status ? 'selected' : '' }}>
@@ -46,10 +46,10 @@
                 @endforeach
             </select>
 
-            <input type="search" name="search" id="searchInput" class="form-control rounded-pill border-0 px-4 py-2"
-                   placeholder="Search students..." value="{{ request('search') }}"
-                   style="min-width: 250px; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
-                   autocomplete="off">
+           <input type="search" name="search" id="searchInput" class="form-control rounded-pill border-0 px-4 py-2"
+       placeholder="Search students..." value="{{ request('search') }}"
+       style="width: 280px; max-width: 100%; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
+       autocomplete="off">
         </form>
     </div>
 
@@ -73,7 +73,7 @@
                         <td class="py-3">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="student-avatar rounded-circle d-flex align-items-center justify-content-center"
-                                     style="width: 38px; height: 38px; background: rgba(15,60,145,0.1); font-weight: 600; color: #0f3c91;">
+                                     style="width: 38px; height: 38px; background: rgba(15,60,145,0.1); font-weight: 600; color: #0f3c91; flex-shrink: 0;">
                                     {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                 </div>
                                 <span class="fw-medium" style="color: var(--text-primary);">{{ $student->user->name }}</span>
@@ -125,7 +125,7 @@
 @else
     <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
 
-    <!-- Delete Button — only for confirmed students -->
+    <!-- Delete Button -->
     <button type="button"
             class="btn-action delete-student"
             title="Delete student"
@@ -224,15 +224,16 @@
                         data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <div class="d-flex justify-content-center gap-2 mb-4">
+                <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
                     <span id="modalStudentConfirmed"></span>
                     <span id="modalStudentStatus"></span>
                 </div>
                 <div class="row g-3">
                     <div class="col-6">
-                        <div class="p-3 rounded-3 h-100 student-detail-card">
+                        <div class="p-3 rounded-3 h-100 student-detail-card" style="overflow: hidden;">
                             <small class="text-muted d-block mb-1"><i class="fas fa-envelope me-1"></i> Email</small>
-                            <span class="fw-medium" id="modalStudentEmail" style="font-size: 0.9rem;">—</span>
+                            <span class="fw-medium" id="modalStudentEmail"
+                                  style="font-size: 0.9rem; word-break: break-all; overflow-wrap: anywhere; display: block;">—</span>
                         </div>
                     </div>
                     <div class="col-6">
@@ -461,6 +462,28 @@
 
     .empty-state { padding: 2rem; text-align: center; }
     .empty-state i { opacity: 0.7; }
+
+    /* Mobile responsive */
+    @media (max-width: 767px) {
+        .card-header { flex-direction: column; align-items: flex-start !important; }
+        #searchForm { width: 100%; }
+        #searchForm .filter-select {
+            width: 100% !important;
+            min-width: unset !important;
+            flex: 1 1 calc(50% - 4px);
+        }
+        #searchForm input[type="search"] {
+            width: 100% !important;
+            min-width: unset !important;
+            flex: 1 1 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        #searchForm .filter-select {
+            flex: 1 1 100%;
+        }
+    }
 </style>
 @endsection
 
@@ -524,31 +547,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return await fetch(action, { method: 'POST', body: formData });
     }
 
-    // ── Reason modal logic — shared helper ────────────────────────────────────
+    // ── Reason modal logic ────────────────────────────────────────────────────
     function setupReasonModal({ modalId, radioClass, otherTextId, submitBtnId, accentColor, onSubmit }) {
         const modalEl   = document.getElementById(modalId);
         const submitBtn = document.getElementById(submitBtnId);
         const otherTxt  = document.getElementById(otherTextId);
 
-        // Reset state every time modal opens
         modalEl.addEventListener('show.bs.modal', function () {
             modalEl.querySelectorAll(`input[type=radio]`).forEach(r => r.checked = false);
             otherTxt.style.display = 'none';
             otherTxt.value = '';
             submitBtn.disabled = true;
-            // Reset border highlights
             modalEl.querySelectorAll('.reason-option').forEach(l => l.style.border = '2px solid transparent');
         });
 
-        // Radio change
         modalEl.addEventListener('change', function (e) {
             if (!e.target.matches(`.${radioClass}`)) return;
             const val = e.target.value;
-
-            // Highlight selected
             modalEl.querySelectorAll('.reason-option').forEach(l => l.style.border = '2px solid transparent');
             e.target.closest('.reason-option').style.border = `2px solid ${accentColor}`;
-
             if (val === 'other') {
                 otherTxt.style.display = 'block';
                 submitBtn.disabled = otherTxt.value.trim() === '';
@@ -558,7 +575,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Typing in other box
         otherTxt.addEventListener('input', function () {
             const selected = modalEl.querySelector(`.${radioClass}:checked`);
             if (selected && selected.value === 'other') {
@@ -566,7 +582,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Submit
         submitBtn.addEventListener('click', function () {
             const selected = modalEl.querySelector(`.${radioClass}:checked`);
             if (!selected) return;
@@ -634,13 +649,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Action handlers ───────────────────────────────────────────────────────
     function attachActionHandlers() {
-        // Confirm buttons (unchanged flow)
         document.querySelectorAll('.trigger-confirm').forEach(btn => {
             btn.removeEventListener('click', btn._listener);
             const handler = function () {
                 const { action, method, type, title, message, confirmText,
                         iconBg, icon, iconColor, btnBg } = this.dataset;
-                const row = this.closest('tr');
                 showConfirm({
                     title, message, confirmText,
                     confirmStyle: { iconBg, icon, iconColor, btnBg },
@@ -673,7 +686,6 @@ document.addEventListener('DOMContentLoaded', function () {
             btn._listener = handler;
         });
 
-        // Decline buttons — open reason modal
         document.querySelectorAll('.decline-student').forEach(btn => {
             btn.removeEventListener('click', btn._declineListener);
             const handler = function () {
@@ -686,7 +698,6 @@ document.addEventListener('DOMContentLoaded', function () {
             btn._declineListener = handler;
         });
 
-        // Delete buttons — open reason modal
         document.querySelectorAll('.delete-student').forEach(btn => {
             btn.removeEventListener('click', btn._deleteListener);
             const handler = function () {

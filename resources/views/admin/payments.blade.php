@@ -11,7 +11,7 @@
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bg-main);">
     <div class="card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center gap-3 flex-wrap" style="background: var(--bg-main);">
         <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">All Payments</h5>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap w-100 justify-content-end" style="max-width: 100%;">
             <!-- Status Filter Dropdown -->
             <select id="statusFilter" class="form-select rounded-pill px-4 py-2" style="width: auto; min-width: 150px; background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);">
                 <option value="">All Payments</option>
@@ -20,14 +20,14 @@
                 <option value="failed"  {{ request('status') == 'failed'  ? 'selected' : '' }}>Failed</option>
             </select>
 
-            <!-- Search Input (no button needed — live search) -->
-            <div class="search-wrap" style="width: 320px;">
+            <!-- Search Input -->
+            <div class="search-wrap flex-grow-1" style="min-width: 200px; max-width: 320px;">
                 <input type="text" id="searchInput"
                        class="form-control rounded-pill border-0 px-4"
                        placeholder="Search student or reference..."
                        value="{{ request('search') }}"
                        autocomplete="off"
-                       style="background: var(--input-bg); color: var(--text-primary); padding-right: 2.5rem;">
+                       style="background: var(--input-bg); color: var(--text-primary); padding-right: 2.5rem; width: 100%;">
                 <i class="fas fa-circle-notch fa-spin" id="searchSpinner"></i>
             </div>
         </div>
@@ -119,7 +119,7 @@
     </div>
 </div>
 
-{{-- Page Loader — shown for dropdown filter & pagination only --}}
+{{-- Page Loader --}}
 <div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5,15,50,0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -134,7 +134,7 @@
     </div>
 </div>
 
-{{-- Action Loader — verify / reject --}}
+{{-- Action Loader --}}
 <div id="paymentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5,15,50,0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
     <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
         <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
@@ -226,7 +226,7 @@
     .dark-mode .payment-id { color: #e2e8f0; }
 
     /* Search wrapper + inline spinner */
-    .search-wrap { position: relative; }
+    .search-wrap { position: relative; width: 100%; }
     #searchSpinner {
         position: absolute;
         right: 14px;
@@ -236,6 +236,23 @@
         font-size: 0.8rem;
         display: none;
         pointer-events: none;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 576px) {
+        .card-header .d-flex.flex-wrap {
+            flex-direction: column;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+        }
+        .card-header .d-flex.flex-wrap #statusFilter {
+            width: 100% !important;
+            min-width: unset !important;
+        }
+        .search-wrap {
+            max-width: 100% !important;
+            min-width: unset !important;
+        }
     }
 </style>
 @endsection
@@ -414,12 +431,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── AJAX loadPayments ──────────────────────────────────────────────────────
-    // silent = true  → small spinner only (while typing)
-    // silent = false → full-page loader (dropdown change, pagination)
     let searchAbortCtrl = null;
 
     async function loadPayments(url, silent = false) {
-        // Cancel any previous silent/search request
         if (searchAbortCtrl) { searchAbortCtrl.abort(); searchAbortCtrl = null; }
 
         if (silent) {
@@ -465,20 +479,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── Event listeners ────────────────────────────────────────────────────────
-
-    // Status dropdown — full loader
     document.getElementById('statusFilter').addEventListener('change', function () {
         loadPayments(buildFilterUrl(), false);
     });
 
-    // Live search — debounced, spinner only, no full-page loader
     let searchDebounce;
     document.getElementById('searchInput').addEventListener('input', function () {
         clearTimeout(searchDebounce);
         searchDebounce = setTimeout(() => loadPayments(buildFilterUrl(), true), 350);
     });
 
-    // Pagination — full loader
     document.addEventListener('click', function (e) {
         const link = e.target.closest('#paymentsPagination a');
         if (!link) return;

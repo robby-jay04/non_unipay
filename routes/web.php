@@ -40,7 +40,7 @@ Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']
 | Protected Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
 
@@ -109,4 +109,4 @@ Route::middleware(['auth'])->group(function () {
 
     }); // closes admin middleware
 
-}); // closes auth middleware
+}); // closes auth + active middleware

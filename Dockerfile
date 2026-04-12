@@ -30,6 +30,7 @@ RUN echo '<VirtualHost *:80>\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 RUN a2enmod rewrite
+RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
 
 RUN echo 'Listen 80' > /etc/apache2/ports.conf
 

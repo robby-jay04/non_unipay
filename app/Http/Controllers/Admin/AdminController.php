@@ -128,24 +128,26 @@ class AdminController extends Controller
         return Excel::download(new PaymentExport($filters), 'payments.xlsx');
     }
 
-  public function confirmStudent(Student $student)
+ public function confirmStudent(Student $student)
 {
     $student->is_confirmed = true;
     $student->save();
 
     try {
+        Log::info('Mail config: ' . config('mail.default'));
+        Log::info('Resend key: ' . (config('resend.api_key') ? 'SET' : 'NOT SET'));
         Mail::to($student->user->email)->send(new StudentVerified($student));
+        Log::info('Mail sent successfully');
     } catch (\Exception $e) {
-        Log::error('Confirm mail failed: ' . $e->getMessage());
+        Log::error('Mail failed: ' . $e->getMessage());
         return response()->json([
             'success' => true,
-            'message' => 'Student confirmed but email failed: ' . $e->getMessage()
+            'message' => 'Confirmed but mail failed: ' . $e->getMessage()
         ]);
     }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
 }
-
 public function destroy(Student $student)
 {
     $reason       = request('reason') ?: 'No reason provided.';

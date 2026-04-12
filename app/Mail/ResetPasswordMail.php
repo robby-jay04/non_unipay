@@ -17,9 +17,10 @@ class ResetPasswordMail extends Mailable
         $this->resetUrl = $resetUrl;
     }
 
-    public function build()
-    {
-        return $this->subject('Reset Your Password - Non-UniPay')
-                    ->view('emails.password-reset'); // Blade template path
-    }
+   public function build()
+{
+    return $this->subject('Reset Your Password - Non-UniPay')
+                ->view('emails.password-reset')
+                ->with(['resetUrl' => $this->resetUrl]);
+}
 }

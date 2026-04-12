@@ -111,27 +111,5 @@ Route::middleware(['auth', 'active'])->group(function () {
     }); // closes admin middleware
 
 }); // closes auth + active middleware
-Route::get('/debug-jobs', function() {
-    $jobs = DB::table('jobs')->count();
-    $failed = DB::table('failed_jobs')->get()->map(function($job) {
-        return [
-            'id' => $job->id,
-            'exception' => $job->exception,
-        ];
-    });
-    return response()->json([
-        'pending_jobs' => $jobs,
-        'failed_jobs' => $failed,
-    ]);
-});
 
-Route::get('/test-mail', function () {
-    try {
-        \Illuminate\Support\Facades\Mail::raw('Test from NonUniPay', function($m) {
-            $m->to('ibalerobbyjay@gmail.com')->subject('Test');
-        });
-        return 'Mail sent successfully!';
-    } catch (\Exception $e) {
-        return 'Mail failed: ' . $e->getMessage();
-    }
-});
+

@@ -132,9 +132,12 @@ class AdminController extends Controller
     $student->save();
 
     try {
-        Mail::to($student->user->email)->queue(new StudentVerified($student));
+        Log::info('Attempting to send verification email to: ' . $student->user->email);
+        Mail::to($student->user->email)->send(new StudentVerified($student));
+        Log::info('Email sent successfully');
     } catch (\Exception $e) {
         Log::error('Mail failed: ' . $e->getMessage());
+        Log::error($e->getTraceAsString());
     }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);

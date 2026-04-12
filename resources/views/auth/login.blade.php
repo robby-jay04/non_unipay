@@ -246,7 +246,7 @@
         .left-panel .bg-cover {
             position: absolute;
             inset: 0;
-            background: url("{{ asset('bg.PNG') }}") center/cover no-repeat;
+            background: url("{{ asset('bg.png') }}") center/cover no-repeat;
             transition: background-position 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .left-panel.expanded .bg-cover {

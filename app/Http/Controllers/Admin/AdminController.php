@@ -167,15 +167,21 @@ public function declineStudent(Student $student)
     return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
 }
 
-    public function newStudentsCount()
-    {
-        $count = Student::where('is_confirmed', false)->count();
-        return response()->json(['count' => $count]);
+  public function newStudentsCount(Request $request)
+{
+    if (!$request->ajax() && !$request->wantsJson()) {
+        return redirect()->route('admin.dashboard');
     }
+    $count = Student::where('is_confirmed', false)->count();
+    return response()->json(['count' => $count]);
+}
 
-    public function pendingPaymentsCount()
-    {
-        $count = Payment::whereIn('status', ['pending', 'processing'])->count();
-        return response()->json(['count' => $count]);
+public function pendingPaymentsCount(Request $request)
+{
+    if (!$request->ajax() && !$request->wantsJson()) {
+        return redirect()->route('admin.dashboard');
     }
+    $count = Payment::whereIn('status', ['pending', 'processing'])->count();
+    return response()->json(['count' => $count]);
+}
 }

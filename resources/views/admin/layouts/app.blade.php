@@ -758,18 +758,23 @@
     // ── Notification badge polling ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         function fetchNotificationCounts() {
-            fetch('/admin/api/pending-payments-count')
-                .then(r => r.json())
-                .then(data => {
+           fetch('/admin/api/pending-payments-count', {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+})
+    .then(r => r.json())
+    .then(data => {
+
                     document.querySelectorAll('#payments-badge, #payments-badge-desktop').forEach(b => {
                         b.style.display = data.count > 0 ? 'inline-block' : 'none';
                     });
                 })
                 .catch(err => console.error('Payments count error:', err));
 
-            fetch('/admin/api/new-students-count')
-                .then(r => r.json())
-                .then(data => {
+            fetch('/admin/api/new-students-count', {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+})
+    .then(r => r.json())
+    .then(data => {
                     document.querySelectorAll('#students-badge, #students-badge-desktop').forEach(b => {
                         b.style.display = data.count > 0 ? 'inline-block' : 'none';
                     });

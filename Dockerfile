@@ -1,15 +1,18 @@
 FROM php:8.2-apache
 
-# Install extensions
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
+    libssl-dev \
     zip \
     unzip \
     git \
     curl
 
+# Install PHP extensions including zip
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Install composer

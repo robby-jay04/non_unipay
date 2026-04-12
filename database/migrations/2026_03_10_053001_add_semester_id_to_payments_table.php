@@ -9,14 +9,15 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up()
+public function up()
 {
     Schema::table('payments', function (Blueprint $table) {
-        $table->unsignedBigInteger('semester_id')->nullable()->after('student_id');
-        $table->unsignedBigInteger('school_year_id')->nullable()->after('semester_id');
-
-        $table->foreign('semester_id')->references('id')->on('semesters')->onDelete('set null');
-        $table->foreign('school_year_id')->references('id')->on('school_years')->onDelete('set null');
+        if (!Schema::hasColumn('payments', 'semester_id')) {
+            $table->unsignedBigInteger('semester_id')->nullable()->after('student_id');
+        }
+        if (!Schema::hasColumn('payments', 'school_year_id')) {
+            $table->unsignedBigInteger('school_year_id')->nullable()->after('semester_id');
+        }
     });
 }
 

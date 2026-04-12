@@ -48,6 +48,9 @@ return [
         'brevo' => [
     'transport' => 'brevo',
 ],
+'resend' => [
+    'transport' => 'resend',
+],
         
 
         'ses' => [

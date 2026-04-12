@@ -124,3 +124,14 @@ Route::get('/debug-jobs', function() {
         'failed_jobs' => $failed,
     ]);
 });
+
+Route::get('/test-mail', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Test from NonUniPay', function($m) {
+            $m->to('your_personal_email@gmail.com')->subject('Test');
+        });
+        return 'Mail sent successfully!';
+    } catch (\Exception $e) {
+        return 'Mail failed: ' . $e->getMessage();
+    }
+});

@@ -35,8 +35,7 @@ class PasswordResetController extends Controller
 
             $webUrl = url("/password/reset/{$token}?email=" . urlencode($user->email));
 
-            Mail::to($user->email)->send(new ResetPasswordMail($webUrl));
-
+          Mail::to($user->email)->queue(new ResetPasswordMail($webUrl));
             return response()->json([
                 'success' => true,
                 'message' => 'Password reset link sent to your email',

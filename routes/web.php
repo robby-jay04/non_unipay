@@ -11,6 +11,7 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
+use Illuminate\Support\Facades\DB;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -110,3 +111,16 @@ Route::middleware(['auth', 'active'])->group(function () {
     }); // closes admin middleware
 
 }); // closes auth + active middleware
+Route::get('/debug-jobs', function() {
+    $jobs = DB::table('jobs')->count();
+    $failed = DB::table('failed_jobs')->get()->map(function($job) {
+        return [
+            'id' => $job->id,
+            'exception' => $job->exception,
+        ];
+    });
+    return response()->json([
+        'pending_jobs' => $jobs,
+        'failed_jobs' => $failed,
+    ]);
+});

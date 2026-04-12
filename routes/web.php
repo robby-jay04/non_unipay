@@ -128,7 +128,7 @@ Route::get('/debug-jobs', function() {
 Route::get('/test-mail', function () {
     try {
         \Illuminate\Support\Facades\Mail::raw('Test from NonUniPay', function($m) {
-            $m->to('your_personal_email@gmail.com')->subject('Test');
+            $m->to('ibalerobbyjay@gmail.com')->subject('Test');
         });
         return 'Mail sent successfully!';
     } catch (\Exception $e) {

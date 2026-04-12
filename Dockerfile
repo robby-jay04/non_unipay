@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
     libpng-dev \
@@ -21,19 +21,6 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+EXPOSE 8000
 
-RUN a2enmod rewrite
-RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
-
-RUN echo 'Listen 80' > /etc/apache2/ports.conf
-
-EXPOSE 80
-
-CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"]

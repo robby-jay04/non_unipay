@@ -838,19 +838,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Polling ───────────────────────────────────────────────────────────────
     let lastUnconfirmedCount = null;
-    function pollForNewStudents() {
-        fetch('/admin/api/new-students-count')
-            .then(r => r.json())
-            .then(data => {
-                if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
-                    loadStudents(buildFilterUrl(currentStudentPage), true);
-                }
-                lastUnconfirmedCount = data.count;
-            })
-            .catch(err => console.error('Poll error:', err));
-    }
-    setInterval(pollForNewStudents, 5000);
-    pollForNewStudents();
+function pollForNewStudents() {
+    fetch('/admin/api/new-students-count', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+        .then(r => {
+            if (!r.ok) return null;
+            return r.json();
+        })
+        .then(data => {
+            if (!data) return;
+            if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
+                loadStudents(buildFilterUrl(currentStudentPage), true);
+            }
+            lastUnconfirmedCount = data.count;
+        })
+        .catch(err => console.error('Poll error:', err));
+}
+setInterval(pollForNewStudents, 5000);
+pollForNewStudents();
 
     // ── Initial bindings ──────────────────────────────────────────────────────
     attachViewHandlers();

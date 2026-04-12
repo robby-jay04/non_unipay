@@ -9,11 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+  public function up()
 {
-    Schema::table('students', function (Blueprint $table) {
-        $table->string('profile_picture')->nullable()->after('is_confirmed');
-    });
+    if (!Schema::hasColumn('students', 'profile_picture')) {
+        Schema::table('students', function (Blueprint $table) {
+            $table->string('profile_picture')->nullable()->after('is_confirmed');
+        });
+    }
 }
 
 public function down()

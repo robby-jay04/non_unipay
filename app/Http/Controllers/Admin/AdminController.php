@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use App\Mail\StudentVerified;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Facades\Log;
 use App\Mail\StudentDeclined;
 use App\Mail\StudentDeleted;
 
@@ -128,18 +128,21 @@ class AdminController extends Controller
         return Excel::download(new PaymentExport($filters), 'payments.xlsx');
     }
 
-   public function confirmStudent(Student $student)
+  public function confirmStudent(Student $student)
 {
     $student->is_confirmed = true;
     $student->save();
 
-    // Send verification email to the student
-    Mail::to($student->user->email)->send(new StudentVerified($student));
+    try {
+        Mail::to($student->user->email)->send(new StudentVerified($student));
+    } catch (\Exception $e) {
+        Log::error('Confirm mail failed: ' . $e->getMessage());
+    }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
 }
 
- public function destroy(Student $student)
+public function destroy(Student $student)
 {
     $reason       = request('reason') ?: 'No reason provided.';
     $studentName  = $student->user->name;
@@ -149,7 +152,11 @@ class AdminController extends Controller
     $student->user()->delete();
     $student->delete();
 
-    Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
+    try {
+        Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
+    } catch (\Exception $e) {
+        Log::error('Delete mail failed: ' . $e->getMessage());
+    }
 
     return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
 }
@@ -159,7 +166,11 @@ public function declineStudent(Student $student)
     $reason = request('reason') ?: 'No reason provided.';
     $email  = $student->user->email;
 
-    Mail::to($email)->send(new StudentDeclined($student, $reason));
+    try {
+        Mail::to($email)->send(new StudentDeclined($student, $reason));
+    } catch (\Exception $e) {
+        Log::error('Decline mail failed: ' . $e->getMessage());
+    }
 
     $student->user()->delete();
     $student->delete();

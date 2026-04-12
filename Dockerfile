@@ -21,7 +21,7 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-RUN echo '<VirtualHost *:${PORT}>\n\
+RUN echo '<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
         AllowOverride All\n\
@@ -31,8 +31,8 @@ RUN echo '<VirtualHost *:${PORT}>\n\
 
 RUN a2enmod rewrite
 
-RUN echo 'Listen ${PORT}' > /etc/apache2/ports.conf
+RUN echo 'Listen 80' > /etc/apache2/ports.conf
 
 EXPOSE 80
 
-CMD php artisan migrate --force && apache2-foreground
+CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]

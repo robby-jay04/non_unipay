@@ -116,7 +116,7 @@ public function index(Request $request)
 
         return response()->json($payments);
     }
-    public function uploadProfilePicture(Request $request)
+   public function uploadProfilePicture(Request $request)
 {
     $request->validate([
         'profile_picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
@@ -138,26 +138,23 @@ public function index(Request $request)
     }
 
     if ($request->hasFile('profile_picture')) {
-    $uploaded = cloudinary()->upload($request->file('profile_picture')->getRealPath(), [
-        'folder' => 'non-unipay/profile_pictures',
-        'public_id' => 'profile_' . $student->id . '_' . time(),
-    ]);
+        $uploaded = cloudinary()->upload($request->file('profile_picture')->getRealPath(), [
+            'public_id' => 'non-unipay/profile_pictures/profile_' . $student->id . '_' . time(),
+        ]);
 
-    // Build full URL manually — getSecurePath() returns relative path bug
-    $cloudName = config('cloudinary.cloud_url');
-    $publicId  = $uploaded->getPublicId();
-    $url = "https://res.cloudinary.com/{$cloudName}/image/upload/{$publicId}";
+        $publicId = $uploaded->getPublicId();
+        $url = "https://res.cloudinary.com/drzsvhpfk/image/upload/{$publicId}";
 
-    $student->profile_picture = $url;
-    $student->last_picture_update = now();
-    $student->save();
+        $student->profile_picture = $url;
+        $student->last_picture_update = now();
+        $student->save();
 
-    return response()->json([
-        'success' => true,
-        'profile_picture' => $url,
-        'message' => 'Profile picture updated',
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'profile_picture' => $url,
+            'message' => 'Profile picture updated',
+        ]);
+    }
 
     return response()->json(['success' => false, 'message' => 'No file uploaded'], 400);
 }

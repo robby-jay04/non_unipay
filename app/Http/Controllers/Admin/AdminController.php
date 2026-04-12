@@ -134,20 +134,14 @@ class AdminController extends Controller
     $student->save();
 
     try {
-        Log::info('Mail config: ' . config('mail.default'));
-        Log::info('Resend key: ' . (config('resend.api_key') ? 'SET' : 'NOT SET'));
-        Mail::to($student->user->email)->send(new StudentVerified($student));
-        Log::info('Mail sent successfully');
+        Mail::to($student->user->email)->queue(new StudentVerified($student));
     } catch (\Exception $e) {
         Log::error('Mail failed: ' . $e->getMessage());
-        return response()->json([
-            'success' => true,
-            'message' => 'Confirmed but mail failed: ' . $e->getMessage()
-        ]);
     }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
 }
+
 public function destroy(Student $student)
 {
     $reason       = request('reason') ?: 'No reason provided.';
@@ -159,7 +153,7 @@ public function destroy(Student $student)
     $student->delete();
 
     try {
-        Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
+        Mail::to($studentEmail)->queue(new StudentDeleted($studentName, $studentNo, $reason));
     } catch (\Exception $e) {
         Log::error('Delete mail failed: ' . $e->getMessage());
     }
@@ -173,7 +167,7 @@ public function declineStudent(Student $student)
     $email  = $student->user->email;
 
     try {
-        Mail::to($email)->send(new StudentDeclined($student, $reason));
+        Mail::to($email)->queue(new StudentDeclined($student, $reason));
     } catch (\Exception $e) {
         Log::error('Decline mail failed: ' . $e->getMessage());
     }

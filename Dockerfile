@@ -26,5 +26,4 @@ RUN mkdir -p /var/www/html/storage/app/public \
     && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
 EXPOSE 8000
-
-CMD ["sh", "-c", "php artisan migrate --force && rm -rf /var/www/html/public/storage && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage && php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8000 & php artisan queue:work --tries=3 --sleep=3"]

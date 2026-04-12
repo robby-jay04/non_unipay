@@ -132,12 +132,11 @@ class AdminController extends Controller
     $student->save();
 
     try {
-        Log::info('Attempting to send verification email to: ' . $student->user->email);
+        Log::info('Sending email to: ' . $student->user->email);
         Mail::to($student->user->email)->send(new StudentVerified($student));
         Log::info('Email sent successfully');
     } catch (\Exception $e) {
         Log::error('Mail failed: ' . $e->getMessage());
-        Log::error($e->getTraceAsString());
     }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
@@ -150,25 +149,31 @@ public function destroy(Student $student)
     $studentNo    = $student->student_no;
     $studentEmail = $student->user->email;
 
-    $student->user()->delete();
-    $student->delete();
-
+    // Send BEFORE deleting
     try {
         Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
+        Log::info('Delete email sent to: ' . $studentEmail);
     } catch (\Exception $e) {
         Log::error('Delete mail failed: ' . $e->getMessage());
     }
+
+    $student->user()->delete();
+    $student->delete();
 
     return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
 }
 
 public function declineStudent(Student $student)
 {
-    $reason = request('reason') ?: 'No reason provided.';
-    $email  = $student->user->email;
+    $reason      = request('reason') ?: 'No reason provided.';
+    $email       = $student->user->email;
+    $studentCopy = clone $student;
+    $studentCopy->setRelation('user', $student->user);
 
+    // Send BEFORE deleting
     try {
-        Mail::to($email)->queue(new StudentDeclined($student, $reason));
+        Mail::to($email)->send(new StudentDeclined($studentCopy, $reason));
+        Log::info('Decline email sent to: ' . $email);
     } catch (\Exception $e) {
         Log::error('Decline mail failed: ' . $e->getMessage());
     }

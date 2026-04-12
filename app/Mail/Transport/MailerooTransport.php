@@ -14,25 +14,30 @@ class MailerooTransport extends AbstractTransport
         parent::__construct();
     }
 
-    protected function doSend(SentMessage $message): void
-    {
-        $email = MessageConverter::toEmail($message->getOriginalMessage());
+   protected function doSend(SentMessage $message): void
+{
+    $email = MessageConverter::toEmail($message->getOriginalMessage());
 
-        $payload = [
-            'from' => [
-                'address' => array_key_first($email->getFrom() ? array_map(fn($a) => $a->getAddress(), $email->getFrom()) : []),
-                'display_name' => $email->getFrom()[0]->getName() ?? '',
-            ],
-            'to' => array_map(fn($a) => ['address' => $a->getAddress(), 'display_name' => $a->getName()], $email->getTo()),
-            'subject' => $email->getSubject(),
-            'html' => $email->getHtmlBody(),
-            'plain' => $email->getTextBody(),
-        ];
+    $fromAddress = $email->getFrom()[0];
+    $toAddresses = array_map(fn($a) => $a->getAddress(), $email->getTo());
 
-        Http::withToken($this->apiKey)
-            ->post('https://smtp.maileroo.com/api/v2/emails', $payload)
-            ->throw();
+    $response = Http::withHeaders([
+        'X-API-Key' => $this->apiKey,
+        'Content-Type' => 'application/json',
+    ])->post('https://smtp.maileroo.com/api/v2/send', [
+        'from'         => $fromAddress->getName() 
+                            ? $fromAddress->getName() . ' <' . $fromAddress->getAddress() . '>'
+                            : $fromAddress->getAddress(),
+        'to'           => implode(',', $toAddresses),
+        'subject'      => $email->getSubject(),
+        'html_body'    => $email->getHtmlBody(),
+        'plain_body'   => $email->getTextBody() ?? strip_tags($email->getHtmlBody()),
+    ]);
+
+    if (!$response->successful()) {
+        throw new \Exception('Maileroo API error: ' . $response->body());
     }
+}
 
     public function __toString(): string
     {

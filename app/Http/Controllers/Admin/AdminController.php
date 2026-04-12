@@ -137,6 +137,10 @@ class AdminController extends Controller
         Mail::to($student->user->email)->send(new StudentVerified($student));
     } catch (\Exception $e) {
         Log::error('Confirm mail failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => true,
+            'message' => 'Student confirmed but email failed: ' . $e->getMessage()
+        ]);
     }
 
     return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);

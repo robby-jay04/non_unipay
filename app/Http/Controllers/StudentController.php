@@ -23,9 +23,8 @@ public function profile(Request $request) {
 }
 public function index(Request $request)
 {
-    $query = Student::with('user');
+    $query = Student::with(['user', 'clearance']);
 
-    // Apply search filter (name or student number)
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
@@ -36,22 +35,30 @@ public function index(Request $request)
         });
     }
 
-    // Apply course filter
     if ($request->filled('course')) {
         $query->where('course', $request->course);
     }
 
-    // Paginate results (15 per page)
+    if ($request->filled('year_level')) {
+        $query->where('year_level', $request->year_level);
+    }
+
+    if ($request->filled('clearance_status')) {
+        $query->whereHas('clearance', function ($q) use ($request) {
+            $q->where('status', $request->clearance_status);
+        });
+    }
+
     $students = $query->orderBy('created_at', 'desc')
                       ->paginate(15)
-                      ->appends($request->only(['search', 'course'])); // preserve filters in pagination links
+                      ->appends($request->only(['search', 'course', 'year_level', 'clearance_status']));
 
-    // Get distinct courses for the dropdown
-    $courses = Student::distinct()->pluck('course')->filter()->values();
+    $courses          = Student::distinct()->pluck('course')->filter()->values();
+    $yearLevels       = Student::distinct()->pluck('year_level')->filter()->sort()->values();
+    $clearanceStatuses = ['cleared', 'not_cleared'];
 
-    return view('admin.students', compact('students', 'courses'));
+    return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
 }
-
 
   public function updateProfile(Request $request)
 {
@@ -158,4 +165,5 @@ public function index(Request $request)
 
     return response()->json(['success' => false, 'message' => 'No file uploaded'], 400);
 }
+
 }

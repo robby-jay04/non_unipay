@@ -106,9 +106,7 @@ class AdminController extends Controller
             'contact'          => $student->contact,
             'is_confirmed'     => (bool) $student->is_confirmed,
             'clearance_status' => $student->clearance_status,
-            'profile_picture'  => $student->profile_picture
-                                    ? asset('storage/' . $student->profile_picture)
-                                    : null,
+            'profile_picture' => $student->profile_picture ?: null,
         ]);
     }
 

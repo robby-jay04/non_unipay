@@ -21,17 +21,20 @@ class MailerooTransport extends AbstractTransport
     $fromAddress = $email->getFrom()[0];
     $toAddresses = array_map(fn($a) => $a->getAddress(), $email->getTo());
 
-   $response = Http::withHeaders([
+  $response = Http::withHeaders([
     'X-Api-Key' => $this->apiKey,
     'Content-Type' => 'application/json',
 ])->post('https://smtp.maileroo.com/api/v2/emails', [
-    'from'         => $fromAddress->getName() 
-                        ? $fromAddress->getName() . ' <' . $fromAddress->getAddress() . '>'
-                        : $fromAddress->getAddress(),
-    'to'           => implode(',', $toAddresses),
-    'subject'      => $email->getSubject(),
-    'html_body'    => $email->getHtmlBody(),
-    'plain_body'   => $email->getTextBody() ?? strip_tags($email->getHtmlBody()),
+    'from'       => $fromAddress->getName() 
+                    ? $fromAddress->getName() . ' <' . $fromAddress->getAddress() . '>'
+                    : $fromAddress->getAddress(),
+    'to'         => array_map(fn($a) => [
+                        'email' => $a->getAddress(),
+                        'name'  => $a->getName() ?? '',
+                    ], $email->getTo()),
+    'subject'    => $email->getSubject(),
+    'html_body'  => $email->getHtmlBody(),
+    'plain_body' => $email->getTextBody() ?? strip_tags($email->getHtmlBody()),
 ]);
     if (!$response->successful()) {
         throw new \Exception('Maileroo API error: ' . $response->body());

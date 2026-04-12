@@ -18,19 +18,7 @@ public function profile(Request $request) {
         return response()->json(['message' => 'Student profile not found'], 404);
     }
 
-    // Build URL dynamically — never hardcode ngrok URL in DB
-    if ($student->profile_picture) {
-        // Strip any old full URL if accidentally stored, keep only path
-        $path = $student->profile_picture;
-        if (str_starts_with($path, 'http')) {
-            // Already a full URL stored in DB (old records) — extract path portion
-            $path = preg_replace('#^https?://[^/]+/storage/#', '', $path);
-            // Fix the DB record while we're at it
-            $student->update(['profile_picture' => $path]);
-        }
-        $student->profile_picture = asset('storage/' . $path);
-    }
-
+    // profile_picture is now a full Cloudinary URL, no need to convert
     return response()->json($student);
 }
 public function index(Request $request)
@@ -136,7 +124,6 @@ public function index(Request $request)
 
     $student = $request->user()->student;
 
-    // ✅ 1-day cooldown check
     $cooldownDays = 1;
     if ($student->last_picture_update) {
         $nextAllowed = \Carbon\Carbon::parse($student->last_picture_update)
@@ -146,36 +133,29 @@ public function index(Request $request)
             return response()->json([
                 'success' => false,
                 'message' => "You can only update your profile picture once every {$cooldownDays} days. Please try again in {$daysLeft} day(s).",
-                'next_allowed' => $nextAllowed->toDateString(),
             ], 429);
         }
     }
 
     if ($request->hasFile('profile_picture')) {
-        // Delete old picture if exists
-        if ($student->profile_picture) {
-            Storage::disk('public')->delete($student->profile_picture);
-        }
+        $uploaded = cloudinary()->upload($request->file('profile_picture')->getRealPath(), [
+            'folder' => 'non-unipay/profile_pictures',
+            'public_id' => 'profile_' . $student->id . '_' . time(),
+        ]);
 
-        $filename = 'profile_' . $student->id . '_' . time() . '.jpg';
-        $path = $request->file('profile_picture')
-                    ->storeAs('profile_pictures', $filename, 'public');
+        $url = $uploaded->getSecurePath();
 
-        $student->profile_picture      = $path;
-        $student->last_picture_update  = now(); // ✅ save timestamp
+        $student->profile_picture = $url;
+        $student->last_picture_update = now();
         $student->save();
 
         return response()->json([
-            'success'         => true,
-            'profile_picture' => asset('storage/' . $path),
-            'message'         => 'Profile picture updated',
-            'next_allowed'    => now()->addDays($cooldownDays)->toDateString(),
+            'success' => true,
+            'profile_picture' => $url,
+            'message' => 'Profile picture updated',
         ]);
     }
 
-    return response()->json([
-        'success' => false,
-        'message' => 'No file uploaded',
-    ], 400);
+    return response()->json(['success' => false, 'message' => 'No file uploaded'], 400);
 }
 }

@@ -21,6 +21,10 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
+RUN mkdir -p /var/www/html/storage/app/public \
+    && mkdir -p /var/www/html/public/storage \
+    && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
+
 EXPOSE 8000
 
-CMD ["sh", "-c", "php artisan migrate --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"]

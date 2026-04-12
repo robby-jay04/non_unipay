@@ -22,5 +22,8 @@ return [
     'resend' => [
         'key' => env('RESEND_API_KEY', ''),
     ],
+    'maileroo' => [
+    'key' => env('MAILEROO_API_KEY'),
+],
 
 ];

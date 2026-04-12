@@ -23,7 +23,7 @@
     .card-table .card-body { padding: 1.5rem; }
 
     /* Search Bar */
-    .search-bar .search-wrap { position: relative; flex: 1; }
+    .search-bar .search-wrap { position: relative; flex: 1;width: 260px; margin-left: auto;  }
     .search-bar .form-control {
         border-radius: 30px;
         border: 1.5px solid var(--input-border);

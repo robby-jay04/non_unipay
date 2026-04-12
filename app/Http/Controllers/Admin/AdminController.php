@@ -151,7 +151,7 @@ public function destroy(Student $student)
     $student->delete();
 
     try {
-        Mail::to($studentEmail)->queue(new StudentDeleted($studentName, $studentNo, $reason));
+        Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
     } catch (\Exception $e) {
         Log::error('Delete mail failed: ' . $e->getMessage());
     }

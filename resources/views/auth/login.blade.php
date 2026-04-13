@@ -371,8 +371,6 @@
             z-index: 2;
         }
 
-
-
         /* ── EXPANDED FULLSCREEN SCROLLABLE ABOUT PAGE ── */
         .expanded-center {
             position: absolute;
@@ -394,7 +392,6 @@
             pointer-events: all;
         }
 
-        /* Hero section — sits below the background image */
         .about-hero {
             min-height: 100vh;
             display: flex;
@@ -463,7 +460,6 @@
         .exp-signin-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(0,0,0,0.28); }
         .exp-signin-btn:active { transform: translateY(0); }
 
-        /* About body — dark navy background */
         .about-body {
             background: #07193d;
             padding: 4rem 0 3rem;
@@ -507,7 +503,6 @@
             border-top: 1px solid rgba(255,255,255,0.08);
         }
 
-        /* Stats row */
         .about-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -536,7 +531,6 @@
             font-weight: 400;
         }
 
-        /* Feature grid */
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -572,7 +566,6 @@
             line-height: 1.65;
         }
 
-        /* Tech stack */
         .tech-grid {
             display: flex;
             flex-wrap: wrap;
@@ -591,7 +584,6 @@
         }
         .tech-pill i { color: var(--accent); font-size: 0.85rem; }
 
-        /* Team grid */
         .team-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -612,7 +604,6 @@
             box-shadow: 0 12px 32px rgba(0,0,0,0.25);
         }
 
-        /* Avatar wrapper — holds the circle + role badge */
         .team-avatar-wrap {
             position: relative;
             width: 72px; height: 72px;
@@ -645,7 +636,6 @@
             border: 2px solid rgba(232,184,75,0.4);
             pointer-events: none;
         }
-        /* Small role badge bottom-right */
         .team-role-badge {
             position: absolute;
             bottom: -2px; right: -2px;
@@ -676,7 +666,6 @@
             color: rgba(255,255,255,0.38);
             margin-bottom: 0.75rem;
         }
-        /* Skill tags */
         .team-skills {
             display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center;
         }
@@ -689,20 +678,35 @@
             color: rgba(255,255,255,0.55);
         }
 
-      .about-footer {
-    background: #040f25;
-     padding: 2rem 3rem 10rem; 
-    text-align: center;
-}
-.about-footer p {
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.3);
-    line-height: 1.7;
-}
-.about-footer strong { 
-    color: rgba(255,255,255,0.55); 
-    font-weight: 500; 
-}
+        .team-avatar-img {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .team-avatar-img img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .about-footer {
+            background: #040f25;
+            padding: 2rem 3rem 10rem;
+            text-align: center;
+        }
+        .about-footer p {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.7;
+        }
+        .about-footer strong {
+            color: rgba(255,255,255,0.55);
+            font-weight: 500;
+        }
+
         /* ── TOGGLE ARROW BUTTON ── */
         .toggle-btn {
             position: absolute;
@@ -862,7 +866,7 @@
             background: var(--input-bg);
             border: 1.5px solid transparent;
             border-radius: 14px;
-            padding: 0.85rem 1rem 0.85rem 2.8rem;
+            padding: 0.85rem 3rem 0.85rem 2.8rem;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
             color: #111827;
@@ -891,8 +895,17 @@
             background: none;
             border: none;
             padding: 0;
+            /* Make tap target bigger on mobile */
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            -webkit-tap-highlight-color: transparent;
         }
         .field-wrap .toggle-pw:hover { color: var(--navy); }
+        .field-wrap .toggle-pw:active { background: rgba(15,60,145,0.08); color: var(--navy); }
 
         .btn-login {
             width: 100%;
@@ -1033,20 +1046,6 @@
             padding: 6px;
             object-fit: contain;
         }
-        .team-avatar-img {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.team-avatar-img img {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
         .loader-spinner {
             position: absolute; inset: -5px;
             border-radius: 50%;
@@ -1093,54 +1092,46 @@
         @media (max-width: 480px) {
             .left-panel { flex: 0 0 180px !important; min-height: 180px; }
         }
+
         /* ═════════ LIGHT BEAMS EFFECT ═════════ */
-.light-beams {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.light-beams span {
-    position: absolute;
-    width: 200%;
-    height: 120%;
-    top: -10%;
-    left: -50%;
-    background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255,255,255,0.08) 20%,
-        rgba(232,184,75,0.12) 40%,
-        transparent 70%
-    );
-    transform: rotate(25deg);
-    animation: beamMove 8s linear infinite;
-    filter: blur(8px);
-}
-
-/* Different speeds + delay */
-.light-beams span:nth-child(2) {
-    animation-duration: 12s;
-    animation-delay: 2s;
-    opacity: 0.7;
-}
-.light-beams span:nth-child(3) {
-    animation-duration: 10s;
-    animation-delay: 4s;
-    opacity: 0.5;
-}
-
-@keyframes beamMove {
-    0% {
-        transform: translateX(-60%) rotate(25deg);
-    }
-    100% {
-        transform: translateX(60%) rotate(25deg);
-    }
-}
-        
+        .light-beams {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .light-beams span {
+            position: absolute;
+            width: 200%;
+            height: 120%;
+            top: -10%;
+            left: -50%;
+            background: linear-gradient(
+                120deg,
+                transparent 0%,
+                rgba(255,255,255,0.08) 20%,
+                rgba(232,184,75,0.12) 40%,
+                transparent 70%
+            );
+            transform: rotate(25deg);
+            animation: beamMove 8s linear infinite;
+            filter: blur(8px);
+        }
+        .light-beams span:nth-child(2) {
+            animation-duration: 12s;
+            animation-delay: 2s;
+            opacity: 0.7;
+        }
+        .light-beams span:nth-child(3) {
+            animation-duration: 10s;
+            animation-delay: 4s;
+            opacity: 0.5;
+        }
+        @keyframes beamMove {
+            0%   { transform: translateX(-60%) rotate(25deg); }
+            100% { transform: translateX(60%)  rotate(25deg); }
+        }
     </style>
 </head>
 <body>
@@ -1179,10 +1170,10 @@
         <div class="overlay"></div>
 
         <div class="light-beams">
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <div class="deco-circle"></div>
         <div class="deco-circle-sm"></div>
 
@@ -1209,7 +1200,7 @@
         <!-- Expanded fullscreen scrollable about page -->
         <div class="expanded-center" id="expandedCenter">
 
-            <!-- HERO — sits over the bg image top half -->
+            <!-- HERO -->
             <div class="about-hero">
                 <div class="exp-badge">
                     <i class="fas fa-university"></i>
@@ -1343,95 +1334,91 @@
                     <p>Developed by a dedicated team of IT students committed to solving real problems in institutional finance management.</p>
                     <div class="team-grid">
 
-                     <!-- Robby Jay Ibale -->
-<div class="team-card">
-    <div class="team-avatar-wrap">
-        <div class="team-avatar-img" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
-           <img src="{{ asset('images/robby.jpg') }}" alt="Robby Jay Ibale" onerror="this.style.display='none'">
-            <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-role-badge"><i class="fas fa-code"></i></div>
-    </div>
-    <h3>Robby Jay Ibale</h3>
-    <div class="team-role">Full Stack Developer</div>
-    <div class="team-dept">Frontend &amp; Backend</div>
-    <div class="team-skills">
-        <span>Laravel</span><span>JavaScript</span><span>MySQL</span><span>ReactNative</span>
-    </div>
-</div>
+                        <!-- Robby Jay Ibale -->
+                        <div class="team-card">
+                            <div class="team-avatar-wrap">
+                                <div class="team-avatar-img" style="background: linear-gradient(135deg, #0f3c91, #1a4da8);">
+                                    <img src="{{ asset('images/robby.jpg') }}" alt="Robby Jay Ibale" onerror="this.style.display='none'">
+                                    <div class="team-avatar-ring"></div>
+                                </div>
+                                <div class="team-role-badge"><i class="fas fa-code"></i></div>
+                            </div>
+                            <h3>Robby Jay Ibale</h3>
+                            <div class="team-role">Full Stack Developer</div>
+                            <div class="team-dept">Frontend &amp; Backend</div>
+                            <div class="team-skills">
+                                <span>Laravel</span><span>JavaScript</span><span>MySQL</span><span>ReactNative</span>
+                            </div>
+                        </div>
 
-<!-- James Cuso -->
-<div class="team-card">
-    <div class="team-avatar-wrap">
-        <div class="team-avatar-img" style="background: linear-gradient(135deg, #1a6b3c, #2a9a58);">
-            <img src="{{ asset('images/james.jpg') }}" alt="James Cuso" onerror="this.style.display='none'">
-           
-            <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-role-badge"><i class="fas fa-bug"></i></div>
-    </div>
-    <h3>James Cuso</h3>
-    <div class="team-role">QA Tester</div>
-    <div class="team-dept">Quality Assurance</div>
-    <div class="team-skills">
-        <span>Testing</span><span>Bug Reports</span>
-    </div>
-</div>
+                        <!-- James Cuso -->
+                        <div class="team-card">
+                            <div class="team-avatar-wrap">
+                                <div class="team-avatar-img" style="background: linear-gradient(135deg, #1a6b3c, #2a9a58);">
+                                    <img src="{{ asset('images/james.jpg') }}" alt="James Cuso" onerror="this.style.display='none'">
+                                    <div class="team-avatar-ring"></div>
+                                </div>
+                                <div class="team-role-badge"><i class="fas fa-bug"></i></div>
+                            </div>
+                            <h3>James Cuso</h3>
+                            <div class="team-role">QA Tester</div>
+                            <div class="team-dept">Quality Assurance</div>
+                            <div class="team-skills">
+                                <span>Testing</span><span>Bug Reports</span>
+                            </div>
+                        </div>
 
-<!-- Khey Marie Jardenero -->
-<div class="team-card">
-    <div class="team-avatar-wrap">
-        <div class="team-avatar-img" style="background: linear-gradient(135deg, #7b1fa2, #ab47bc);">
-           <img src="{{ asset('images/khey.jpg') }}" alt="Khey Marie Jardenero" onerror="this.style.display='none'">
+                        <!-- Khey Marie Jardenero -->
+                        <div class="team-card">
+                            <div class="team-avatar-wrap">
+                                <div class="team-avatar-img" style="background: linear-gradient(135deg, #7b1fa2, #ab47bc);">
+                                    <img src="{{ asset('images/khey.jpg') }}" alt="Khey Marie Jardenero" onerror="this.style.display='none'">
+                                    <div class="team-avatar-ring"></div>
+                                </div>
+                                <div class="team-role-badge"><i class="fas fa-paint-brush"></i></div>
+                            </div>
+                            <h3>Khey Marie Jardenero</h3>
+                            <div class="team-role">UI/UX Designer</div>
+                            <div class="team-dept">Interface &amp; Experience</div>
+                            <div class="team-skills">
+                                <span>Figma</span><span>Prototyping</span>
+                            </div>
+                        </div>
 
-          
-            <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-role-badge"><i class="fas fa-paint-brush"></i></div>
-    </div>
-    <h3>Khey Marie Jardenero</h3>
-    <div class="team-role">UI/UX Designer</div>
-    <div class="team-dept">Interface &amp; Experience</div>
-    <div class="team-skills">
-        <span>Figma</span><span>Prototyping</span>
-    </div>
-</div>
+                        <!-- Ricianin Bontog -->
+                        <div class="team-card">
+                            <div class="team-avatar-wrap">
+                                <div class="team-avatar-img" style="background: linear-gradient(135deg, #b8600a, #e8a020);">
+                                    <img src="{{ asset('images/ricianin.jpg') }}" alt="Ricianin Bontog" onerror="this.style.display='none'">
+                                    <div class="team-avatar-ring"></div>
+                                </div>
+                                <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
+                            </div>
+                            <h3>Ricianin Bontog</h3>
+                            <div class="team-role">Documentation</div>
+                            <div class="team-dept">Technical Writing</div>
+                            <div class="team-skills">
+                                <span>SRS</span><span>User Manuals</span>
+                            </div>
+                        </div>
 
-<!-- Ricianin Bontog -->
-<div class="team-card">
-    <div class="team-avatar-wrap">
-        <div class="team-avatar-img" style="background: linear-gradient(135deg, #b8600a, #e8a020);">
-            <img src="{{ asset('images/ricianin.jpg') }}" alt="Ricianin Bontog" onerror="this.style.display='none'">
-            
-            <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
-    </div>
-    <h3>Ricianin Bontog</h3>
-    <div class="team-role">Documentation</div>
-    <div class="team-dept">Technical Writing</div>
-    <div class="team-skills">
-        <span>SRS</span><span>User Manuals</span>
-    </div>
-</div>
+                        <!-- Novy Mapute -->
+                        <div class="team-card">
+                            <div class="team-avatar-wrap">
+                                <div class="team-avatar-img" style="background: linear-gradient(135deg, #c62828, #ef5350);">
+                                    <img src="{{ asset('images/novy.jpg') }}" alt="Novy Mapute" onerror="this.style.display='none'">
+                                    <div class="team-avatar-ring"></div>
+                                </div>
+                                <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
+                            </div>
+                            <h3>Novy Mapute</h3>
+                            <div class="team-role">Documentation</div>
+                            <div class="team-dept">Technical Writing</div>
+                            <div class="team-skills">
+                                <span>Reports</span><span>Research</span>
+                            </div>
+                        </div>
 
-<!-- Novy Mapute -->
-<div class="team-card">
-    <div class="team-avatar-wrap">
-        <div class="team-avatar-img" style="background: linear-gradient(135deg, #c62828, #ef5350);">
-            <img src="{{ asset('images/novy.jpg') }}" alt="Novy Mapute" onerror="this.style.display='none'">
-           
-            <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-role-badge"><i class="fas fa-file-alt"></i></div>
-    </div>
-    <h3>Novy Mapute</h3>
-    <div class="team-role">Documentation</div>
-    <div class="team-dept">Technical Writing</div>
-    <div class="team-skills">
-        <span>Reports</span><span>Research</span>
-    </div>
-</div>
                     </div>
                 </div>
 
@@ -1503,6 +1490,7 @@
                     >
                 </div>
 
+                <!-- ✅ FIX: toggle-pw button added here -->
                 <div class="field-wrap">
                     <i class="fas fa-lock field-icon"></i>
                     <input
@@ -1513,25 +1501,27 @@
                         required
                         autocomplete="current-password"
                     >
-                
+                    <button type="button" class="toggle-pw" onclick="togglePassword()" tabindex="-1" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye" id="pwEyeIcon"></i>
+                    </button>
                 </div>
 
-             <button type="submit" class="btn-login" id="loginBtn">
+                <button type="submit" class="btn-login" id="loginBtn">
                     <i class="fas fa-sign-in-alt me-2"></i> Sign In
                 </button>
             </form>
 
-            <?php if($errors->any()): ?>
+            @if($errors->any())
                 <div class="error-msg" id="loginErrorMsg">
                     <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
-                    <span><?php echo e($errors->first()); ?></span>
+                    <span>{{ $errors->first() }}</span>
                 </div>
-            <?php elseif(session('error')): ?>
+            @elseif(session('error'))
                 <div class="error-msg" id="loginErrorMsg">
                     <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
-                    <span><?php echo e(session('error')); ?></span>
+                    <span>{{ session('error') }}</span>
                 </div>
-            <?php endif; ?>
+            @endif
 
             <div class="form-divider"></div>
             <p class="footer-note">Non-UniPay &copy; {{ date('Y') }} &nbsp;·&nbsp; Staff &amp; Admin Portal</p>
@@ -1712,13 +1702,13 @@
             }, 500);
         });
 
-       if (loginForm) {
+        if (loginForm) {
             loginForm.addEventListener('submit', function () {
                 checkStudentEmail(document.getElementById('emailInput').value.trim());
             });
         }
 
-      // ══ KEEP RIGHT PANEL OPEN ON ERRORS ══════════════
+        // ══ KEEP RIGHT PANEL OPEN ON ERRORS ══════════════
         <?php if($errors->any() || session('error')): ?>
             (function () {
                 // Show login panel immediately — skip splash
@@ -1761,6 +1751,8 @@
                 }
             })();
         <?php endif; ?>
+
+
     </script>
 </body>
 </html>

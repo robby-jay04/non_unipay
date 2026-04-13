@@ -113,13 +113,4 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 }); // closes auth + active middleware
 
-Route::get('/test-mail', function () {
-    try {
-        Mail::raw('Test email from Resend', function($m) {
-            $m->to('ibalerobbyjay@gmail.com')->subject('Test');
-        });
-        return 'Email sent!';
-    } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage();
-    }
-});
+

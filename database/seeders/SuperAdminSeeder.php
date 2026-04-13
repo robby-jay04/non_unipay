@@ -15,11 +15,11 @@ class SuperAdminSeeder extends Seeder
             [
                 'name'              => 'Super Admin',
                 'role'              => 'superadmin',
-                'password'          => Hash::make('SuperAdmin@123'),
+                'password'          => Hash::make('SuperAdmin0104'),
                 'email_verified_at' => now(),
             ]
         );
 
-        $this->command->info('✅ Super Admin created: superadmin@non-unipay.com / SuperAdmin@123');
+        $this->command->info('✅ Super Admin created: superadmin@non-unipay.com / SuperAdmin0104');
     }
 }

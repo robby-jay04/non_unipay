@@ -22,9 +22,6 @@ class AppServiceProvider extends ServiceProvider
             Request::HEADER_X_FORWARDED_PORT |
             Request::HEADER_X_FORWARDED_PROTO
         );
-Mail::extend('maileroo', function () {
-    $key = config('services.maileroo.key') ?: env('MAILEROO_API_KEY');
-    return new MailerooTransport($key);
-});
+
     }
 }

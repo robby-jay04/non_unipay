@@ -12,6 +12,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -112,4 +113,13 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 }); // closes auth + active middleware
 
-
+Route::get('/test-mail', function () {
+    try {
+        Mail::raw('Test email from Resend', function($m) {
+            $m->to('ibalerobbyjay@gmail.com')->subject('Test');
+        });
+        return 'Email sent!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});

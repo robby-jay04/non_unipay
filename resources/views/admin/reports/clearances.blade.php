@@ -455,22 +455,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('downloadForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        if (loader) loader.style.display = 'flex';
+    // Close modal first
+    const modal = bootstrap.Modal.getInstance(document.getElementById('downloadModal'));
+    if (modal) modal.hide();
 
-        const params = new URLSearchParams({
-            course: this.querySelector('[name="course"]').value,
-            year_level: this.querySelector('[name="year_level"]').value,
-            search: document.getElementById('modalSearchInput').value,
-        });
+    if (loader) loader.style.display = 'flex';
 
-        window.location.href = '{{ route("admin.reports.clearances.pdf") }}?' + params.toString();
-
-        setTimeout(() => {
-            if (loader) loader.style.display = 'none';
-        }, 3000);
+    const params = new URLSearchParams({
+        course: this.querySelector('[name="course"]').value,
+        year_level: this.querySelector('[name="year_level"]').value,
+        search: document.getElementById('modalSearchInput').value,
     });
+
+    window.location.href = '{{ route("admin.reports.clearances.pdf") }}?' + params.toString();
+
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+    }, 3000);
+});
 });
 </script>
 @endpush

@@ -361,20 +361,47 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
-                            <div class="section-title">Password</div>
-                            <div class="mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password"
-                                       class="form-control @error('password', 'createBag') is-invalid @enderror"
-                                       placeholder="Min. 8 chars, upper + lower + number" required>
-                                @error('password', 'createBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Confirm Password</label>
-                                <input type="password" name="password_confirmation"
-                                       class="form-control" placeholder="Repeat password" required>
-                            </div>
-                        </div>
+    <div class="section-title">Password</div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <div class="input-group">
+            <input type="password" name="password" id="createPassword"
+                   class="form-control @error('password', 'createBag') is-invalid @enderror"
+                   placeholder="Min. 8 chars, upper + lower + number" required>
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="togglePassword('createPassword', 'createPasswordIcon')">
+                <svg id="createPasswordIcon" width="16" height="16"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </button>
+            @error('password', 'createBag')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <div class="input-group">
+            <input type="password" name="password_confirmation" id="createPasswordConfirm"
+                   class="form-control"
+                   placeholder="Repeat password" required>
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="togglePassword('createPasswordConfirm', 'createPasswordConfirmIcon')">
+                <svg id="createPasswordConfirmIcon" width="16" height="16"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
                     </div>
 
                 </div>
@@ -600,6 +627,21 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function 
         e.preventDefault();
         loadAdmins(buildUrl(link.href));
     });
+    // ── Toggle password visibility ───────────────────────────────────────────────
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    const show  = input.type === 'password';
+
+    input.type = show ? 'text' : 'password';
+
+    icon.innerHTML = show
+        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+           <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+           <line x1="1" y1="1" x2="23" y2="23"/>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+           <circle cx="12" cy="12" r="3"/>`;
+}
 })();
 </script>
 @endpush

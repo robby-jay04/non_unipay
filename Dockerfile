@@ -26,4 +26,4 @@ RUN mkdir -p /var/www/html/storage/app/public \
     && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
 EXPOSE 8000
-CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan db:seed --force && php artisan vendor:publish --provider='CloudinaryLabs\\CloudinaryLaravel\\CloudinaryServiceProvider' --force && php artisan storage:link --force && php artisan queue:work --tries=3 --sleep=3 --daemon & php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force  && php artisan vendor:publish --provider='CloudinaryLabs\\CloudinaryLaravel\\CloudinaryServiceProvider' --force && php artisan storage:link --force && php artisan queue:work --tries=3 --sleep=3 --daemon & php artisan serve --host=0.0.0.0 --port=8000"]

@@ -248,6 +248,45 @@
     .toggle-row .toggle-info { display: flex; flex-direction: column; gap: 2px; }
     .toggle-row .toggle-info span:first-child { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
     .toggle-row .toggle-info span:last-child  { font-size: 0.78rem; color: var(--text-muted); }
+
+    /* ── Password toggle button (modal) ── */
+    /* Hidden on desktop, visible on mobile */
+    .pw-toggle-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: 4px 6px;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1;
+        border-radius: 8px;
+        display: none; /* hidden on desktop */
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s, background 0.2s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .pw-toggle-btn:hover  { color: var(--btn-primary); }
+    .pw-toggle-btn:active { background: rgba(15,60,145,0.08); color: var(--btn-primary); }
+
+    /* Password input wrapper */
+    .pw-input-wrap {
+        position: relative;
+    }
+    .pw-input-wrap .form-control {
+        padding-right: 2.6rem; /* always reserve space so text never overlaps toggle */
+    }
+
+    /* Show toggle only on mobile (≤767px) */
+    @media (max-width: 767.98px) {
+        .pw-toggle-btn {
+            display: flex;
+        }
+    }
 </style>
 @endpush
 
@@ -360,48 +399,50 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- ── Password column ── --}}
                         <div class="col-12 col-md-6">
-    <div class="section-title">Password</div>
+                            <div class="section-title">Password</div>
 
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        <div class="input-group">
-            <input type="password" name="password" id="createPassword"
-                   class="form-control @error('password', 'createBag') is-invalid @enderror"
-                   placeholder="Min. 8 chars, upper + lower + number" required>
-            <button class="btn btn-outline-secondary" type="button"
-                    onclick="togglePassword('createPassword', 'createPasswordIcon')">
-                <svg id="createPasswordIcon" width="16" height="16"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            </button>
-            @error('password', 'createBag')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-    </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="pw-input-wrap">
+                                    <input type="password"
+                                           id="create_password"
+                                           name="password"
+                                           class="form-control @error('password', 'createBag') is-invalid @enderror"
+                                           placeholder="Min. 8 chars, upper + lower + number"
+                                           required>
+                                    <button type="button"
+                                            class="pw-toggle-btn"
+                                            onclick="togglePw('create_password', this)"
+                                            tabindex="-1"
+                                            aria-label="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @error('password', 'createBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
 
-    <div class="mb-3">
-        <label class="form-label">Confirm Password</label>
-        <div class="input-group">
-            <input type="password" name="password_confirmation" id="createPasswordConfirm"
-                   class="form-control"
-                   placeholder="Repeat password" required>
-            <button class="btn btn-outline-secondary" type="button"
-                    onclick="togglePassword('createPasswordConfirm', 'createPasswordConfirmIcon')">
-                <svg id="createPasswordConfirmIcon" width="16" height="16"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-</div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="pw-input-wrap">
+                                    <input type="password"
+                                           id="create_password_confirmation"
+                                           name="password_confirmation"
+                                           class="form-control"
+                                           placeholder="Repeat password"
+                                           required>
+                                    <button type="button"
+                                            class="pw-toggle-btn"
+                                            onclick="togglePw('create_password_confirmation', this)"
+                                            tabindex="-1"
+                                            aria-label="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -479,20 +520,47 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- ── Password column ── --}}
                         <div class="col-12 col-md-6">
                             <div class="section-title">Change Password</div>
+
                             <div class="mb-3">
                                 <label class="form-label">New Password</label>
-                                <input type="password" id="edit_password" name="password"
-                                       class="form-control @error('password', 'editBag') is-invalid @enderror"
-                                       placeholder="Leave blank to keep current password">
+                                <div class="pw-input-wrap">
+                                    <input type="password"
+                                           id="edit_password"
+                                           name="password"
+                                           class="form-control @error('password', 'editBag') is-invalid @enderror"
+                                           placeholder="Leave blank to keep current password">
+                                    <button type="button"
+                                            class="pw-toggle-btn"
+                                            onclick="togglePw('edit_password', this)"
+                                            tabindex="-1"
+                                            aria-label="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 <div class="pw-hint">Min. 8 characters, upper &amp; lowercase, at least one number.</div>
                                 @error('password', 'editBag')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label">Confirm New Password</label>
-                                <input type="password" id="edit_password_confirmation" name="password_confirmation"
-                                       class="form-control" placeholder="Repeat new password">
+                                <div class="pw-input-wrap">
+                                    <input type="password"
+                                           id="edit_password_confirmation"
+                                           name="password_confirmation"
+                                           class="form-control"
+                                           placeholder="Repeat new password">
+                                    <button type="button"
+                                            class="pw-toggle-btn"
+                                            onclick="togglePw('edit_password_confirmation', this)"
+                                            tabindex="-1"
+                                            aria-label="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -540,7 +608,30 @@
 
 @push('scripts')
 <script>
-// ── Delete modal ─────────────────────────────────────────────────────────────
+// ── Password toggle (mobile-only via CSS, but logic works universally) ────────
+function togglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('i');
+    const show  = input.type === 'password';
+    input.type  = show ? 'text' : 'password';
+    icon.classList.toggle('fa-eye',       !show);
+    icon.classList.toggle('fa-eye-slash',  show);
+}
+
+// ── Reset pw toggle icons when modals close ───────────────────────────────────
+['createModal', 'editModal'].forEach(function (modalId) {
+    document.getElementById(modalId).addEventListener('hidden.bs.modal', function () {
+        this.querySelectorAll('.pw-toggle-btn i').forEach(function (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        });
+        this.querySelectorAll('.pw-input-wrap input[type="text"]').forEach(function (input) {
+            input.type = 'password';
+        });
+    });
+});
+
+// ── Delete modal ──────────────────────────────────────────────────────────────
 document.getElementById('deleteModal').addEventListener('show.bs.modal', function (e) {
     const btn = e.relatedTarget;
     document.getElementById('deleteAdminName').textContent = btn.dataset.name;
@@ -548,7 +639,7 @@ document.getElementById('deleteModal').addEventListener('show.bs.modal', functio
         '{{ url("admin/superadmin/admins") }}/' + btn.dataset.id;
 });
 
-// ── Edit modal ───────────────────────────────────────────────────────────────
+// ── Edit modal ────────────────────────────────────────────────────────────────
 document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
     const btn = e.relatedTarget;
     document.getElementById('edit_name').value    = btn.dataset.name;
@@ -561,7 +652,7 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function 
         '{{ url("admin/superadmin/admins") }}/' + btn.dataset.id;
 });
 
-// ── Re-open modals on validation errors ──────────────────────────────────────
+// ── Re-open modals on validation errors ───────────────────────────────────────
 <?php if($errors->createBag->any()): ?>
     new bootstrap.Modal(document.getElementById('createModal')).show();
 <?php endif; ?>
@@ -573,9 +664,7 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function 
     <?php endif; ?>
 <?php endif; ?>
 
-
-
-// ── Live search ──────────────────────────────────────────────────────────────
+// ── Live search ───────────────────────────────────────────────────────────────
 (function () {
     const input   = document.getElementById('adminSearchInput');
     const spinner = document.getElementById('adminSearchSpinner');
@@ -627,21 +716,6 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function 
         e.preventDefault();
         loadAdmins(buildUrl(link.href));
     });
-    // ── Toggle password visibility ───────────────────────────────────────────────
-function togglePassword(inputId, iconId) {
-    const input = document.getElementById(inputId);
-    const icon  = document.getElementById(iconId);
-    const show  = input.type === 'password';
-
-    input.type = show ? 'text' : 'password';
-
-    icon.innerHTML = show
-        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-           <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-           <line x1="1" y1="1" x2="23" y2="23"/>`
-        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-           <circle cx="12" cy="12" r="3"/>`;
-}
 })();
 </script>
 @endpush

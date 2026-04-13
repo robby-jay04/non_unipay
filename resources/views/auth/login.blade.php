@@ -885,28 +885,33 @@
         .field-wrap:focus-within .field-icon { color: var(--navy); }
 
         .field-wrap .toggle-pw {
-            position: absolute;
-            right: 1rem; top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #9ca3af;
-            font-size: 1rem;
-            transition: color 0.2s;
-            background: none;
-            border: none;
-            padding: 0;
-            /* Make tap target bigger on mobile */
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .field-wrap .toggle-pw:hover { color: var(--navy); }
-        .field-wrap .toggle-pw:active { background: rgba(15,60,145,0.08); color: var(--navy); }
+    position: absolute;
+    right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 1rem;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: none; /* hidden by default (desktop) */
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+}
+.field-wrap .toggle-pw:hover { color: var(--navy); }
+.field-wrap .toggle-pw:active { background: rgba(15,60,145,0.08); color: var(--navy); }
 
+/* Show toggle only on mobile */
+@media (max-width: 768px) {
+    .field-wrap .toggle-pw {
+        display: flex;
+    }
+}
         .btn-login {
             width: 100%;
             background: var(--navy);

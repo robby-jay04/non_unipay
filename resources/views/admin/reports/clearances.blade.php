@@ -418,7 +418,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if(paginationWrap) paginationWrap.innerHTML = data.pagination;
             if(clearedCountBadge) clearedCountBadge.innerHTML = `<i class="fas fa-check-circle me-1"></i> Cleared: ${data.totalCleared}`;
             
-            // Sync modal search hidden input
             const modalSearch = document.getElementById('modalSearchInput');
             if(modalSearch) modalSearch.value = searchInput.value;
             
@@ -453,6 +452,24 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             fetchClearances(link.href, false);
         }
+    });
+
+    document.getElementById('downloadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (loader) loader.style.display = 'flex';
+
+        const params = new URLSearchParams({
+            course: this.querySelector('[name="course"]').value,
+            year_level: this.querySelector('[name="year_level"]').value,
+            search: document.getElementById('modalSearchInput').value,
+        });
+
+        window.location.href = '{{ route("admin.reports.clearances.pdf") }}?' + params.toString();
+
+        setTimeout(() => {
+            if (loader) loader.style.display = 'none';
+        }, 3000);
     });
 });
 </script>

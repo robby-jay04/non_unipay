@@ -11,6 +11,7 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
+use App\Http\Controllers\Admin\AuditLogController; // ✅ ADD THIS
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -104,6 +105,16 @@ Route::middleware(['auth', 'active'])->group(function () {
             return response()->json($periods);
         })->name('api.exam-periods');
 
+        // ========== AUDIT LOGS (admin only) ==========
+        // These routes are accessible to users with 'admin' or 'super-admin' role.
+        // The parent 'admin' middleware already ensures the user is an admin.
+        Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
+            Route::get('/',          [AuditLogController::class, 'index'])->name('index');
+            Route::get('/stats',     [AuditLogController::class, 'stats'])->name('stats');
+            Route::get('/export',    [AuditLogController::class, 'export'])->name('export');
+            Route::get('/{auditLog}', [AuditLogController::class, 'show'])->name('show');
+        });
+
         // SUPER ADMIN ONLY
         Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
             Route::resource('admins', SuperAdminController::class);
@@ -112,5 +123,3 @@ Route::middleware(['auth', 'active'])->group(function () {
     }); // closes admin middleware
 
 }); // closes auth + active middleware
-
-

@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\Log; // ✅ Add this import
+use Illuminate\Support\Facades\Log;
 
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
+
+    protected string $auditModule = 'Payment';
 
     protected $fillable = [
         'student_id',
@@ -20,8 +23,8 @@ class Payment extends Model
         'paymongo_payment_intent_id',
         'payment_date',
         'semester_id',
-    'school_year_id',
-    'exam_period_id', 
+        'school_year_id',
+        'exam_period_id',
     ];
 
     protected $casts = [
@@ -71,38 +74,31 @@ class Payment extends Model
     {
         return $query->where('status', 'pending');
     }
-    
+
     public function scopeFailed($query)
     {
         return $query->where('status', 'failed');
     }
+
     public function fees()
-{
-    return $this->belongsToMany(Fee::class, 'fee_payment')
-                ->withPivot('amount')
-                ->withTimestamps();
-}
-/**
- * Get the semester associated with this payment.
- */
-public function semester()
-{
-    return $this->belongsTo(Semester::class);
-}
+    {
+        return $this->belongsToMany(Fee::class, 'fee_payment')
+                    ->withPivot('amount')
+                    ->withTimestamps();
+    }
 
-/**
- * Get the school year associated with this payment.
- */
-public function schoolYear()
-{
-    return $this->belongsTo(SchoolYear::class, 'school_year_id');
-}
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
+    }
 
-// app/Models/Payment.php
+    public function schoolYear()
+    {
+        return $this->belongsTo(SchoolYear::class, 'school_year_id');
+    }
 
-public function examPeriod()
-{
-    return $this->belongsTo(ExamPeriod::class);
-}
-
+    public function examPeriod()
+    {
+        return $this->belongsTo(ExamPeriod::class);
+    }
 }

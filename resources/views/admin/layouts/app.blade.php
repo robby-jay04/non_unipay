@@ -500,6 +500,12 @@
                                 <i class="fas fa-user-shield"></i> Manage Admins
                             </a>
                         </li>
+                        {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
+                                <li class="nav-item {{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">
+                                    <a class="nav-link superadmin-link" href="{{ route('admin.audit-logs.index') }}">
+                                        <i class="fas fa-history"></i> Audit Logs
+                                    </a>
+                                </li>
                     @endif
                 </ul>
             </div>
@@ -564,6 +570,13 @@
                                 <li class="nav-item {{ request()->routeIs('admin.superadmin.*') ? 'active' : '' }}">
                                     <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
                                         <i class="fas fa-user-shield"></i> Manage Admins
+                                    </a>
+                                </li>
+                                 </li>
+                        {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
+                                <li class="nav-item {{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">
+                                    <a class="nav-link superadmin-link" href="{{ route('admin.audit-logs.index') }}">
+                                        <i class="fas fa-history"></i> Audit Logs
                                     </a>
                                 </li>
                             @endif

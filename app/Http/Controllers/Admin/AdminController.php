@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Exports\PaymentExport;
 use App\Services\ClearanceService;
+use App\Services\AuditLogger;      // ✅ added
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use App\Mail\StudentVerified;
@@ -17,43 +18,44 @@ use App\Mail\StudentDeleted;
 class AdminController extends Controller
 {
     protected $clearanceService;
+    protected $auditLogger;          // ✅ added
 
-    public function __construct(ClearanceService $clearanceService)
+    public function __construct(ClearanceService $clearanceService, AuditLogger $auditLogger)
     {
         $this->clearanceService = $clearanceService;
+        $this->auditLogger      = $auditLogger;
     }
     
 
     public function payments(Request $request)
-{
-    $query = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
-                    ->orderBy('created_at', 'desc');
+    {
+        $query = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
+                        ->orderBy('created_at', 'desc');
 
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('student.user', function ($q2) use ($search) {
+                    $q2->where('name', 'like', '%' . $search . '%');
+                })->orWhere('reference_no', 'like', '%' . $search . '%');
+            });
+        }
+
+        $payments = $query->paginate(10)->withQueryString();
+
+        if ($request->filled('ajax') || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'rows'       => view('admin.payments.partials.payments_rows', compact('payments'))->render(),
+                'pagination' => view('admin.payments.partials.payments_pagination', compact('payments'))->render(),
+            ]);
+        }
+
+        return view('admin.payments', compact('payments'));
     }
-
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->whereHas('student.user', function ($q2) use ($search) {
-                $q2->where('name', 'like', '%' . $search . '%');
-            })->orWhere('reference_no', 'like', '%' . $search . '%');
-        });
-    }
-
-    $payments = $query->paginate(10)->withQueryString();
-
-    // Check for ajax=1 param OR standard AJAX headers
-    if ($request->filled('ajax') || $request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'rows'       => view('admin.payments.partials.payments_rows', compact('payments'))->render(),
-            'pagination' => view('admin.payments.partials.payments_pagination', compact('payments'))->render(),
-        ]);
-    }
-
-    return view('admin.payments', compact('payments'));
-}
 
     public function students(Request $request)
     {
@@ -126,79 +128,116 @@ class AdminController extends Controller
         return Excel::download(new PaymentExport($filters), 'payments.xlsx');
     }
 
- public function confirmStudent(Student $student)
-{
-    $student->is_confirmed = true;
-    $student->save();
+    // ✅ Confirm student with audit log
+    public function confirmStudent(Student $student)
+    {
+        $oldConfirmed = $student->is_confirmed;
+        $student->is_confirmed = true;
+        $student->save();
 
-    try {
-        Log::info('Sending email to: ' . $student->user->email);
-        Mail::to($student->user->email)->send(new StudentVerified($student));
-        Log::info('Email sent successfully');
-    } catch (\Exception $e) {
-        Log::error('Mail failed: ' . $e->getMessage());
+        // Audit log for the confirmation action
+        $this->auditLogger->log(
+            actionType: 'admin.student.confirm',
+            module: 'Students',
+            description: "Admin confirmed student #{$student->student_no} ({$student->user->name})",
+            oldValue: ['is_confirmed' => $oldConfirmed],
+            newValue: ['is_confirmed' => true],
+            entity: $student,
+            severity: 'low'
+        );
+
+        try {
+            Log::info('Sending email to: ' . $student->user->email);
+            Mail::to($student->user->email)->send(new StudentVerified($student));
+            Log::info('Email sent successfully');
+        } catch (\Exception $e) {
+            Log::error('Mail failed: ' . $e->getMessage());
+        }
+
+        return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
     }
 
-    return response()->json(['success' => true, 'message' => 'Student confirmed successfully.']);
-}
+    // ✅ Delete student with audit log (includes reason)
+    public function destroy(Student $student)
+    {
+        $reason       = request('reason') ?: 'No reason provided.';
+        $studentName  = $student->user->name;
+        $studentNo    = $student->student_no;
+        $studentEmail = $student->user->email;
 
-public function destroy(Student $student)
-{
-    $reason       = request('reason') ?: 'No reason provided.';
-    $studentName  = $student->user->name;
-    $studentNo    = $student->student_no;
-    $studentEmail = $student->user->email;
+        // Audit log before deletion (capture the full record)
+        $this->auditLogger->log(
+            actionType: 'admin.student.delete',
+            module: 'Students',
+            description: "Admin deleted student #{$studentNo} ({$studentName}). Reason: {$reason}",
+            oldValue: $student->toArray(),
+            newValue: null,
+            entity: $student,
+            severity: 'medium'
+        );
 
-    // Send BEFORE deleting
-    try {
-        Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
-        Log::info('Delete email sent to: ' . $studentEmail);
-    } catch (\Exception $e) {
-        Log::error('Delete mail failed: ' . $e->getMessage());
+        // Send email
+        try {
+            Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
+            Log::info('Delete email sent to: ' . $studentEmail);
+        } catch (\Exception $e) {
+            Log::error('Delete mail failed: ' . $e->getMessage());
+        }
+
+        $student->user()->delete();
+        $student->delete();
+
+        return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
     }
 
-    $student->user()->delete();
-    $student->delete();
+    // ✅ Decline student with audit log (includes reason)
+    public function declineStudent(Student $student)
+    {
+        $reason      = request('reason') ?: 'No reason provided.';
+        $email       = $student->user->email;
+        $studentCopy = clone $student;
+        $studentCopy->setRelation('user', $student->user);
 
-    return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
-}
+        // Audit log before deletion (capture the reason and the record)
+        $this->auditLogger->log(
+            actionType: 'admin.student.decline',
+            module: 'Students',
+            description: "Admin declined student #{$student->student_no} ({$student->user->name}). Reason: {$reason}",
+            oldValue: $student->toArray(),
+            newValue: null,
+            entity: $student,
+            severity: 'medium'
+        );
 
-public function declineStudent(Student $student)
-{
-    $reason      = request('reason') ?: 'No reason provided.';
-    $email       = $student->user->email;
-    $studentCopy = clone $student;
-    $studentCopy->setRelation('user', $student->user);
+        // Send email
+        try {
+            Mail::to($email)->send(new StudentDeclined($studentCopy, $reason));
+            Log::info('Decline email sent to: ' . $email);
+        } catch (\Exception $e) {
+            Log::error('Decline mail failed: ' . $e->getMessage());
+        }
 
-    // Send BEFORE deleting
-    try {
-        Mail::to($email)->send(new StudentDeclined($studentCopy, $reason));
-        Log::info('Decline email sent to: ' . $email);
-    } catch (\Exception $e) {
-        Log::error('Decline mail failed: ' . $e->getMessage());
+        $student->user()->delete();
+        $student->delete();
+
+        return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
     }
 
-    $student->user()->delete();
-    $student->delete();
-
-    return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
-}
-
-  public function newStudentsCount(Request $request)
-{
-    if (!$request->ajax() && !$request->wantsJson()) {
-        return redirect()->route('admin.dashboard');
+    public function newStudentsCount(Request $request)
+    {
+        if (!$request->ajax() && !$request->wantsJson()) {
+            return redirect()->route('admin.dashboard');
+        }
+        $count = Student::where('is_confirmed', false)->count();
+        return response()->json(['count' => $count]);
     }
-    $count = Student::where('is_confirmed', false)->count();
-    return response()->json(['count' => $count]);
-}
 
-public function pendingPaymentsCount(Request $request)
-{
-    if (!$request->ajax() && !$request->wantsJson()) {
-        return redirect()->route('admin.dashboard');
+    public function pendingPaymentsCount(Request $request)
+    {
+        if (!$request->ajax() && !$request->wantsJson()) {
+            return redirect()->route('admin.dashboard');
+        }
+        $count = Payment::whereIn('status', ['pending', 'processing'])->count();
+        return response()->json(['count' => $count]);
     }
-    $count = Payment::whereIn('status', ['pending', 'processing'])->count();
-    return response()->json(['count' => $count]);
-}
 }

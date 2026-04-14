@@ -396,7 +396,7 @@
     </div>
 </div>
 
-{{-- ── Stat Cards ── --}}
+{{-- Stat Cards --}}
 <div class="stat-grid" id="statGrid">
     <div class="stat-card">
         <div class="stat-label">Events Today</div>
@@ -411,11 +411,11 @@
         <div class="stat-value high" id="statHigh">—</div>
     </div>
     <div class="stat-card">
-    <div class="stat-label">Student Failed Logins</div>
-    <div class="stat-value high" id="statStudentFailed">—</div>
-</div>
+        <div class="stat-label">Student Failed Logins</div>
+        <div class="stat-value high" id="statStudentFailed">—</div>
+    </div>
     <div class="stat-card">
-        <div class="stat-label">Failed Logins</div>
+        <div class="stat-label">Admin Failed Logins</div>
         <div class="stat-value high" id="statFailed">—</div>
     </div>
     <div class="stat-card">
@@ -423,7 +423,6 @@
         <div class="stat-value" id="statAdmins">—</div>
     </div>
 </div>
-
 {{-- ── Filter Bar ── --}}
 <div class="filter-bar">
     <form method="GET" action="{{ route('admin.audit-logs.index') }}" id="filterForm">
@@ -437,7 +436,7 @@
                 <label>Module</label>
                 <select name="module">
                     <option value="">All</option>
-                    @foreach(['Fee','Payment','Student','SchoolYear','AdminAuth','ExamPeriod','Semester'] as $mod)
+                    @foreach(['Fee','Payment','Student','SchoolYear','AdminAuth','StudentAuth','ExamPeriod','Semester'] as $mod)
                         <option value="{{ $mod }}" @selected(request('module') === $mod)>{{ $mod }}</option>
                     @endforeach
                 </select>
@@ -523,16 +522,11 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        @if($logs->hasPages())
-            <div class="pagination-wrap">
-                <div class="page-info">
-                    Showing {{ $logs->firstItem() }}–{{ $logs->lastItem() }} of {{ $logs->total() }} entries
-                </div>
-                <div class="page-links">
-                    {{ $logs->withQueryString()->links() }}
-                </div>
-            </div>
+          <!-- Pagination -->
+        @if($students->hasPages())
+        <div class="d-flex justify-content-center py-4" id="students-pagination">
+            {{ $students->appends(request()->only(['search', 'course', 'year_level', 'clearance_status']))->links('pagination::no-summary') }}
+        </div>
         @endif
     </div>
 </div>

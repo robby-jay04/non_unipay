@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;   // ✅ Add this
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Payment;
+
 class Transaction extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;   // ✅ Add Auditable trait
+
+    protected string $auditModule = 'Transaction';   // ✅ Define module name for logs
 
     protected $fillable = [
         'payment_id',

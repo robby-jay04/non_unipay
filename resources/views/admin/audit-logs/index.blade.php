@@ -433,7 +433,7 @@
                 <label>Module</label>
                 <select name="module">
                     <option value="">All</option>
-                    @foreach(['Fee','Payment','Student','SchoolYear','Auth'] as $mod)
+                    @foreach(['Fee','Payment','Student','SchoolYear','AdminAuth','ExamPeriod','Semester'] as $mod)
                         <option value="{{ $mod }}" @selected(request('module') === $mod)>{{ $mod }}</option>
                     @endforeach
                 </select>

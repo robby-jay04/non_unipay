@@ -14,8 +14,6 @@ class AuditLogController extends Controller
     /**
      * GET /admin/audit-logs
      * Returns paginated, filtered log entries.
-     * For HTML requests -> returns view
-     * For JSON requests -> returns JsonResponse
      */
     public function index(Request $request): View|JsonResponse
     {
@@ -27,8 +25,11 @@ class AuditLogController extends Controller
             'admin_id'   => 'nullable|integer',
             'date_from'  => 'nullable|date',
             'date_to'    => 'nullable|date',
-            'per_page'   => 'nullable|integer|min:10|max:100',
+            'per_page'   => 'nullable|integer|min:5|max:100',
         ]);
+
+        // Default per page = 20
+        $perPage = $request->integer('per_page', 20);
 
         $logs = AuditLog::with('admin:id,name,email')
             ->when($request->search, fn($q, $s) =>
@@ -38,15 +39,18 @@ class AuditLogController extends Controller
                       ->orWhere('ip_address', 'like', "%{$s}%");
                 })
             )
-            ->when($request->module,   fn($q, $v) => $q->forModule($v))
-            ->when($request->severity, fn($q, $v) => $q->ofSeverity($v))
+            ->when($request->module,   fn($q, $v) => $q->where('module', $v))
+            ->when($request->severity, fn($q, $v) => $q->where('severity', $v))
             ->when($request->action,   fn($q, $v) => $q->where('action_type', $v))
             ->when($request->admin_id, fn($q, $v) => $q->where('admin_user_id', $v))
-            ->dateRange($request->date_from, $request->date_to)
+            ->when($request->date_from, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($request->date_to,   fn($q, $v) => $q->whereDate('created_at', '<=', $v))
             ->latest('created_at')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($perPage)
+            ->appends($request->query()); // Preserve filters in pagination links
 
         if ($request->wantsJson()) {
+            // paginate() already returns JSON with links, current_page, etc.
             return response()->json($logs);
         }
 
@@ -55,8 +59,6 @@ class AuditLogController extends Controller
 
     /**
      * GET /admin/audit-logs/{id}
-     * For HTML -> returns show view
-     * For JSON -> returns JsonResponse
      */
     public function show(AuditLog $auditLog, Request $request): View|JsonResponse
     {
@@ -71,22 +73,27 @@ class AuditLogController extends Controller
 
     /**
      * GET /admin/audit-logs/stats
-     * Returns JSON summary for dashboard stat cards.
      */
     public function stats(): JsonResponse
     {
         $today = now()->startOfDay();
 
         return response()->json([
-            'events_today'        => AuditLog::where('created_at', '>=', $today)->count(),
-            'fee_mods_today'      => AuditLog::where('created_at', '>=', $today)->where('module', 'LoanFees')->count(),
-            'high_severity_today' => AuditLog::where('created_at', '>=', $today)->where('severity', 'high')->count(),
-            'failed_logins_today' => AuditLog::where('created_at', '>=', $today)->where('action_type', 'auth.fail')->count(),
-            'active_admins_today' => AuditLog::where('created_at', '>=', $today)->distinct('admin_user_id')->count('admin_user_id'),
+            'events_today'        => AuditLog::whereDate('created_at', '>=', $today)->count(),
+            'fee_mods_today'      => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->where('module', 'Fee')->count(),
+            'high_severity_today' => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->where('severity', 'high')->count(),
+            'failed_logins_today' => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->where('action_type', 'auth.fail')->count(),
+            'active_admins_today' => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->distinct('admin_user_id')->count('admin_user_id'),
         ]);
     }
 
-   
+    /**
+     * GET /admin/audit-logs/export
+     */
     public function export(Request $request): StreamedResponse
     {
         $request->validate([
@@ -102,8 +109,9 @@ class AuditLogController extends Controller
             fputcsv($handle, ['ID', 'Timestamp', 'Admin', 'Action', 'Module', 'Description', 'Severity', 'IP', 'Session']);
 
             AuditLog::with('admin:id,name')
-                ->when($request->severity,  fn($q, $v) => $q->ofSeverity($v))
-                ->dateRange($request->date_from, $request->date_to)
+                ->when($request->severity,  fn($q, $v) => $q->where('severity', $v))
+                ->when($request->date_from, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
+                ->when($request->date_to,   fn($q, $v) => $q->whereDate('created_at', '<=', $v))
                 ->latest()
                 ->chunk(500, function ($logs) use ($handle) {
                     foreach ($logs as $l) {

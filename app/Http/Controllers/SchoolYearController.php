@@ -28,15 +28,25 @@ class SchoolYearController extends Controller
         'is_current' => false,
     ]);
 
-    $year->semesters()->create([
+    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+
+    $sem1 = $year->semesters()->create([
         'name'       => '1st Semester',
         'is_current' => false,
     ]);
 
-    $year->semesters()->create([
+    foreach ($examPeriods as $period) {
+        $sem1->examPeriods()->create(['name' => $period]);
+    }
+
+    $sem2 = $year->semesters()->create([
         'name'       => '2nd Semester',
         'is_current' => false,
     ]);
+
+    foreach ($examPeriods as $period) {
+        $sem2->examPeriods()->create(['name' => $period]);
+    }
 
     return back()->with('success', 'School year "' . $year->name . '" added with 1st and 2nd Semester.');
 }

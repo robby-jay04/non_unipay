@@ -9,17 +9,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Models\Student;
 use Illuminate\Support\Facades\Password;
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Illuminate\Validation\ValidationException;
-  use App\Models\Student;
-     use Illuminate\Support\Facades\Password;
-
+use App\Services\AuditLogger;  // ✅ Import the AuditLogger
 
 class AuthController extends Controller
 {
@@ -35,40 +25,90 @@ class AuthController extends Controller
     // Web Login for Admin Only
     // Students cannot log in via web
     // -------------------------------
-  public function loginWeb(Request $request)
-{
-    $credentials = $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required',
-    ]);
+    public function loginWeb(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
 
-    // Find the user first before attempting auth
-    $user = User::where('email', $request->email)->first();
+        // Find the user first before attempting auth
+        $user = User::where('email', $request->email)->first();
 
-    // Check existence and role before anything else
-    if (!$user || !in_array($user->role, ['admin', 'superadmin'])) {
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        // Case 1: User not found
+        if (!$user) {
+            // Log failed attempt (user not found)
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'AdminAuth',
+                description: "Failed admin login - email not found: {$request->email}",
+                oldValue: null,
+                newValue: null,
+                entity: null
+            );
+
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])->onlyInput('email');
+        }
+
+        // Case 2: User exists but not an admin or superadmin
+        if (!in_array($user->role, ['admin', 'superadmin'])) {
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'AdminAuth',
+                description: "Failed admin login - non-admin role ({$user->role}) attempted: {$request->email}",
+                oldValue: null,
+                newValue: null,
+                entity: null
+            );
+
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])->onlyInput('email');
+        }
+
+        // Case 3: Account is inactive
+        if (!$user->isActive()) {
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'AdminAuth',
+                description: "Failed admin login - inactive account: {$request->email}",
+                oldValue: null,
+                newValue: null,
+                entity: null
+            );
+
+            return back()->withErrors([
+                'email' => 'Your account has been deactivated. Please contact the super admin.',
+            ])->onlyInput('email');
+        }
+
+        // Case 4: Password incorrect
+        if (!Auth::attempt($credentials)) {
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'AdminAuth',
+                description: "Failed admin login - incorrect password for: {$request->email}",
+                oldValue: null,
+                newValue: null,
+                entity: $user  // pass the user model to capture admin_user_id if needed
+            );
+
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])->onlyInput('email');
+        }
+
+        // Success: login successful
+        $request->session()->regenerate();
+
+        // Optional: log successful login (can be added if needed)
+        // app(AuditLogger::class)->log(...);
+
+        return redirect()->route('admin.dashboard');
     }
 
-    // Block inactive accounts before even checking password
-    if (!$user->isActive()) {
-        return back()->withErrors([
-            'email' => 'Your account has been deactivated. Please contact the super admin.',
-        ])->onlyInput('email');
-    }
-
-    if (!Auth::attempt($credentials)) {
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
-    }
-
-    $request->session()->regenerate();
-
-    return redirect()->route('admin.dashboard');
-}
     // -------------------------------
     // Web Logout
     // -------------------------------
@@ -82,69 +122,70 @@ class AuthController extends Controller
     }
 
     // -------------------------------
-    // API Login (Sanctum)
+    // API Login (Sanctum) – for students
     // -------------------------------
-public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-    if (!$user) {
-        return response()->json([
-            'message' => 'No account found with that email address.'
-        ], 401);
-    }
-
-    // Handle accounts without a password (imported data)
-    if (!$user->password) {
-        if ($request->password !== 'password123') {
+        if (!$user) {
             return response()->json([
-                'message' => 'Incorrect password. Please try again.'
+                'message' => 'No account found with that email address.'
             ], 401);
         }
-    } else {
-        if (!Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Incorrect password. Please try again.'
-            ], 401);
+
+        // Handle accounts without a password (imported data)
+        if (!$user->password) {
+            if ($request->password !== 'password123') {
+                return response()->json([
+                    'message' => 'Incorrect password. Please try again.'
+                ], 401);
+            }
+        } else {
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'Incorrect password. Please try again.'
+                ], 401);
+            }
         }
-    }
 
-    // 🔒 BLOCK ADMIN LOGIN VIA MOBILE APP
-    if ($user->isAdmin() || $user->isSuperAdmin()) {
-        return response()->json([
-            'message' => 'Admin accounts cannot log in to the mobile app. Please use the web admin panel.'
-        ], 403);
-    }
-
-    // Check student confirmation
-    if ($user->isStudent()) {
-        $student = $user->student;
-        if (!$student || !$student->is_confirmed) {
+        // 🔒 BLOCK ADMIN LOGIN VIA MOBILE APP
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
-                'message' => 'Your account is pending admin approval.'
+                'message' => 'Admin accounts cannot log in to the mobile app. Please use the web admin panel.'
             ], 403);
         }
+
+        // Check student confirmation
+        if ($user->isStudent()) {
+            $student = $user->student;
+            if (!$student || !$student->is_confirmed) {
+                return response()->json([
+                    'message' => 'Your account is pending admin approval.'
+                ], 403);
+            }
+        }
+
+        // Create token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+        ]);
     }
 
-    // Create token
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'access_token' => $token,
-        'token_type' => 'Bearer',
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-        ],
-    ]);
-}
     // -------------------------------
     // API Logout (Sanctum token)
     // -------------------------------
@@ -156,123 +197,122 @@ public function login(Request $request)
             'message' => 'Logged out successfully',
         ]);
     }
-    
 
-
-// ...
-
-public function register(Request $request)
-{
-    $validated = $request->validate([
-        'name'        => 'required|string|max:255',
-        'email'       => 'required|email|unique:users,email',
-        'password'    => 'required|confirmed|min:6',
-        'student_no'  => 'required|string|unique:students,student_no',
-        'course'      => 'required|string',
-        'year_level'  => 'required',
-        'contact'     => 'required|string|unique:students,contact',
-        'semester'    => 'required|string',
-        'school_year' => 'required|string',
-    ], [
-        'email.unique'       => 'This email is already registered.',
-        'student_no.unique'  => 'This student number is already registered.',
-        'contact.unique'     => 'This contact number is already used by another student.',
-        'password.confirmed' => 'Passwords do not match.',
-        'password.min'       => 'Password must be at least 6 characters.',
-        'name.required'      => 'Full name is required.',
-        'email.required'     => 'Email is required.',
-        'email.email'        => 'Please enter a valid email address.',
-        'student_no.required'=> 'Student number is required.',
-        'course.required'    => 'Course is required.',
-        'year_level.required'=> 'Year level is required.',
-        'contact.required'   => 'Contact number is required.',
-        'semester.required'  => 'Semester is required.',
-        'school_year.required'=> 'School year is required.',
-    ]);
-
-    $user = User::create([
-        'name'     => $validated['name'],
-        'email'    => $validated['email'],
-        'password' => Hash::make($validated['password']),
-        'role'     => 'student',
-    ]);
-
-    Student::create([
-        'user_id'    => $user->id,
-        'student_no' => $validated['student_no'],
-        'course'     => $validated['course'],
-        'year_level' => $validated['year_level'],
-        'contact'    => $validated['contact'],
-        'semester'   => $validated['semester'],
-        'school_year'=> $validated['school_year'],
-        'is_confirmed' => false,
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'status'  => 'pending',
-        'message' => 'Registration successful. Please wait for admin approval.',
-    ], 201);
-}
-
-public function changePassword(Request $request)
-{
-    $request->validate([
-        'current_password' => 'required',
-        'new_password'     => 'required|min:8|confirmed',
-    ]);
- 
-    $user = $request->user();
- 
-    // Handle accounts that were imported without a real password
-    if ($user->password && !Hash::check($request->current_password, $user->password)) {
-        return response()->json([
-            'message' => 'The current password is incorrect.',
-            'errors'  => ['current_password' => ['The current password is incorrect.']],
-        ], 422);
-    }
- 
-    $user->update([
-        'password' => Hash::make($request->new_password),
-    ]);
- 
-    return response()->json([
-        'message' => 'Password changed successfully.',
-    ]);
-}
-
-      // -------------------------------
-    // Get Authenticated User
     // -------------------------------
-    public function me(Request $request)
+    // Student Registration
+    // -------------------------------
+    public function register(Request $request)
     {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email',
+            'password'    => 'required|confirmed|min:6',
+            'student_no'  => 'required|string|unique:students,student_no',
+            'course'      => 'required|string',
+            'year_level'  => 'required',
+            'contact'     => 'required|string|unique:students,contact',
+            'semester'    => 'required|string',
+            'school_year' => 'required|string',
+        ], [
+            'email.unique'       => 'This email is already registered.',
+            'student_no.unique'  => 'This student number is already registered.',
+            'contact.unique'     => 'This contact number is already used by another student.',
+            'password.confirmed' => 'Passwords do not match.',
+            'password.min'       => 'Password must be at least 6 characters.',
+            'name.required'      => 'Full name is required.',
+            'email.required'     => 'Email is required.',
+            'email.email'        => 'Please enter a valid email address.',
+            'student_no.required'=> 'Student number is required.',
+            'course.required'    => 'Course is required.',
+            'year_level.required'=> 'Year level is required.',
+            'contact.required'   => 'Contact number is required.',
+            'semester.required'  => 'Semester is required.',
+            'school_year.required'=> 'School year is required.',
+        ]);
 
+        $user = User::create([
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role'     => 'student',
+        ]);
 
-        return response()->json($request->user());
+        Student::create([
+            'user_id'    => $user->id,
+            'student_no' => $validated['student_no'],
+            'course'     => $validated['course'],
+            'year_level' => $validated['year_level'],
+            'contact'    => $validated['contact'],
+            'semester'   => $validated['semester'],
+            'school_year'=> $validated['school_year'],
+            'is_confirmed' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status'  => 'pending',
+            'message' => 'Registration successful. Please wait for admin approval.',
+        ], 201);
     }
- 
 
-public function showResetForm(Request $request, $token = null)
-{
-    // Validate email query parameter
-    $request->validate([
-        'email' => 'required|email',
-    ]);
+    // -------------------------------
+    // Change Password (API)
+    // -------------------------------
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password'     => 'required|min:8|confirmed',
+        ]);
 
-    $email = $request->query('email');
+        $user = $request->user();
 
-    // Check if user exists
-    $user = \App\Models\User::where('email', $email)->first();
-    if (!$user) {
-        return redirect()->back()->withErrors([
-            'email' => 'Email not found in our system',
+        // Handle accounts that were imported without a real password
+        if ($user->password && !Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'The current password is incorrect.',
+                'errors'  => ['current_password' => ['The current password is incorrect.']],
+            ], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return response()->json([
+            'message' => 'Password changed successfully.',
         ]);
     }
 
-    // Return Blade view instead of JSON
-    return view('emails.password-reset', [
-        'token' => $token,
-        'email' => $email,
-    ]);
-}
+    // -------------------------------
+    // Get Authenticated User (API)
+    // -------------------------------
+    public function me(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    // -------------------------------
+    // Show Password Reset Form (Web)
+    // -------------------------------
+    public function showResetForm(Request $request, $token = null)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = $request->query('email');
+
+        $user = \App\Models\User::where('email', $email)->first();
+        if (!$user) {
+            return redirect()->back()->withErrors([
+                'email' => 'Email not found in our system',
+            ]);
+        }
+
+        return view('emails.password-reset', [
+            'token' => $token,
+            'email' => $email,
+        ]);
+    }
 }

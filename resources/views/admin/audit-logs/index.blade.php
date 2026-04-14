@@ -369,6 +369,10 @@
         padding: 2rem;
         color: var(--text-muted);
     }
+      .pagination .page-link { border: none; color: var(--text-muted); font-weight: 500; padding: 0.5rem 1rem; margin: 0 0.2rem; border-radius: 8px; background: transparent; }
+    .pagination .page-link:hover { background: rgba(15,60,145,0.1); color: #0f3c91; }
+    .pagination .active .page-link { background: #0f3c91; color: white; box-shadow: 0 4px 8px rgba(15,60,145,0.2); }
+    .pagination .disabled .page-link { color: var(--text-muted); opacity: 0.5; background: transparent; }
 </style>
 @endpush
 

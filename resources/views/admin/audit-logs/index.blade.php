@@ -523,10 +523,11 @@
         </div>
 
           <!-- Pagination -->
-        @if($students->hasPages())
-        <div class="d-flex justify-content-center py-4" id="students-pagination">
-            {{ $students->appends(request()->only(['search', 'course', 'year_level', 'clearance_status']))->links('pagination::no-summary') }}
-        </div>
+     
+        @if($logs->hasPages())
+            <div class="d-flex justify-content-center py-4">
+                {{ $logs->appends(request()->query())->links('pagination::no-summary') }}
+            </div>
         @endif
     </div>
 </div>

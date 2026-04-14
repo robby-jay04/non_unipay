@@ -411,6 +411,10 @@
         <div class="stat-value high" id="statHigh">—</div>
     </div>
     <div class="stat-card">
+    <div class="stat-label">Student Failed Logins</div>
+    <div class="stat-value high" id="statStudentFailed">—</div>
+</div>
+    <div class="stat-card">
         <div class="stat-label">Failed Logins</div>
         <div class="stat-value high" id="statFailed">—</div>
     </div>
@@ -470,7 +474,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Timestamp</th>
-                        <th>Admin</th>
+                        <th>Actor</th>
                         <th>Action</th>
                         <th>Module</th>
                         <th>Description</th>
@@ -479,32 +483,42 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($logs as $log)
-                        <tr onclick="openModal('{{ $log->id }}')">
-                            <td class="mono" style="font-family: monospace;">{{ $log->id }}</td>
-                            <td style="white-space: nowrap;">
-                                {{ $log->created_at->format('Y-m-d') }}<br>
-                                <small class="text-muted">{{ $log->created_at->format('H:i:s') }}</small>
-                            </td>
-                            <td>{{ $log->admin?->name ?? '—' }}</td>
-                            <td><span class="action-type">{{ $log->action_type }}</span></td>
-                            <td>{{ $log->module }}</td>
-                            <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {{ $log->description }}
-                            </td>
-                            <td><span class="sev sev-{{ $log->severity }}">{{ $log->severity }}</span></td>
-                            <td><code>{{ $log->ip_address ?? '—' }}</code></td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8">
-                                <div class="empty-state">
-                                    <i class="fas fa-clipboard-list"></i>
-                                    <p>No audit records found for the selected filters.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
+                  @forelse($logs as $log)
+    <tr onclick="openModal('{{ $log->id }}')">
+        <td class="mono" style="font-family: monospace;">{{ $log->id }}</td>
+        <td style="white-space: nowrap;">
+            {{ $log->created_at->format('Y-m-d') }}<br>
+            <small class="text-muted">{{ $log->created_at->format('H:i:s') }}</small>
+        </td>
+        {{-- Actor column: Admin > Student > System --}}
+        <td>
+            @if($log->admin)
+                {{ $log->admin->name }}
+                <span class="badge bg-primary ms-1">Admin</span>
+            @elseif($log->student && $log->student->user)
+                {{ $log->student->user->name }}
+                <span class="badge bg-info ms-1">Student</span>
+            @else
+                <span class="text-muted">System</span>
+            @endif
+        </td>
+        <td>{{ $log->module }}</td>
+        <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ $log->description }}
+        </td>
+        <td><span class="sev sev-{{ $log->severity }}">{{ $log->severity }}</span></td>
+        <td><code>{{ $log->ip_address ?? '—' }}</code></td>
+    </tr>
+@empty
+    <tr>
+        <td colspan="7">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>No audit records found for the selected filters.</p>
+            </div>
+        </td>
+    </tr>
+@endforelse
                 </tbody>
             </table>
         </div>
@@ -556,6 +570,7 @@ fetch("{{ route('admin.audit-logs.stats') }}")
         document.getElementById('statHigh').textContent        = data.high_severity_today ?? '—';
         document.getElementById('statFailed').textContent      = data.failed_logins_today ?? '—';
         document.getElementById('statAdmins').textContent      = data.active_admins_today ?? '—';
+        document.getElementById('statStudentFailed').textContent = data.student_failed_logins_today ?? '—';
     })
     .catch(err => console.error('Stats error:', err));
 
@@ -599,9 +614,19 @@ function renderModal(log) {
                 <p>${log.created_at}</p>
             </div>
             <div class="detail-item">
-                <label>Admin</label>
-                <p>${log.admin?.name ?? '—'} <small class="text-muted">${log.admin?.email ?? ''}</small></p>
-            </div>
+    <label>Actor</label>
+    <p>
+        @if($log->admin)
+            {{ $log->admin->name }} (Admin)<br>
+            <small>{{ $log->admin->email }}</small>
+        @elseif($log->student && $log->student->user)
+            {{ $log->student->user->name }} (Student)<br>
+            <small>{{ $log->student->user->email }}</small>
+        @else
+            System / Guest
+        @endif
+    </p>
+</div>
             <div class="detail-item">
                 <label>Severity</label>
                 <p>${severityHtml}</p>

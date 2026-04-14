@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Models\Student;
 use Illuminate\Support\Facades\Password;
-use App\Services\AuditLogger;  // ✅ Import the AuditLogger
+use App\Services\AuditLogger;
 
 class AuthController extends Controller
 {
@@ -32,19 +32,15 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Find the user first before attempting auth
         $user = User::where('email', $request->email)->first();
 
         // Case 1: User not found
         if (!$user) {
-            // Log failed attempt (user not found)
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
                 description: "Failed admin login - email not found: {$request->email}",
-                oldValue: null,
-                newValue: null,
-                entity: null
+                severity: 'medium'
             );
 
             return back()->withErrors([
@@ -52,15 +48,13 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Case 2: User exists but not an admin or superadmin
+        // Case 2: Not an admin or superadmin
         if (!in_array($user->role, ['admin', 'superadmin'])) {
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
                 description: "Failed admin login - non-admin role ({$user->role}) attempted: {$request->email}",
-                oldValue: null,
-                newValue: null,
-                entity: null
+                severity: 'medium'
             );
 
             return back()->withErrors([
@@ -68,15 +62,13 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Case 3: Account is inactive
+        // Case 3: Account inactive
         if (!$user->isActive()) {
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
                 description: "Failed admin login - inactive account: {$request->email}",
-                oldValue: null,
-                newValue: null,
-                entity: null
+                severity: 'medium'
             );
 
             return back()->withErrors([
@@ -90,9 +82,8 @@ class AuthController extends Controller
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
                 description: "Failed admin login - incorrect password for: {$request->email}",
-                oldValue: null,
-                newValue: null,
-                entity: $user  // pass the user model to capture admin_user_id if needed
+                entity: $user,   // to capture admin_user_id
+                severity: 'medium'
             );
 
             return back()->withErrors([
@@ -100,12 +91,16 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Success: login successful
+        // ✅ Success: log successful admin login
+        app(AuditLogger::class)->log(
+            actionType: 'auth.success',
+            module: 'AdminAuth',
+            description: "Admin {$user->email} logged in successfully",
+            entity: $user,
+            severity: 'low'
+        );
+
         $request->session()->regenerate();
-
-        // Optional: log successful login (can be added if needed)
-        // app(AuditLogger::class)->log(...);
-
         return redirect()->route('admin.dashboard');
     }
 
@@ -117,7 +112,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect('/login');
     }
 
@@ -127,34 +121,44 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
+        // Case 1: User not found
         if (!$user) {
-            return response()->json([
-                'message' => 'No account found with that email address.'
-            ], 401);
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'StudentAuth',
+                description: "Failed student login - email not found: {$request->email}",
+                severity: 'medium'
+            );
+
+            return response()->json(['message' => 'No account found with that email address.'], 401);
         }
 
-        // Handle accounts without a password (imported data)
-        if (!$user->password) {
-            if ($request->password !== 'password123') {
-                return response()->json([
-                    'message' => 'Incorrect password. Please try again.'
-                ], 401);
-            }
-        } else {
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'message' => 'Incorrect password. Please try again.'
-                ], 401);
-            }
+        // Handle imported accounts (no password stored)
+        $passwordValid = $user->password
+            ? Hash::check($request->password, $user->password)
+            : ($request->password === 'password123');
+
+        if (!$passwordValid) {
+            // Log failed attempt with student_id if the user is a student
+            $studentId = $user->isStudent() ? $user->student?->id : null;
+            app(AuditLogger::class)->log(
+                actionType: 'auth.fail',
+                module: 'StudentAuth',
+                description: "Failed student login for email: {$request->email}",
+                studentId: $studentId,
+                severity: 'medium'
+            );
+
+            return response()->json(['message' => 'Incorrect password. Please try again.'], 401);
         }
 
-        // 🔒 BLOCK ADMIN LOGIN VIA MOBILE APP
+        // 🔒 Block admin login via mobile API
         if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
                 'message' => 'Admin accounts cannot log in to the mobile app. Please use the web admin panel.'
@@ -171,17 +175,25 @@ class AuthController extends Controller
             }
         }
 
-        // Create token
+        // ✅ Success: log successful student login
+        app(AuditLogger::class)->log(
+            actionType: 'auth.success',
+            module: 'StudentAuth',
+            description: "Student {$user->email} logged in successfully",
+            studentId: $user->student?->id,
+            severity: 'low'
+        );
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
             'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
+                'id'    => $user->id,
+                'name'  => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
+                'role'  => $user->role,
             ],
         ]);
     }
@@ -219,15 +231,6 @@ class AuthController extends Controller
             'contact.unique'     => 'This contact number is already used by another student.',
             'password.confirmed' => 'Passwords do not match.',
             'password.min'       => 'Password must be at least 6 characters.',
-            'name.required'      => 'Full name is required.',
-            'email.required'     => 'Email is required.',
-            'email.email'        => 'Please enter a valid email address.',
-            'student_no.required'=> 'Student number is required.',
-            'course.required'    => 'Course is required.',
-            'year_level.required'=> 'Year level is required.',
-            'contact.required'   => 'Contact number is required.',
-            'semester.required'  => 'Semester is required.',
-            'school_year.required'=> 'School year is required.',
         ]);
 
         $user = User::create([
@@ -238,13 +241,13 @@ class AuthController extends Controller
         ]);
 
         Student::create([
-            'user_id'    => $user->id,
-            'student_no' => $validated['student_no'],
-            'course'     => $validated['course'],
-            'year_level' => $validated['year_level'],
-            'contact'    => $validated['contact'],
-            'semester'   => $validated['semester'],
-            'school_year'=> $validated['school_year'],
+            'user_id'      => $user->id,
+            'student_no'   => $validated['student_no'],
+            'course'       => $validated['course'],
+            'year_level'   => $validated['year_level'],
+            'contact'      => $validated['contact'],
+            'semester'     => $validated['semester'],
+            'school_year'  => $validated['school_year'],
             'is_confirmed' => false,
         ]);
 
@@ -267,7 +270,6 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        // Handle accounts that were imported without a real password
         if ($user->password && !Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'message' => 'The current password is incorrect.',
@@ -302,8 +304,8 @@ class AuthController extends Controller
         ]);
 
         $email = $request->query('email');
+        $user = User::where('email', $email)->first();
 
-        $user = \App\Models\User::where('email', $email)->first();
         if (!$user) {
             return redirect()->back()->withErrors([
                 'email' => 'Email not found in our system',

@@ -34,6 +34,7 @@ class AuditLogger
      * @param array|null  $newValue    State after the action
      * @param object|null $entity      Eloquent model being acted on
      * @param string|null $severity    Override auto-detected severity
+     * @param int|null    $studentId   Override student ID (for API calls where auth is not the actor)
      */
     public function log(
         string $actionType,
@@ -43,9 +44,9 @@ class AuditLogger
         ?array $newValue = null,
         ?object $entity = null,
         ?string $severity = null,
+        ?int $studentId = null,
     ): AuditLog {
-        return AuditLog::create([
-            'admin_user_id' => Auth::id(),
+        $data = [
             'action_type'   => $actionType,
             'module'        => $module,
             'entity_type'   => $entity ? get_class($entity) : null,
@@ -60,7 +61,35 @@ class AuditLogger
             'url'           => $this->request->fullUrl(),
             'http_method'   => $this->request->method(),
             'created_at'    => now(),
-        ]);
+            'admin_user_id' => null,
+            'student_id'    => null,
+        ];
+
+        // Determine actor (admin or student) from authentication
+        $user = Auth::user();
+        if ($user) {
+            if (in_array($user->role, ['admin', 'superadmin'])) {
+                $data['admin_user_id'] = $user->id;
+            } elseif ($user->role === 'student' && $user->student) {
+                $data['student_id'] = $user->student->id;
+            }
+        }
+
+        // Override student_id if explicitly provided (e.g., when logging from a webhook)
+        if ($studentId !== null) {
+            $data['student_id'] = $studentId;
+            // If a student ID is provided and no admin, ensure admin_user_id is null
+            if (empty($data['admin_user_id'])) {
+                $data['admin_user_id'] = null;
+            }
+        }
+
+        // If entity is a Student model, also set student_id (useful for model events)
+        if ($entity instanceof \App\Models\Student) {
+            $data['student_id'] = $entity->id;
+        }
+
+        return AuditLog::create($data);
     }
 
     /**

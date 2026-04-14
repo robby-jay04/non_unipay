@@ -25,6 +25,7 @@ class AuditLog extends Model
         'url',
         'http_method',
         'created_at',
+        'student_id',
     ];
 
     protected $casts = [
@@ -69,4 +70,8 @@ class AuditLog extends Model
         if ($to)   $q->where('created_at', '<=', $to);
         return $q;
     }
+    public function student()
+{
+    return $this->belongsTo(Student::class);
+}
 }

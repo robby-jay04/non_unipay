@@ -28,10 +28,10 @@ class AuditLogController extends Controller
             'per_page'   => 'nullable|integer|min:5|max:100',
         ]);
 
-        // Default per page = 20
-        $perPage = $request->integer('per_page', 20);
+        // Default per page = 10
+        $perPage = $request->integer('per_page', 10);
 
-        $logs = AuditLog::with('admin:id,name,email')
+        $logs = AuditLog::with(['admin:id,name,email', 'student.user'])
             ->when($request->search, fn($q, $s) =>
                 $q->where(function ($q) use ($s) {
                     $q->where('description', 'like', "%{$s}%")
@@ -75,21 +75,30 @@ class AuditLogController extends Controller
      * GET /admin/audit-logs/stats
      */
     public function stats(): JsonResponse
-    {
-        $today = now()->startOfDay();
+{
+    $today = now()->startOfDay();
 
-        return response()->json([
-            'events_today'        => AuditLog::whereDate('created_at', '>=', $today)->count(),
-            'fee_mods_today'      => AuditLog::whereDate('created_at', '>=', $today)
-                                        ->where('module', 'Fee')->count(),
-            'high_severity_today' => AuditLog::whereDate('created_at', '>=', $today)
-                                        ->where('severity', 'high')->count(),
-            'failed_logins_today' => AuditLog::whereDate('created_at', '>=', $today)
-                                        ->where('action_type', 'auth.fail')->count(),
-            'active_admins_today' => AuditLog::whereDate('created_at', '>=', $today)
+    return response()->json([
+        'events_today'              => AuditLog::whereDate('created_at', '>=', $today)->count(),
+        'fee_mods_today'            => AuditLog::whereDate('created_at', '>=', $today)->where('module', 'Fee')->count(),
+        'high_severity_today'       => AuditLog::whereDate('created_at', '>=', $today)->where('severity', 'high')->count(),
+        
+        // Admin failed logins (admin_user_id not null)
+        'admin_failed_logins_today' => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->where('action_type', 'auth.fail')
+                                        ->whereNotNull('admin_user_id')
+                                        ->count(),
+        
+        // Student failed logins (student_id not null)
+        'student_failed_logins_today' => AuditLog::whereDate('created_at', '>=', $today)
+                                        ->where('action_type', 'auth.fail')
+                                        ->whereNotNull('student_id')
+                                        ->count(),
+        
+        'active_admins_today'       => AuditLog::whereDate('created_at', '>=', $today)
                                         ->distinct('admin_user_id')->count('admin_user_id'),
-        ]);
-    }
+    ]);
+}
 
     /**
      * GET /admin/audit-logs/export

@@ -501,8 +501,8 @@
                             </a>
                         </li>
                         {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
-                                <li class="nav-item {{ request()->routeIs('admin.audit-logs*') ? 'active' : '' }}">
-                                    <a class="nav-link superadmin-link" href="{{ route('admin.audit-logs.index') }}">
+                                <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
+                                    <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
                                         <i class="fas fa-history"></i> Audit Logs
                                     </a>
                                 </li>

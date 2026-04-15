@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
+   <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -884,34 +884,36 @@
 
         .field-wrap:focus-within .field-icon { color: var(--navy); }
 
+        /* Password toggle button - hidden on desktop by default, shown on mobile */
         .field-wrap .toggle-pw {
-    position: absolute;
-    right: 1rem; top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #9ca3af;
-    font-size: 1rem;
-    transition: color 0.2s;
-    background: none;
-    border: none;
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    display: none; /* hidden by default (desktop) */
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    -webkit-tap-highlight-color: transparent;
-}
-.field-wrap .toggle-pw:hover { color: var(--navy); }
-.field-wrap .toggle-pw:active { background: rgba(15,60,145,0.08); color: var(--navy); }
+            position: absolute;
+            right: 1rem; top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 1rem;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: none; /* hidden on desktop/large screens */
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .field-wrap .toggle-pw:hover { color: var(--navy); }
+        .field-wrap .toggle-pw:active { background: rgba(15,60,145,0.08); color: var(--navy); }
 
-/* Show toggle only on mobile */
-@media (max-width: 768px) {
-    .field-wrap .toggle-pw {
-        display: flex;
-    }
-}
+        /* Only visible on mobile screens */
+        @media (max-width: 768px) {
+            .field-wrap .toggle-pw {
+                display: flex;
+            }
+        }
+
         .btn-login {
             width: 100%;
             background: var(--navy);
@@ -930,25 +932,23 @@
             transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
         }
 
-        /* ── PASSWORD SECURITY ── */
-.toggle-pw { display: flex !important; }   /* always show eye icon */
+        /* password strength indicators */
+        .pw-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 99px;
+            background: #e5e7eb;
+            transition: background 0.3s;
+        }
+        .pw-bar.active-weak   { background: #ef4444; }
+        .pw-bar.active-fair   { background: #f59e0b; }
+        .pw-bar.active-good   { background: #3b82f6; }
+        .pw-bar.active-strong { background: #10b981; }
 
-.pw-bar {
-    flex: 1;
-    height: 4px;
-    border-radius: 99px;
-    background: #e5e7eb;
-    transition: background 0.3s;
-}
-.pw-bar.active-weak   { background: #ef4444; }
-.pw-bar.active-fair   { background: #f59e0b; }
-.pw-bar.active-good   { background: #3b82f6; }
-.pw-bar.active-strong { background: #10b981; }
-
-input.input-error {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 4px rgba(239,68,68,0.10) !important;
-}
+        input.input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 4px rgba(239,68,68,0.10) !important;
+        }
 
         .btn-login::after {
             content: '';
@@ -1037,9 +1037,7 @@ input.input-error {
             color: #b0b7c3;
         }
 
-        /* ═══════════════════════════════════════════
-           LOGIN LOADING OVERLAY
-        ═══════════════════════════════════════════ */
+        /* LOGIN LOADING OVERLAY */
         #loginLoader {
             display: none;
             position: fixed; inset: 0;
@@ -1099,9 +1097,7 @@ input.input-error {
             to   { width: 70%; margin-left: 30%; }
         }
 
-        /* ═══════════════════════════════════════════
-           RESPONSIVE
-        ═══════════════════════════════════════════ */
+        /* Responsive */
         @media (max-width: 860px) {
             body { flex-direction: column; overflow: auto; }
             .left-panel { flex: 0 0 240px !important; min-height: 240px; }
@@ -1118,7 +1114,6 @@ input.input-error {
             .left-panel { flex: 0 0 180px !important; min-height: 180px; }
         }
 
-        /* ═════════ LIGHT BEAMS EFFECT ═════════ */
         .light-beams {
             position: absolute;
             inset: 0;
@@ -1157,20 +1152,18 @@ input.input-error {
             0%   { transform: translateX(-60%) rotate(25deg); }
             100% { transform: translateX(60%)  rotate(25deg); }
         }
-        /* ── INPUT LIMIT COUNTER ── */
-.char-counter {
-    text-align: right;
-    font-size: 0.72rem;
-    color: #b0b7c3;
-    margin-top: 3px;
-    margin-bottom: 0.35rem;
-    transition: color 0.2s;
-    height: 14px;
-}
-.char-counter.warn  { color: #f59e0b; }
-.char-counter.danger { color: #ef4444; }
-
-input[maxlength] { padding-right: 3rem; }
+        .char-counter {
+            text-align: right;
+            font-size: 0.72rem;
+            color: #b0b7c3;
+            margin-top: 3px;
+            margin-bottom: 0.35rem;
+            transition: color 0.2s;
+            height: 14px;
+        }
+        .char-counter.warn  { color: #f59e0b; }
+        .char-counter.danger { color: #ef4444; }
+        input[maxlength] { padding-right: 3rem; }
     </style>
 </head>
 <body>
@@ -1526,7 +1519,7 @@ input[maxlength] { padding-right: 3rem; }
     required
     autofocus
     autocomplete="email"
-    maxlength="100"
+    maxlength="50"
 >
                 </div>
 
@@ -1540,7 +1533,7 @@ input[maxlength] { padding-right: 3rem; }
     placeholder="Password"
     required
     autocomplete="current-password"
-    maxlength="64"
+    maxlength="20"
 >
     <button type="button" class="toggle-pw" onclick="togglePassword()" tabindex="-1" aria-label="Toggle password visibility">
         <i class="fas fa-eye" id="pwEyeIcon"></i>
@@ -1677,8 +1670,8 @@ input[maxlength] { padding-right: 3rem; }
         }
 
         // ══ PASSWORD TOGGLE ══════════════════════════════
-        function togglePassword() {
-            var pwInput   = document.getElementById('password');
+         function togglePassword() {
+            var pwInput = document.getElementById('password');
             var pwEyeIcon = document.getElementById('pwEyeIcon');
             if (pwInput.type === 'password') {
                 pwInput.type = 'text';
@@ -1690,7 +1683,6 @@ input[maxlength] { padding-right: 3rem; }
                 pwEyeIcon.classList.add('fa-eye');
             }
         }
-
         // ══ LOGIN FORM: show loader on submit ═════════════
         var loginForm   = document.getElementById('loginForm');
         var loginLoader = document.getElementById('loginLoader');

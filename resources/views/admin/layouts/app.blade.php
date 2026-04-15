@@ -495,7 +495,7 @@
                     </li>
                     @if(auth()->user()->role === 'superadmin')
                         <li class="nav-section-title">ADMINISTRATION</li>
-                        <li class="nav-item {{ request()->routeIs('admin.superadmin.*') ? 'active' : '' }}">
+                       <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
                             <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
                                 <i class="fas fa-user-shield"></i> Manage Admins
                             </a>
@@ -567,12 +567,12 @@
                             </li>
                             @if(auth()->user()->role === 'superadmin')
                                 <li class="nav-section-title">ADMINISTRATION</li>
-                                <li class="nav-item {{ request()->routeIs('admin.superadmin.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
                                     <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
                                         <i class="fas fa-user-shield"></i> Manage Admins
                                     </a>
                                 </li>
-                                 </li>
+                                
                         {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
                                 <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
                                     <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">

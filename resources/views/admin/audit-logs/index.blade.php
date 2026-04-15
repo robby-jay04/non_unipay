@@ -612,19 +612,16 @@ function renderModal(log) {
                 <label>Timestamp</label>
                 <p>${log.created_at}</p>
             </div>
-            <div class="detail-item">
+          
+<div class="detail-item">
     <label>Actor</label>
-    <p>
-        @if($log->admin)
-            {{ $log->admin->name }} (Admin)<br>
-            <small>{{ $log->admin->email }}</small>
-        @elseif($log->student && $log->student->user)
-            {{ $log->student->user->name }} (Student)<br>
-            <small>{{ $log->student->user->email }}</small>
-        @else
-            System / Guest
-        @endif
-    </p>
+    <p>${
+        log.admin
+            ? `${log.admin.name} (Admin)<br><small>${log.admin.email}</small>`
+            : log.student?.user
+                ? `${log.student.user.name} (Student)<br><small>${log.student.user.email}</small>`
+                : 'System / Guest'
+    }</p>
 </div>
             <div class="detail-item">
                 <label>Severity</label>

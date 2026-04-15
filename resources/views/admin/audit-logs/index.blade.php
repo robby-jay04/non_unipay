@@ -478,7 +478,8 @@
                         <th>ID</th>
                         <th>Timestamp</th>
                         <th>Actor</th>
-                        <th>Action</th>
+                        
+                    
                         <th>Module</th>
                         <th>Description</th>
                         <th>Severity</th>
@@ -627,10 +628,7 @@ function renderModal(log) {
                 <label>Severity</label>
                 <p>${severityHtml}</p>
             </div>
-            <div class="detail-item">
-                <label>Action Type</label>
-                <p><span class="action-type">${log.action_type}</span></p>
-            </div>
+           
             <div class="detail-item">
                 <label>Module</label>
                 <p>${log.module}</p>

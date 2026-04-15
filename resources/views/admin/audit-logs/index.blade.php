@@ -478,8 +478,7 @@
                         <th>ID</th>
                         <th>Timestamp</th>
                         <th>Actor</th>
-                        
-                    
+                        <th>Action</th>
                         <th>Module</th>
                         <th>Description</th>
                         <th>Severity</th>
@@ -506,10 +505,11 @@
                 <span class="text-muted">System</span>
             @endif
         </td>
-        <td>{{ $log->module }}</td>
-        <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            {{ $log->description }}
-        </td>
+        <td><span class="action-type">{{ $log->action_type }}</span></td>
+<td>{{ $log->module }}</td>
+<td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+    {{ $log->description }}
+</td>
         <td><span class="sev sev-{{ $log->severity }}">{{ $log->severity }}</span></td>
         <td><code>{{ $log->ip_address ?? '—' }}</code></td>
     </tr>
@@ -628,7 +628,10 @@ function renderModal(log) {
                 <label>Severity</label>
                 <p>${severityHtml}</p>
             </div>
-           
+            <div class="detail-item">
+                <label>Action Type</label>
+                <p><span class="action-type">${log.action_type}</span></p>
+            </div>
             <div class="detail-item">
                 <label>Module</label>
                 <p>${log.module}</p>

@@ -1548,16 +1548,7 @@
     Caps Lock is on
 </div>
 
-<!-- Strength meter -->
-<div id="pwStrengthWrap" style="display:none; margin-top:-0.4rem; margin-bottom:0.8rem;">
-    <div style="display:flex; gap:4px; margin-bottom:4px;">
-        <div class="pw-bar" id="pwBar1"></div>
-        <div class="pw-bar" id="pwBar2"></div>
-        <div class="pw-bar" id="pwBar3"></div>
-        <div class="pw-bar" id="pwBar4"></div>
-    </div>
-    <span id="pwStrengthLabel" style="font-size:0.75rem; color:#6b7280;"></span>
-</div>
+
 
                 <button type="submit" class="btn-login" id="loginBtn">
                     <i class="fas fa-sign-in-alt me-2"></i> Sign In
@@ -1813,40 +1804,7 @@ document.getElementById('password').addEventListener('blur', function() {
     document.getElementById('capsWarning').style.display = 'none';
 });
 
-// ── PASSWORD STRENGTH METER ──────────────────────────
-function getStrength(pw) {
-    var score = 0;
-    if (pw.length >= 8)  score++;
-    if (pw.length >= 12) score++;
-    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-    if (/[0-9]/.test(pw)) score++;
-    if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score <= 1) return { level: 1, label: 'Weak',      color: 'weak'   };
-    if (score <= 2) return { level: 2, label: 'Fair',      color: 'fair'   };
-    if (score <= 3) return { level: 3, label: 'Good',      color: 'good'   };
-    return              { level: 4, label: 'Strong',    color: 'strong' };
-}
 
-document.getElementById('password').addEventListener('input', function() {
-    var pw = this.value;
-    var wrap = document.getElementById('pwStrengthWrap');
-    if (!pw) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-
-    var s = getStrength(pw);
-    var colors = { weak: 'active-weak', fair: 'active-fair', good: 'active-good', strong: 'active-strong' };
-    var cls = colors[s.color];
-
-    [1,2,3,4].forEach(function(i) {
-        var bar = document.getElementById('pwBar' + i);
-        bar.className = 'pw-bar' + (i <= s.level ? ' ' + cls : '');
-    });
-
-    var labelColors = { weak:'#ef4444', fair:'#f59e0b', good:'#3b82f6', strong:'#10b981' };
-    var labelEl = document.getElementById('pwStrengthLabel');
-    labelEl.textContent = s.label + ' password';
-    labelEl.style.color = labelColors[s.color];
-});
 // ── INPUT LIMIT COUNTERS ─────────────────────────────
 function makeCounter(inputId, max, warnAt) {
     var input = document.getElementById(inputId);
@@ -1875,8 +1833,8 @@ function makeCounter(inputId, max, warnAt) {
     });
 }
 
-makeCounter('emailInput', 100, 20);
-makeCounter('password',   64,  10);
+makeCounter('emailInput', 50, 20);
+makeCounter('password',   20,  10);
 
     </script>
 </body>

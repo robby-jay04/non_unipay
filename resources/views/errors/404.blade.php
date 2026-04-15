@@ -687,7 +687,7 @@
                 This page isn't part of the system. It may have been removed, renamed, or you may have mistyped the URL.
             </p>
 
-            <a href="{{ route('dashboard') }}" class="btn-home">
+            <a href="{{ route('admin.dashboard') }}" class="btn-home">
                 <i class="fas fa-home" style="flex-shrink:0;"></i>
                 Go to Dashboard
             </a>

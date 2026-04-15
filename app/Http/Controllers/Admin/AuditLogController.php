@@ -60,16 +60,16 @@ class AuditLogController extends Controller
     /**
      * GET /admin/audit-logs/{id}
      */
-    public function show(AuditLog $auditLog, Request $request): View|JsonResponse
-    {
-        $auditLog->load('admin:id,name,email');
+  public function show(AuditLog $auditLog, Request $request): View|JsonResponse
+{
+    $auditLog->load(['admin:id,name,email', 'student.user']);
 
-        if ($request->wantsJson()) {
-            return response()->json($auditLog);
-        }
-
-        return view('admin.audit-logs.show', compact('auditLog'));
+    if ($request->wantsJson()) {
+        return response()->json($auditLog);
     }
+
+    return view('admin.audit-logs.show', compact('auditLog'));
+}
 
     /**
      * GET /admin/audit-logs/stats

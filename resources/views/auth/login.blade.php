@@ -930,6 +930,26 @@
             transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
         }
 
+        /* ── PASSWORD SECURITY ── */
+.toggle-pw { display: flex !important; }   /* always show eye icon */
+
+.pw-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 99px;
+    background: #e5e7eb;
+    transition: background 0.3s;
+}
+.pw-bar.active-weak   { background: #ef4444; }
+.pw-bar.active-fair   { background: #f59e0b; }
+.pw-bar.active-good   { background: #3b82f6; }
+.pw-bar.active-strong { background: #10b981; }
+
+input.input-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.10) !important;
+}
+
         .btn-login::after {
             content: '';
             position: absolute; inset: 0;
@@ -1137,6 +1157,20 @@
             0%   { transform: translateX(-60%) rotate(25deg); }
             100% { transform: translateX(60%)  rotate(25deg); }
         }
+        /* ── INPUT LIMIT COUNTER ── */
+.char-counter {
+    text-align: right;
+    font-size: 0.72rem;
+    color: #b0b7c3;
+    margin-top: 3px;
+    margin-bottom: 0.35rem;
+    transition: color 0.2s;
+    height: 14px;
+}
+.char-counter.warn  { color: #f59e0b; }
+.char-counter.danger { color: #ef4444; }
+
+input[maxlength] { padding-right: 3rem; }
     </style>
 </head>
 <body>
@@ -1484,32 +1518,53 @@
                 <div class="field-wrap">
                     <i class="fas fa-envelope field-icon"></i>
                     <input
-                        type="email"
-                        name="email"
-                        id="emailInput"
-                        placeholder="Email address"
-                        value="{{ old('email') }}"
-                        required
-                        autofocus
-                        autocomplete="email"
-                    >
+    type="email"
+    name="email"
+    id="emailInput"
+    placeholder="Email address"
+    value="{{ old('email') }}"
+    required
+    autofocus
+    autocomplete="email"
+    maxlength="100"
+>
                 </div>
 
                 <!-- ✅ FIX: toggle-pw button added here -->
-                <div class="field-wrap">
-                    <i class="fas fa-lock field-icon"></i>
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        placeholder="Password"
-                        required
-                        autocomplete="current-password"
-                    >
-                    <button type="button" class="toggle-pw" onclick="togglePassword()" tabindex="-1" aria-label="Toggle password visibility">
-                        <i class="fas fa-eye" id="pwEyeIcon"></i>
-                    </button>
-                </div>
+                <div class="field-wrap" id="pwWrap">
+    <i class="fas fa-lock field-icon"></i>
+    <input
+    type="password"
+    name="password"
+    id="password"
+    placeholder="Password"
+    required
+    autocomplete="current-password"
+    maxlength="64"
+>
+    <button type="button" class="toggle-pw" onclick="togglePassword()" tabindex="-1" aria-label="Toggle password visibility">
+        <i class="fas fa-eye" id="pwEyeIcon"></i>
+    </button>
+</div>
+
+<!-- Caps Lock warning -->
+<div id="capsWarning" style="display:none; align-items:center; gap:0.4rem;
+     background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
+     padding:0.5rem 0.85rem; font-size:0.8rem; color:#92400e; margin-top:-0.4rem; margin-bottom:0.6rem;">
+    <i class="fas fa-exclamation-triangle" style="font-size:0.75rem;"></i>
+    Caps Lock is on
+</div>
+
+<!-- Strength meter -->
+<div id="pwStrengthWrap" style="display:none; margin-top:-0.4rem; margin-bottom:0.8rem;">
+    <div style="display:flex; gap:4px; margin-bottom:4px;">
+        <div class="pw-bar" id="pwBar1"></div>
+        <div class="pw-bar" id="pwBar2"></div>
+        <div class="pw-bar" id="pwBar3"></div>
+        <div class="pw-bar" id="pwBar4"></div>
+    </div>
+    <span id="pwStrengthLabel" style="font-size:0.75rem; color:#6b7280;"></span>
+</div>
 
                 <button type="submit" class="btn-login" id="loginBtn">
                     <i class="fas fa-sign-in-alt me-2"></i> Sign In
@@ -1756,7 +1811,80 @@
                 }
             })();
         <?php endif; ?>
+// ── CAPS LOCK DETECTION ──────────────────────────────
+document.getElementById('password').addEventListener('keyup', function(e) {
+    var capsOn = e.getModifierState && e.getModifierState('CapsLock');
+    var warn = document.getElementById('capsWarning');
+    warn.style.display = capsOn ? 'flex' : 'none';
+});
+document.getElementById('password').addEventListener('blur', function() {
+    document.getElementById('capsWarning').style.display = 'none';
+});
 
+// ── PASSWORD STRENGTH METER ──────────────────────────
+function getStrength(pw) {
+    var score = 0;
+    if (pw.length >= 8)  score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 1) return { level: 1, label: 'Weak',      color: 'weak'   };
+    if (score <= 2) return { level: 2, label: 'Fair',      color: 'fair'   };
+    if (score <= 3) return { level: 3, label: 'Good',      color: 'good'   };
+    return              { level: 4, label: 'Strong',    color: 'strong' };
+}
+
+document.getElementById('password').addEventListener('input', function() {
+    var pw = this.value;
+    var wrap = document.getElementById('pwStrengthWrap');
+    if (!pw) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+
+    var s = getStrength(pw);
+    var colors = { weak: 'active-weak', fair: 'active-fair', good: 'active-good', strong: 'active-strong' };
+    var cls = colors[s.color];
+
+    [1,2,3,4].forEach(function(i) {
+        var bar = document.getElementById('pwBar' + i);
+        bar.className = 'pw-bar' + (i <= s.level ? ' ' + cls : '');
+    });
+
+    var labelColors = { weak:'#ef4444', fair:'#f59e0b', good:'#3b82f6', strong:'#10b981' };
+    var labelEl = document.getElementById('pwStrengthLabel');
+    labelEl.textContent = s.label + ' password';
+    labelEl.style.color = labelColors[s.color];
+});
+// ── INPUT LIMIT COUNTERS ─────────────────────────────
+function makeCounter(inputId, max, warnAt) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+
+    var counter = document.createElement('div');
+    counter.className = 'char-counter';
+    counter.style.display = 'none';
+    input.closest('.field-wrap').insertAdjacentElement('afterend', counter);
+
+    input.addEventListener('input', function () {
+        var len = this.value.length;
+        var remaining = max - len;
+        counter.style.display = len > 0 ? 'block' : 'none';
+        counter.textContent = remaining + ' / ' + max + ' characters remaining';
+        counter.className = 'char-counter' +
+            (remaining <= 0         ? ' danger' :
+             remaining <= warnAt    ? ' warn'   : '');
+    });
+
+    input.addEventListener('blur', function () {
+        counter.style.display = 'none';
+    });
+    input.addEventListener('focus', function () {
+        if (this.value.length > 0) counter.style.display = 'block';
+    });
+}
+
+makeCounter('emailInput', 100, 20);
+makeCounter('password',   64,  10);
 
     </script>
 </body>

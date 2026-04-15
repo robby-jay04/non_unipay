@@ -393,7 +393,7 @@
             <h2><i class="fas fa-history me-2"></i>Audit Trail</h2>
             <p>Complete history of system events, modifications, and security logs.</p>
         </div>
-        <a href="{{ route('admin.audit-logs.export', request()->only('search','module','severity','date_from','date_to')) }}"
+        <a href="{{ route('admin.superadmin.audit-logs.export', request()->only('search','module','severity','date_from','date_to')) }}"
            class="btn-export-audit">
             <i class="fas fa-download me-1"></i> Export CSV
         </a>
@@ -429,7 +429,7 @@
 </div>
 {{-- ── Filter Bar ── --}}
 <div class="filter-bar">
-    <form method="GET" action="{{ route('admin.audit-logs.index') }}" id="filterForm">
+    <form method="GET" action="{{ route('admin.superadmin.audit-logs.index') }}" id="filterForm">
         <div class="filter-row">
             <div class="filter-group" style="flex:2;">
                 <label>Search</label>
@@ -463,7 +463,7 @@
                 <input type="date" name="date_to" value="{{ request('date_to') }}">
             </div>
             <button type="submit" class="btn-filter"><i class="fas fa-search me-1"></i> Filter</button>
-            <a href="{{ route('admin.audit-logs.index') }}" class="btn-reset"><i class="fas fa-undo-alt"></i> Reset</a>
+            <a href="{{ route('admin.superadmin.audit-logs.index') }}"class="btn-reset"><i class="fas fa-undo-alt"></i> Reset</a>
         </div>
     </form>
 </div>
@@ -561,7 +561,7 @@
 @push('scripts')
 <script>
 // ── Fetch stats ──────────────────────────────────────────────────
-fetch("{{ route('admin.audit-logs.stats') }}")
+fetch("{{ route('admin.superadmin.audit-logs.stats') }}")
     .then(res => res.json())
     .then(data => {
         document.getElementById('statEventsToday').textContent = data.events_today ?? '—';
@@ -583,7 +583,7 @@ function openModal(id) {
     currentModal = new bootstrap.Modal(modalEl);
     currentModal.show();
 
-    fetch(`/admin/audit-logs/${id}`, {
+   fetch(`/admin/superadmin/audit-logs/${id}`, {
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(res => res.json())
@@ -612,19 +612,16 @@ function renderModal(log) {
                 <label>Timestamp</label>
                 <p>${log.created_at}</p>
             </div>
-            <div class="detail-item">
+           // Replace the Actor detail-item with:
+<div class="detail-item">
     <label>Actor</label>
-    <p>
-        @if($log->admin)
-            {{ $log->admin->name }} (Admin)<br>
-            <small>{{ $log->admin->email }}</small>
-        @elseif($log->student && $log->student->user)
-            {{ $log->student->user->name }} (Student)<br>
-            <small>{{ $log->student->user->email }}</small>
-        @else
-            System / Guest
-        @endif
-    </p>
+    <p>${
+        log.admin
+            ? `${log.admin.name} (Admin)<br><small>${log.admin.email}</small>`
+            : log.student?.user
+                ? `${log.student.user.name} (Student)<br><small>${log.student.user.email}</small>`
+                : 'System / Guest'
+    }</p>
 </div>
             <div class="detail-item">
                 <label>Severity</label>

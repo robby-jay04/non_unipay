@@ -126,3 +126,11 @@ Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->grou
     }); // closes admin middleware
 
 }); // closes auth + active middleware
+Route::get('/db-test', function () {
+    try {
+        $results = DB::select('SELECT 1');
+        return response()->json(['status' => 'connected', 'result' => $results]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});

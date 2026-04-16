@@ -204,36 +204,51 @@ class AdminController extends Controller
     }
 }
     // ✅ Decline student with audit log (includes reason)
-    public function declineStudent(Student $student)
+       public function declineStudent(Student $student)
     {
-        $reason      = request('reason') ?: 'No reason provided.';
-        $email       = $student->user->email;
-        $studentCopy = clone $student;
-        $studentCopy->setRelation('user', $student->user);
+        $reason = request('reason') ?: 'No reason provided.';
+        $email = $student->user->email;
+        $studentName = $student->user->name;
+        $studentNo = $student->student_no;
 
-        // Audit log before deletion (capture the reason and the record)
-        $this->auditLogger->log(
-            actionType: 'admin.student.decline',
-            module: 'Students',
-            description: "Admin declined student #{$student->student_no} ({$student->user->name}). Reason: {$reason}",
-            oldValue: $student->toArray(),
-            newValue: null,
-            entity: $student,
-            severity: 'medium'
-        );
-
-        // Send email
         try {
-            Mail::to($email)->send(new StudentDeclined($studentCopy, $reason));
-            Log::info('Decline email sent to: ' . $email);
+            // Delete related records first to avoid integrity constraint violations
+            $student->payments()->delete();
+            if ($student->clearance) {
+                $student->clearance()->delete();
+            }
+
+            // Audit log
+            $this->auditLogger->log(
+                actionType: 'admin.student.decline',
+                module: 'Students',
+                description: "Admin declined student #{$studentNo} ({$studentName}). Reason: {$reason}",
+                oldValue: $student->toArray(),
+                newValue: null,
+                entity: $student,
+                severity: 'medium'
+            );
+
+            // Send email (pass a clone to preserve data after deletion)
+            $studentCopy = clone $student;
+            $studentCopy->setRelation('user', $student->user);
+            try {
+                Mail::to($email)->send(new StudentDeclined($studentCopy, $reason));
+                Log::info('Decline email sent to: ' . $email);
+            } catch (\Exception $e) {
+                Log::error('Decline mail failed: ' . $e->getMessage());
+            }
+
+            // Delete user (cascade should delete student if foreign key set)
+            $student->user()->delete();
+            // If not cascading, explicitly delete student
+            // $student->delete();
+
+            return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
         } catch (\Exception $e) {
-            Log::error('Decline mail failed: ' . $e->getMessage());
+            Log::error('Student decline error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to decline student: ' . $e->getMessage()], 500);
         }
-
-        $student->user()->delete();
-        $student->delete();
-
-        return response()->json(['success' => true, 'message' => 'Student declined and removed.']);
     }
 
     public function newStudentsCount(Request $request)

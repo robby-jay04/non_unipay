@@ -159,13 +159,22 @@ class AdminController extends Controller
 
     // ✅ Delete student with audit log (includes reason)
     public function destroy(Student $student)
-    {
-        $reason       = request('reason') ?: 'No reason provided.';
-        $studentName  = $student->user->name;
-        $studentNo    = $student->student_no;
-        $studentEmail = $student->user->email;
+{
+    $reason = request('reason') ?: 'No reason provided.';
+    $studentName = $student->user->name;
+    $studentNo = $student->student_no;
+    $studentEmail = $student->user->email;
 
-        // Audit log before deletion (capture the full record)
+    try {
+        // Delete related payments first (if any)
+        $student->payments()->delete();
+        
+        // Delete related clearance (if any)
+        if ($student->clearance) {
+            $student->clearance()->delete();
+        }
+
+        // Audit log
         $this->auditLogger->log(
             actionType: 'admin.student.delete',
             module: 'Students',
@@ -179,17 +188,21 @@ class AdminController extends Controller
         // Send email
         try {
             Mail::to($studentEmail)->send(new StudentDeleted($studentName, $studentNo, $reason));
-            Log::info('Delete email sent to: ' . $studentEmail);
         } catch (\Exception $e) {
             Log::error('Delete mail failed: ' . $e->getMessage());
         }
 
+        // Delete user (this will also delete student if foreign key cascades)
         $student->user()->delete();
-        $student->delete();
+        // If user deletion doesn't cascade, also delete student
+        // $student->delete(); // Uncomment if needed
 
         return response()->json(['success' => true, 'message' => 'Student deleted successfully.']);
+    } catch (\Exception $e) {
+        Log::error('Student deletion error: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to delete student: ' . $e->getMessage()], 500);
     }
-
+}
     // ✅ Decline student with audit log (includes reason)
     public function declineStudent(Student $student)
     {

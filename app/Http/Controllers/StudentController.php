@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 class StudentController extends Controller
 {
  // StudentController.php - profile()
@@ -165,5 +166,27 @@ public function index(Request $request)
 
     return response()->json(['success' => false, 'message' => 'No file uploaded'], 400);
 }
+public function destroy($id)
+{
+    try {
+        $student = Student::with('user', 'payments', 'clearance')->findOrFail($id);
 
+        // Optional: Check for related records to prevent accidental deletion
+        if ($student->payments()->exists() || $student->clearance()->exists()) {
+            return back()->with('error', 'Cannot delete student because they have existing payments or clearance records.');
+        }
+
+        // Delete the associated user (this will also delete the student if foreign key cascades)
+        if ($student->user) {
+            $student->user->delete();
+        } else {
+            $student->delete();
+        }
+
+        return redirect()->route('admin.students')->with('success', 'Student deleted successfully.');
+    } catch (\Exception $e) {
+        Log::error('Admin delete student error: ' . $e->getMessage());
+        return back()->with('error', 'Failed to delete student: ' . $e->getMessage());
+    }
+}
 }

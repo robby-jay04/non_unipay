@@ -82,10 +82,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/school-years/{id}/set-current', [SchoolYearController::class, 'setCurrent'])->name('school-years.setCurrent');
         Route::post('/school-years/{id}/set-semester', [SchoolYearController::class, 'setSemester'])->name('school-years.setSemester');
         Route::delete('/school-years/{id}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
-        // Course management (handled by SchoolYearController)
-Route::post  ('courses',        [SchoolYearController::class, 'storeCourse'])  ->name('admin.courses.store');
-Route::put   ('courses/{id}',   [SchoolYearController::class, 'updateCourse']) ->name('admin.courses.update');
-Route::delete('courses/{id}',   [SchoolYearController::class, 'destroyCourse'])->name('admin.courses.destroy');
+        Route::post  ('courses', [SchoolYearController::class, 'storeCourse'])->name('courses.store');
+        Route::put   ('courses/{id}', [SchoolYearController::class, 'updateCourse'])->name('courses.update');
+        Route::delete('courses/{id}', [SchoolYearController::class, 'destroyCourse'])->name('courses.destroy');
         // EXAM PERIODS
         Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurrent'])->name('exam-periods.setCurrent');
 

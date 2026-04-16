@@ -412,7 +412,306 @@
     </div>
 </div>
 
-@endsection
+@/* The above code appears to be a comment block in PHP. The comment block starts with /* and ends with
+*/. However, the code also contains some random characters like "endse" and " */
+
+{{-- ── Course Management Card ── --}}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: var(--bg-main);">
+    <div class="card-header border-0 py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+         style="background: var(--bg-main);">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
+            <i class="fas fa-graduation-cap me-2"></i> Course Management
+        </h5>
+        <button type="button" class="btn-add-year rounded-pill px-4 py-2"
+                data-bs-toggle="modal" data-bs-target="#addCourseModal">
+            <i class="fas fa-plus-circle me-2"></i> Add Course
+        </button>
+    </div>
+ 
+    {{-- Search / filter bar --}}
+    <div class="px-4 py-3 border-bottom" style="border-color: var(--border-color) !important; background: var(--bg-main);">
+        <div class="input-group" style="max-width: 340px;">
+            <span class="input-group-text border-0 rounded-start-3"
+                  style="background: var(--input-bg); color: var(--text-muted);">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" id="courseSearch" class="form-control border-0 rounded-end-3"
+                   placeholder="Search courses…"
+                   style="background: var(--input-bg); color: var(--text-primary);">
+        </div>
+    </div>
+ 
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 schoolyear-table" id="courseTable">
+                <thead style="background: var(--table-header-bg);">
+                    <tr>
+                        <th class="px-4 py-3" style="color: var(--text-primary);">Code</th>
+                        <th class="py-3"      style="color: var(--text-primary);">Course Name</th>
+                        <th class="py-3"      style="color: var(--text-primary);">Department</th>
+                        <th class="py-3 pe-4 text-end" style="color: var(--text-primary);">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="courseTableBody">
+                    @forelse($courses as $course)
+                    <tr class="course-row">
+                        <td class="px-4 py-3">
+                            <span class="badge-course-code">{{ $course->code }}</span>
+                        </td>
+                        <td class="py-3 fw-semibold" style="color: var(--text-primary);">
+                            {{ $course->name }}
+                        </td>
+                        <td class="py-3" style="color: var(--text-secondary);">
+                            {{ $course->department ?? '—' }}
+                        </td>
+                        <td class="py-3 pe-4 text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button type="button"
+                                        class="btn-action edit-course"
+                                        title="Edit course"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editCourseModal"
+                                        data-id="{{ $course->id }}"
+                                        data-code="{{ $course->code }}"
+                                        data-name="{{ $course->name }}"
+                                        data-department="{{ $course->department }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button"
+                                        class="btn-action delete-course"
+                                        title="Delete course"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteCourseModal"
+                                        data-id="{{ $course->id }}"
+                                        data-name="{{ $course->name }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr id="courseEmptyRow">
+                        <td colspan="4" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-graduation-cap fa-4x" style="color: var(--text-muted);"></i>
+                                <h6 class="fw-semibold mt-3" style="color: var(--text-primary);">No courses yet</h6>
+                                <p class="small" style="color: var(--text-muted);">Click "Add Course" to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 
+    {{-- Course count footer --}}
+    <div class="card-footer border-0 px-4 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2"
+         style="background: var(--bg-main); border-top: 1px solid var(--border-color) !important;">
+        <span class="small" style="color: var(--text-muted);" id="courseCount">
+            {{ $courses->count() }} {{ Str::plural('course', $courses->count()) }} total
+        </span>
+        <span class="small" style="color: var(--text-muted);" id="courseFilterInfo"></span>
+    </div>
+</div>
+ 
+ 
+{{-- ══════════ ADD COURSE MODAL ══════════ --}}
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
+            <div class="modal-header border-0"
+                 style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-graduation-cap me-2"></i> Add Course
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.courses.store') }}" method="POST" class="requires-loader">
+                @csrf
+                <div class="modal-body p-4">
+ 
+                    {{-- Code --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Course Code <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-tag" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="code" class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   placeholder="e.g. BSIT" required maxlength="20"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                        <div class="form-text small" style="color: var(--text-muted);">Short abbreviation (max 20 chars)</div>
+                    </div>
+ 
+                    {{-- Name --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Course Name <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-book" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="name" class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   placeholder="e.g. BS Information Technology" required maxlength="150"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                    </div>
+ 
+                    {{-- Department (optional) --}}
+                    <div class="mb-1">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Department <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-building" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="department" class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   placeholder="e.g. College of Engineering" maxlength="100"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                    </div>
+ 
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal"
+                            style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-save me-2"></i> Save Course
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+ 
+ 
+{{-- ══════════ EDIT COURSE MODAL ══════════ --}}
+<div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
+            <div class="modal-header border-0"
+                 style="background: linear-gradient(135deg, #0f3c91, #1a4da8); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-edit me-2"></i> Edit Course
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCourseForm" method="POST" action="" class="requires-loader">
+                @csrf
+                @method('PUT')
+                <div class="modal-body p-4">
+ 
+                    {{-- Code --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Course Code <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-tag" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="code" id="editCourseCode"
+                                   class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   required maxlength="20"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                    </div>
+ 
+                    {{-- Name --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Course Name <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-book" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="name" id="editCourseName"
+                                   class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   required maxlength="150"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                    </div>
+ 
+                    {{-- Department --}}
+                    <div class="mb-1">
+                        <label class="form-label fw-semibold" style="color: var(--text-primary);">
+                            Department <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3 px-3"
+                                  style="background: var(--input-bg); color: var(--text-muted);">
+                                <i class="fas fa-building" style="color: #0f3c91;"></i>
+                            </span>
+                            <input type="text" name="department" id="editCourseDept"
+                                   class="form-control border-0 rounded-end-3 px-3 py-2"
+                                   maxlength="100"
+                                   style="background: var(--input-bg); color: var(--text-primary);">
+                        </div>
+                    </div>
+ 
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal"
+                            style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-save me-2"></i> Update Course
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+ 
+ 
+{{-- ══════════ DELETE COURSE MODAL ══════════ --}}
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
+            <div class="modal-header border-0"
+                 style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-trash-alt me-2"></i> Delete Course
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #dc3545;"></i>
+                <p class="mb-1" style="color: var(--text-primary);">Are you sure you want to delete</p>
+                <p class="fw-bold fs-5 mb-1" id="deleteCourseLabel" style="color: var(--text-primary);"></p>
+                <p class="small" style="color: var(--text-muted);">
+                    Students and records linked to this course may be affected.
+                </p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-3 pb-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal"
+                        style="background: var(--input-bg); color: var(--text-primary);">Cancel</button>
+                <form id="deleteCourseForm" method="POST" action="" class="requires-loader">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">
+                        <i class="fas fa-trash-alt me-2"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+ endsection
 
 @push('styles')
 <style>
@@ -694,6 +993,52 @@
     .tracking-wide {
         letter-spacing: 0.05em;
     }
+    /* Course code badge */
+.badge-course-code {
+    background: rgba(15, 60, 145, 0.1);
+    color: #0f3c91;
+    font-weight: 700;
+    padding: 0.35rem 0.85rem;
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    font-family: monospace;
+}
+body.dark .badge-course-code {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+ 
+/* Course row hover (reuses .school-year-row styles already defined) */
+.course-row {
+    transition: all 0.2s ease;
+}
+.course-row:hover {
+    background-color: var(--hover-bg) !important;
+}
+ 
+/* Edit action button colour */
+.btn-action.edit-course:hover {
+    background: rgba(15, 60, 145, 0.1);
+    color: #0f3c91;
+}
+ 
+/* Search highlight */
+.search-highlight {
+    background: rgba(255, 213, 0, 0.35);
+    border-radius: 3px;
+    padding: 0 2px;
+}
+body.dark .search-highlight {
+    background: rgba(253, 186, 116, 0.3);
+}
+ 
+/* No-results row */
+#courseNoResults td {
+    color: var(--text-muted);
+}
 </style>
 @endpush
 
@@ -727,5 +1072,74 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+(function () {
+    // ── Edit course modal ──────────────────────────────────────────
+    const editCourseModal = document.getElementById('editCourseModal');
+    if (editCourseModal) {
+        editCourseModal.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('editCourseCode').value       = btn.dataset.code       ?? '';
+            document.getElementById('editCourseName').value       = btn.dataset.name       ?? '';
+            document.getElementById('editCourseDept').value       = btn.dataset.department ?? '';
+            document.getElementById('editCourseForm').action =
+                `{{ url('admin/courses') }}/${btn.dataset.id}`;
+        });
+    }
+ 
+    // ── Delete course modal ────────────────────────────────────────
+    const deleteCourseModal = document.getElementById('deleteCourseModal');
+    if (deleteCourseModal) {
+        deleteCourseModal.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('deleteCourseLabel').textContent = btn.dataset.name;
+            document.getElementById('deleteCourseForm').action =
+                `/admin/courses/${btn.dataset.id}`;
+        });
+    }
+ 
+    // ── Live search / filter ───────────────────────────────────────
+    const searchInput  = document.getElementById('courseSearch');
+    const tableBody    = document.getElementById('courseTableBody');
+    const filterInfo   = document.getElementById('courseFilterInfo');
+    const countLabel   = document.getElementById('courseCount');
+ 
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('input', function () {
+            const q        = this.value.trim().toLowerCase();
+            const rows     = tableBody.querySelectorAll('tr.course-row');
+            let   visible  = 0;
+ 
+            // Remove old no-results row
+            const old = document.getElementById('courseNoResults');
+            if (old) old.remove();
+ 
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (!q || text.includes(q)) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+ 
+            // No-results message
+            if (visible === 0 && rows.length > 0) {
+                const noRow = document.createElement('tr');
+                noRow.id = 'courseNoResults';
+                noRow.innerHTML = `
+                    <td colspan="4" class="text-center py-4">
+                        <i class="fas fa-search me-2" style="color: var(--text-muted);"></i>
+                        <span style="color: var(--text-muted);">No courses matching "<strong>${q}</strong>"</span>
+                    </td>`;
+                tableBody.appendChild(noRow);
+            }
+ 
+            filterInfo.textContent = q
+                ? `Showing ${visible} of ${rows.length} course(s)`
+                : '';
+        });
+    }
+})();
 </script>
 @endpush

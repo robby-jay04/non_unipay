@@ -183,7 +183,7 @@
                                     <p class="small" style="color: var(--text-muted);">Click "Add School Year" to get started.</p>
                                 </div>
                             </td>
-                    </tr>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -412,9 +412,6 @@
     </div>
 </div>
 
-@/* The above code appears to be a comment block in PHP. The comment block starts with /* and ends with
-*/. However, the code also contains some random characters like "endse" and " */
-
 {{-- ── Course Management Card ── --}}
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: var(--bg-main);">
     <div class="card-header border-0 py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
@@ -427,7 +424,7 @@
             <i class="fas fa-plus-circle me-2"></i> Add Course
         </button>
     </div>
- 
+
     {{-- Search / filter bar --}}
     <div class="px-4 py-3 border-bottom" style="border-color: var(--border-color) !important; background: var(--bg-main);">
         <div class="input-group" style="max-width: 340px;">
@@ -440,7 +437,7 @@
                    style="background: var(--input-bg); color: var(--text-primary);">
         </div>
     </div>
- 
+
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 schoolyear-table" id="courseTable">
@@ -504,7 +501,7 @@
             </table>
         </div>
     </div>
- 
+
     {{-- Course count footer --}}
     <div class="card-footer border-0 px-4 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2"
          style="background: var(--bg-main); border-top: 1px solid var(--border-color) !important;">
@@ -514,8 +511,8 @@
         <span class="small" style="color: var(--text-muted);" id="courseFilterInfo"></span>
     </div>
 </div>
- 
- 
+
+
 {{-- ══════════ ADD COURSE MODAL ══════════ --}}
 <div class="modal fade" id="addCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -530,7 +527,7 @@
             <form action="{{ route('admin.courses.store') }}" method="POST" class="requires-loader">
                 @csrf
                 <div class="modal-body p-4">
- 
+
                     {{-- Code --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -547,7 +544,7 @@
                         </div>
                         <div class="form-text small" style="color: var(--text-muted);">Short abbreviation (max 20 chars)</div>
                     </div>
- 
+
                     {{-- Name --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -563,7 +560,7 @@
                                    style="background: var(--input-bg); color: var(--text-primary);">
                         </div>
                     </div>
- 
+
                     {{-- Department (optional) --}}
                     <div class="mb-1">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -579,7 +576,7 @@
                                    style="background: var(--input-bg); color: var(--text-primary);">
                         </div>
                     </div>
- 
+
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4 pt-0">
                     <button type="button" class="btn btn-secondary rounded-pill px-4"
@@ -593,8 +590,8 @@
         </div>
     </div>
 </div>
- 
- 
+
+
 {{-- ══════════ EDIT COURSE MODAL ══════════ --}}
 <div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -610,7 +607,7 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body p-4">
- 
+
                     {{-- Code --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -627,7 +624,7 @@
                                    style="background: var(--input-bg); color: var(--text-primary);">
                         </div>
                     </div>
- 
+
                     {{-- Name --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -644,7 +641,7 @@
                                    style="background: var(--input-bg); color: var(--text-primary);">
                         </div>
                     </div>
- 
+
                     {{-- Department --}}
                     <div class="mb-1">
                         <label class="form-label fw-semibold" style="color: var(--text-primary);">
@@ -661,7 +658,7 @@
                                    style="background: var(--input-bg); color: var(--text-primary);">
                         </div>
                     </div>
- 
+
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4 pt-0">
                     <button type="button" class="btn btn-secondary rounded-pill px-4"
@@ -675,8 +672,8 @@
         </div>
     </div>
 </div>
- 
- 
+
+
 {{-- ══════════ DELETE COURSE MODAL ══════════ --}}
 <div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -711,7 +708,8 @@
         </div>
     </div>
 </div>
- endsection
+
+@endsection
 
 @push('styles')
 <style>
@@ -993,52 +991,53 @@
     .tracking-wide {
         letter-spacing: 0.05em;
     }
+
     /* Course code badge */
-.badge-course-code {
-    background: rgba(15, 60, 145, 0.1);
-    color: #0f3c91;
-    font-weight: 700;
-    padding: 0.35rem 0.85rem;
-    border-radius: 30px;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.82rem;
-    letter-spacing: 0.04em;
-    font-family: monospace;
-}
-body.dark .badge-course-code {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-}
- 
-/* Course row hover (reuses .school-year-row styles already defined) */
-.course-row {
-    transition: all 0.2s ease;
-}
-.course-row:hover {
-    background-color: var(--hover-bg) !important;
-}
- 
-/* Edit action button colour */
-.btn-action.edit-course:hover {
-    background: rgba(15, 60, 145, 0.1);
-    color: #0f3c91;
-}
- 
-/* Search highlight */
-.search-highlight {
-    background: rgba(255, 213, 0, 0.35);
-    border-radius: 3px;
-    padding: 0 2px;
-}
-body.dark .search-highlight {
-    background: rgba(253, 186, 116, 0.3);
-}
- 
-/* No-results row */
-#courseNoResults td {
-    color: var(--text-muted);
-}
+    .badge-course-code {
+        background: rgba(15, 60, 145, 0.1);
+        color: #0f3c91;
+        font-weight: 700;
+        padding: 0.35rem 0.85rem;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+        font-family: monospace;
+    }
+    body.dark .badge-course-code {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+    }
+
+    /* Course row hover */
+    .course-row {
+        transition: all 0.2s ease;
+    }
+    .course-row:hover {
+        background-color: var(--hover-bg) !important;
+    }
+
+    /* Edit action button colour */
+    .btn-action.edit-course:hover {
+        background: rgba(15, 60, 145, 0.1);
+        color: #0f3c91;
+    }
+
+    /* Search highlight */
+    .search-highlight {
+        background: rgba(255, 213, 0, 0.35);
+        border-radius: 3px;
+        padding: 0 2px;
+    }
+    body.dark .search-highlight {
+        background: rgba(253, 186, 116, 0.3);
+    }
+
+    /* No-results row */
+    #courseNoResults td {
+        color: var(--text-muted);
+    }
 </style>
 @endpush
 
@@ -1071,8 +1070,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('deleteForm').action = `/admin/school-years/${yearId}`;
         });
     }
-});
-(function () {
+
     // ── Edit course modal ──────────────────────────────────────────
     const editCourseModal = document.getElementById('editCourseModal');
     if (editCourseModal) {
@@ -1085,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `{{ url('admin/courses') }}/${btn.dataset.id}`;
         });
     }
- 
+
     // ── Delete course modal ────────────────────────────────────────
     const deleteCourseModal = document.getElementById('deleteCourseModal');
     if (deleteCourseModal) {
@@ -1096,23 +1094,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 `/admin/courses/${btn.dataset.id}`;
         });
     }
- 
+
     // ── Live search / filter ───────────────────────────────────────
     const searchInput  = document.getElementById('courseSearch');
     const tableBody    = document.getElementById('courseTableBody');
     const filterInfo   = document.getElementById('courseFilterInfo');
-    const countLabel   = document.getElementById('courseCount');
- 
+
     if (searchInput && tableBody) {
         searchInput.addEventListener('input', function () {
-            const q        = this.value.trim().toLowerCase();
-            const rows     = tableBody.querySelectorAll('tr.course-row');
-            let   visible  = 0;
- 
+            const q       = this.value.trim().toLowerCase();
+            const rows    = tableBody.querySelectorAll('tr.course-row');
+            let   visible = 0;
+
             // Remove old no-results row
             const old = document.getElementById('courseNoResults');
             if (old) old.remove();
- 
+
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 if (!q || text.includes(q)) {
@@ -1122,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.style.display = 'none';
                 }
             });
- 
+
             // No-results message
             if (visible === 0 && rows.length > 0) {
                 const noRow = document.createElement('tr');
@@ -1134,12 +1131,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>`;
                 tableBody.appendChild(noRow);
             }
- 
+
             filterInfo.textContent = q
                 ? `Showing ${visible} of ${rows.length} course(s)`
                 : '';
         });
     }
-})();
+});
 </script>
 @endpush

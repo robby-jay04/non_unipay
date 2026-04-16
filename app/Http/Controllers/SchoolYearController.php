@@ -110,20 +110,20 @@ class SchoolYearController extends Controller
         return back()->with('success', 'Semester updated successfully.');
     }
 
-    public function apiIndex()
-    {
-        $schoolYears = SchoolYear::orderBy('name', 'desc')->get(['id', 'name', 'is_current']);
+  public function apiIndex()
+{
+    $schoolYears = SchoolYear::orderBy('name', 'desc')->get(['id', 'name', 'is_current']);
 
-        $currentSemester = Semester::where('is_current', 1)
-            ->whereHas('schoolYear', fn ($q) => $q->where('is_current', 1))
-            ->first(['id', 'name', 'is_current']);
+    $currentSemester = Semester::where('is_current', 1)
+        ->whereHas('schoolYear', fn ($q) => $q->where('is_current', 1))
+        ->first(['id', 'name', 'is_current']);
 
-        return response()->json([
-            'school_years'     => $schoolYears,
-            'current_semester' => $currentSemester,
-        ]);
-    }
-
+    return response()->json([
+        'school_years'     => $schoolYears,
+        'current_semester' => $currentSemester,
+        'courses'          => \App\Models\Course::orderBy('code')->get(['id', 'code', 'name']),
+    ]);
+}
     // ══════════════════════════════════════════════════════════════
     //  COURSE MANAGEMENT METHODS
     // ══════════════════════════════════════════════════════════════

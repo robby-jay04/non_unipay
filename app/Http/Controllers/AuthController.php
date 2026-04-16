@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Models\Student;
@@ -14,6 +15,53 @@ use App\Services\AuditLogger;
 class AuthController extends Controller
 {
     // -------------------------------
+    // Throttling helpers
+    // -------------------------------
+    protected function attemptsKey($email, $ip)
+    {
+        return 'login_attempts:' . sha1($email . '|' . $ip);
+    }
+
+    protected function lockoutKey($email, $ip)
+    {
+        return 'login_lockout:' . sha1($email . '|' . $ip);
+    }
+
+    protected function incrementAttempts($email, $ip, $maxAttempts = 5)
+    {
+        $key = $this->attemptsKey($email, $ip);
+        $attempts = Cache::get($key, 0) + 1;
+        Cache::put($key, $attempts, now()->addMinutes(15));
+
+        if ($attempts >= $maxAttempts) {
+            $lockoutKey = $this->lockoutKey($email, $ip);
+            $previousDuration = Cache::get($lockoutKey . '_duration', 0);
+            $newDuration = $previousDuration + 30; // +30 seconds each lockout
+            Cache::put($lockoutKey, now()->addSeconds($newDuration), $newDuration);
+            Cache::put($lockoutKey . '_duration', $newDuration, $newDuration);
+            Cache::forget($key); // reset attempts after lockout triggered
+        }
+
+        return $attempts;
+    }
+
+    protected function isLocked($email, $ip)
+    {
+        $lockoutKey = $this->lockoutKey($email, $ip);
+        $expiresAt = Cache::get($lockoutKey);
+        if (!$expiresAt) return false;
+        $remaining = now()->diffInSeconds($expiresAt, false);
+        return $remaining > 0 ? (int) $remaining : false;
+    }
+
+    protected function clearThrottle($email, $ip)
+    {
+        Cache::forget($this->attemptsKey($email, $ip));
+        Cache::forget($this->lockoutKey($email, $ip));
+        Cache::forget($this->lockoutKey($email, $ip) . '_duration');
+    }
+
+    // -------------------------------
     // Show Login Form (Web)
     // -------------------------------
     public function showLoginForm()
@@ -22,8 +70,7 @@ class AuthController extends Controller
     }
 
     // -------------------------------
-    // Web Login for Admin Only
-    // Students cannot log in via web
+    // Web Login for Admin Only (with throttling)
     // -------------------------------
     public function loginWeb(Request $request)
     {
@@ -32,17 +79,28 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = $request->email;
+        $ip    = $request->ip();
+
+        // 1. Check if locked out
+        $lockoutRemaining = $this->isLocked($email, $ip);
+        if ($lockoutRemaining !== false) {
+            return back()->withErrors([
+                'email' => "Too many failed attempts. Please try again in {$lockoutRemaining} seconds."
+            ])->onlyInput('email');
+        }
+
+        $user = User::where('email', $email)->first();
 
         // Case 1: User not found
         if (!$user) {
+            $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
-                description: "Failed admin login - email not found: {$request->email}",
+                description: "Failed admin login - email not found: {$email}",
                 severity: 'medium'
             );
-
             return back()->withErrors([
                 'email' => 'The provided credentials do not match our records.',
             ])->onlyInput('email');
@@ -50,13 +108,13 @@ class AuthController extends Controller
 
         // Case 2: Not an admin or superadmin
         if (!in_array($user->role, ['admin', 'superadmin'])) {
+            $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
-                description: "Failed admin login - non-admin role ({$user->role}) attempted: {$request->email}",
+                description: "Failed admin login - non-admin role ({$user->role}) attempted: {$email}",
                 severity: 'medium'
             );
-
             return back()->withErrors([
                 'email' => 'The provided credentials do not match our records.',
             ])->onlyInput('email');
@@ -64,13 +122,13 @@ class AuthController extends Controller
 
         // Case 3: Account inactive
         if (!$user->isActive()) {
+            $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
-                description: "Failed admin login - inactive account: {$request->email}",
+                description: "Failed admin login - inactive account: {$email}",
                 severity: 'medium'
             );
-
             return back()->withErrors([
                 'email' => 'Your account has been deactivated. Please contact the super admin.',
             ])->onlyInput('email');
@@ -78,20 +136,26 @@ class AuthController extends Controller
 
         // Case 4: Password incorrect
         if (!Auth::attempt($credentials)) {
+            $attempts = $this->incrementAttempts($email, $ip);
+            $remainingAttempts = max(0, 5 - $attempts);
+            $errorMsg = "The provided credentials do not match our records.";
+            if ($remainingAttempts > 0) {
+                $errorMsg .= " You have {$remainingAttempts} attempt(s) remaining before temporary lockout.";
+            }
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
                 module: 'AdminAuth',
-                description: "Failed admin login - incorrect password for: {$request->email}",
-                entity: $user,   // to capture admin_user_id
+                description: "Failed admin login - incorrect password for: {$email}",
+                entity: $user,
                 severity: 'medium'
             );
-
             return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
+                'email' => $errorMsg,
             ])->onlyInput('email');
         }
 
-        // ✅ Success: log successful admin login
+        // ✅ Success: clear throttle & log
+        $this->clearThrottle($email, $ip);
         app(AuditLogger::class)->log(
             actionType: 'auth.success',
             module: 'AdminAuth',
@@ -116,7 +180,7 @@ class AuthController extends Controller
     }
 
     // -------------------------------
-    // API Login (Sanctum) – for students
+    // API Login (Sanctum) – for students (unchanged)
     // -------------------------------
     public function login(Request $request)
     {
@@ -127,7 +191,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Case 1: User not found
         if (!$user) {
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
@@ -135,17 +198,14 @@ class AuthController extends Controller
                 description: "Failed student login - email not found: {$request->email}",
                 severity: 'medium'
             );
-
             return response()->json(['message' => 'No account found with that email address.'], 401);
         }
 
-        // Handle imported accounts (no password stored)
         $passwordValid = $user->password
             ? Hash::check($request->password, $user->password)
             : ($request->password === 'password123');
 
         if (!$passwordValid) {
-            // Log failed attempt with student_id if the user is a student
             $studentId = $user->isStudent() ? $user->student?->id : null;
             app(AuditLogger::class)->log(
                 actionType: 'auth.fail',
@@ -154,18 +214,15 @@ class AuthController extends Controller
                 studentId: $studentId,
                 severity: 'medium'
             );
-
             return response()->json(['message' => 'Incorrect password. Please try again.'], 401);
         }
 
-        // 🔒 Block admin login via mobile API
         if ($user->isAdmin() || $user->isSuperAdmin()) {
             return response()->json([
                 'message' => 'Admin accounts cannot log in to the mobile app. Please use the web admin panel.'
             ], 403);
         }
 
-        // Check student confirmation
         if ($user->isStudent()) {
             $student = $user->student;
             if (!$student || !$student->is_confirmed) {
@@ -175,7 +232,6 @@ class AuthController extends Controller
             }
         }
 
-        // ✅ Success: log successful student login
         app(AuditLogger::class)->log(
             actionType: 'auth.success',
             module: 'StudentAuth',
@@ -204,10 +260,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
+        return response()->json(['message' => 'Logged out successfully']);
     }
 
     // -------------------------------

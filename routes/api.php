@@ -19,7 +19,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/password/reset-request', [PasswordResetController::class, 'sendResetLink']);
 Route::get('/school-years', [App\Http\Controllers\SchoolYearController::class, 'apiIndex']);
-
+Route::get('/courses', fn() => \App\Models\Course::orderBy('code')->get(['id', 'code', 'name']));
 // PayMongo Webhook (Public - no auth required)
 Route::post('/webhooks/paymongo', [PaymentController::class, 'webhook'])->name('paymongo.webhook');
 

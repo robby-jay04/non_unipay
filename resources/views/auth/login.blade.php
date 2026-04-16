@@ -1164,6 +1164,64 @@
         .char-counter.warn  { color: #f59e0b; }
         .char-counter.danger { color: #ef4444; }
         input[maxlength] { padding-right: 3rem; }
+
+        /* Cooldown Toast */
+    #cooldown-toast {
+        display: none;
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        z-index: 1001;
+        background: #fff;
+        border-left: 4px solid #f59e0b;
+        border-radius: 12px;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+        padding: 1rem 1.4rem;
+        min-width: 300px;
+        max-width: 380px;
+        opacity: 0;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    #cooldown-toast.show {
+        display: flex;
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    #cooldown-toast .toast-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        background: rgba(245,158,11,0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f59e0b;
+        font-size: 1rem;
+    }
+    #cooldown-toast .toast-body strong {
+        display: block;
+        font-size: 0.9rem;
+        color: #111827;
+        margin-bottom: 0.15rem;
+    }
+    #cooldown-toast .toast-body span {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+    #cooldown-toast .toast-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0;
+        align-self: flex-start;
+    }
     </style>
 </head>
 <body>
@@ -1587,6 +1645,19 @@
         </button>
     </div>
 
+    <div id="cooldown-toast" role="alert">
+    <div class="toast-icon">
+        <i class="fas fa-hourglass-half"></i>
+    </div>
+    <div class="toast-body">
+        <strong>Too many failed attempts</strong>
+        <span id="cooldown-message">Please wait before trying again.</span>
+    </div>
+    <button class="toast-close" onclick="closeCooldownToast()" title="Dismiss">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
     <!-- ══ LOGIN LOADING OVERLAY ════════════════════════ -->
     <div id="loginLoader">
         <div class="loader-card">
@@ -1836,6 +1907,88 @@ function makeCounter(inputId, max, warnAt) {
 makeCounter('emailInput', 50, 20);
 makeCounter('password',   20,  10);
 
+  // ── COOLDOWN TOAST & FORM DISABLE ──────────────────────────
+    var cooldownToast = document.getElementById('cooldown-toast');
+    var cooldownTimerInterval = null;
+
+    function closeCooldownToast() {
+        if (cooldownToast) {
+            cooldownToast.classList.remove('show');
+            setTimeout(function() { cooldownToast.style.display = 'none'; }, 380);
+        }
+    }
+
+    function showCooldownToast(seconds) {
+        if (!cooldownToast) return;
+        var msgSpan = document.getElementById('cooldown-message');
+        if (msgSpan) {
+            msgSpan.innerText = 'Please wait ' + seconds + ' seconds before trying again.';
+        }
+        cooldownToast.style.display = 'flex';
+        setTimeout(function() {
+            cooldownToast.classList.add('show');
+        }, 10);
+        // Auto hide after the cooldown period
+        if (cooldownTimerInterval) clearTimeout(cooldownTimerInterval);
+        cooldownTimerInterval = setTimeout(function() {
+            closeCooldownToast();
+        }, seconds * 1000);
+    }
+
+    function disableLoginForm(seconds) {
+        var form = document.getElementById('loginForm');
+        var btn = document.getElementById('loginBtn');
+        var inputs = form.querySelectorAll('input, button');
+        var timeLeft = seconds;
+        var interval;
+
+        function updateButton() {
+            btn.innerHTML = '<i class="fas fa-hourglass-half me-2"></i> Try again in ' + timeLeft + 's';
+            btn.disabled = true;
+            btn.classList.add('disabled');
+        }
+
+        updateButton();
+        interval = setInterval(function() {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                btn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i> Sign In';
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+                // Re-enable all inputs
+                inputs.forEach(function(input) {
+                    if (input !== btn) input.disabled = false;
+                });
+            } else {
+                updateButton();
+            }
+        }, 1000);
+
+        // Disable all inputs immediately
+        inputs.forEach(function(input) {
+            if (input !== btn) input.disabled = true;
+        });
+    }
+
+    function parseCooldownFromError() {
+        var errorDiv = document.getElementById('loginErrorMsg');
+        if (!errorDiv) return;
+        var errorText = errorDiv.innerText || errorDiv.textContent;
+        var match = errorText.match(/(\d+)\s*seconds?/i);
+        if (match && match[1]) {
+            var seconds = parseInt(match[1]);
+            if (seconds > 0) {
+                showCooldownToast(seconds);
+                disableLoginForm(seconds);
+            }
+        }
+    }
+
+    // Run on page load if lockout error exists
+    document.addEventListener('DOMContentLoaded', function() {
+        parseCooldownFromError();
+    });
     </script>
 </body>
 </html>

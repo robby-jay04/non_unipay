@@ -12,10 +12,10 @@ use App\Models\StudentFee;
 use App\Services\ClearanceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Course;
 class FeeController extends Controller
 {
-    const COURSES = ['BSIT', 'BEED', 'BSED', 'BSCRIM', 'BSOA', 'BSPOLSCI'];
+    
 
     protected $clearanceService;
 
@@ -109,20 +109,19 @@ class FeeController extends Controller
     }
 
     public function create()
-    {
-        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-        $currentSemester   = Semester::where('is_current', true)->first();
-        $courses           = self::COURSES;
+{
+    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $currentSemester   = Semester::where('is_current', true)->first();
+    $courses           = Course::orderBy('code')->get();   // ✅ dynamic from DB
 
-        return view('admin.fees.index', compact(
-            'schoolYears',
-            'currentSchoolYear',
-            'currentSemester',
-            'courses'
-        ));
-    }
-
+    return view('admin.fees.index', compact(
+        'schoolYears',
+        'currentSchoolYear',
+        'currentSemester',
+        'courses'
+    ));
+}
 public function adminIndex(Request $request)
 {
     $query = Fee::with(['schoolYear', 'semester']);
@@ -158,7 +157,7 @@ public function adminIndex(Request $request)
 
     $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
     $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
-    $courses = self::COURSES;
+    $courses = Course::orderBy('code')->get();
 
     // ✅ Add current school year and semester for modal pre-selection
     $currentSchoolYear = SchoolYear::where('is_current', true)->first();
@@ -215,18 +214,18 @@ public function storeWeb(Request $request)
     }
 
     public function edit(Fee $fee)
-    {
-        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-        $courses           = self::COURSES;
+{
+    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $courses           = Course::orderBy('code')->get();   // ✅ dynamic from DB
 
-        return view('admin.fees.index', compact(
-            'fee',
-            'schoolYears',
-            'currentSchoolYear',
-            'courses'
-        ));
-    }
+    return view('admin.fees.index', compact(
+        'fee',
+        'schoolYears',
+        'currentSchoolYear',
+        'courses'
+    ));
+}
 
     public function updateWeb(Request $request, Fee $fee)
     {

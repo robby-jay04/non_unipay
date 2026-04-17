@@ -197,7 +197,7 @@
     </div>
 </div>
 
-{{-- ===================== CREATE FEE MODAL (Dark mode compatible) ===================== --}}
+{{-- ===================== CREATE FEE MODAL ===================== --}}
 <div class="modal fade" id="createFeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-main);">
@@ -223,7 +223,7 @@
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-tag" style="color: #0f3c91;"></i>
                                 </span>
-                                <input type="text" name="name" class="form-control border-0 px-3 py-2" 
+                                <input type="text" name="name" class="form-control border-0 px-3 py-2"
                                        placeholder="e.g., Tuition Fee" value="{{ old('name') }}" required
                                        style="background: var(--input-bg); color: var(--text-primary);">
                             </div>
@@ -236,14 +236,18 @@
                                 </span>
                                 <select name="type" class="form-select border-0 px-3 py-2" required style="background: var(--input-bg); color: var(--text-primary);">
                                     <option value="" disabled selected>Select Type</option>
-                                    <option value="tuition" {{ old('type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
+                                    <option value="tuition"       {{ old('type') == 'tuition'       ? 'selected' : '' }}>Tuition</option>
                                     <option value="miscellaneous" {{ old('type') == 'miscellaneous' ? 'selected' : '' }}>Miscellaneous</option>
-                                    <option value="exam" {{ old('type') == 'exam' ? 'selected' : '' }}>Exam</option>
+                                    <option value="exam"          {{ old('type') == 'exam'          ? 'selected' : '' }}>Exam</option>
                                 </select>
                             </div>
                         </div>
+
+                        {{-- ── Course — built from $courses (Course models) ── --}}
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small></label>
+                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
+                                Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-graduation-cap" style="color: #0f3c91;"></i>
@@ -251,18 +255,22 @@
                                 <select name="course" class="form-select border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                                     <option value="">-- All Courses --</option>
                                     @foreach($courses as $course)
-                                        <option value="{{ $course }}" {{ old('course') == $course ? 'selected' : '' }}>{{ $course }}</option>
+                                        <option value="{{ $course->code }}"
+                                            {{ old('course') == $course->code ? 'selected' : '' }}>
+                                            {{ $course->code }}{{ $course->name ? ' — ' . $course->name : '' }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Amount (₱)</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-coins" style="color: #0f3c91;"></i>
                                 </span>
-                                <input type="number" name="amount" step="0.01" min="0" class="form-control border-0 px-3 py-2" 
+                                <input type="number" name="amount" step="0.01" min="0" class="form-control border-0 px-3 py-2"
                                        placeholder="0.00" value="{{ old('amount') }}" required
                                        style="background: var(--input-bg); color: var(--text-primary);">
                             </div>
@@ -297,7 +305,9 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Exam Period <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small></label>
+                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
+                                Exam Period <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-clock" style="color: #0f3c91;"></i>
@@ -320,7 +330,7 @@
     </div>
 </div>
 
-{{-- ===================== EDIT FEE MODAL (Dark mode compatible) ===================== --}}
+{{-- ===================== EDIT FEE MODAL ===================== --}}
 <div class="modal fade" id="editFeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-main);">
@@ -363,8 +373,12 @@
                                 </select>
                             </div>
                         </div>
+
+                        {{-- ── Course — built from $courses (Course models) ── --}}
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small></label>
+                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
+                                Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-graduation-cap" style="color: #0f3c91;"></i>
@@ -372,11 +386,14 @@
                                 <select name="course" id="edit_course" class="form-select border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
                                     <option value="">-- All Courses --</option>
                                     @foreach($courses as $course)
-                                        <option value="{{ $course }}">{{ $course }}</option>
+                                        <option value="{{ $course->code }}">
+                                            {{ $course->code }}{{ $course->name ? ' — ' . $course->name : '' }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Amount (₱)</label>
                             <div class="input-group">
@@ -412,7 +429,9 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">Exam Period <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small></label>
+                            <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
+                                Exam Period <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-clock" style="color: #0f3c91;"></i>
@@ -435,7 +454,7 @@
     </div>
 </div>
 
-{{-- ===================== DELETE CONFIRMATION MODAL (Dark mode compatible) ===================== --}}
+{{-- ===================== DELETE CONFIRMATION MODAL ===================== --}}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-main);">
@@ -791,12 +810,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('edit_amount').value = this.dataset.amount;
 
             // Set type
-            const typeSelect = document.getElementById('edit_type');
-            typeSelect.value = this.dataset.type;
+            document.getElementById('edit_type').value = this.dataset.type;
 
-            // Set course
-            const courseSelect = document.getElementById('edit_course');
-            courseSelect.value = this.dataset.course || '';
+            // Set course — matches against $course->code values in the select
+            document.getElementById('edit_course').value = this.dataset.course || '';
 
             // Set school year then cascade-load semester + exam period
             editSchoolYear.value = this.dataset.schoolYearId;

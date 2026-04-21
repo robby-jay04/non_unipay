@@ -242,7 +242,6 @@
             gap: 0.75rem;
         }
 
-        /* Sidebar toggle button */
         .sidebar-toggle-btn {
             width: 38px; height: 38px;
             border-radius: 10px;
@@ -295,7 +294,6 @@
         }
         .notif-btn i { font-size: 1rem; }
 
-        /* Bell shake animation */
         .notif-btn.has-notifs i {
             animation: bell-shake 2s ease infinite;
             transform-origin: top center;
@@ -416,7 +414,6 @@
         .notif-footer a { font-size: 0.78rem; color: var(--btn-primary); font-weight: 600; text-decoration: none; }
         .notif-footer a:hover { text-decoration: underline; }
 
-        /* Relative wrapper for dropdown positioning */
         .notif-wrapper { position: relative; }
 
         /* ── Theme toggle ── */
@@ -443,37 +440,6 @@
             flex: 1;
             transition: background 0.3s ease;
         }
-        @media (max-width: 767.98px) {
-            .main-content { padding: 1rem; }
-            .desktop-topbar { display: none !important; }
-            .sidebar-desktop { display: none !important; }
-        }
-
-        /* Cards, Tables, Modals */
-        .card, .modal-content {
-            background: var(--bg-main); border: none;
-            box-shadow: var(--card-shadow); transition: background 0.3s ease;
-        }
-        .modal-header { background: var(--modal-header-bg); color: white; border-radius: 20px 20px 0 0; }
-        .modal-header .btn-close { filter: brightness(0) invert(1); }
-        .modal-footer { border-top-color: var(--border-color); }
-        .table { color: var(--text-primary); }
-        .table td { border-bottom-color: var(--table-row-border); color: var(--text-secondary); }
-        .table th { background-color: var(--table-header-bg); color: var(--text-primary); border-bottom-color: var(--border-color); }
-        .form-control, .form-select {
-            background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
-            background-color: var(--input-bg);
-        }
-        .btn-primary { background: var(--btn-primary); border: none; }
-        .btn-primary:hover { background: var(--btn-primary-hover); }
-        .btn-outline-secondary { border-color: var(--border-color); color: var(--text-secondary); }
-        .btn-outline-secondary:hover { background: var(--hover-bg); border-color: var(--text-muted); }
-        .alert-light { background: var(--bg-main); color: var(--text-primary); }
-        .text-muted { color: var(--text-muted) !important; }
-        .bg-light { background-color: var(--input-bg) !important; }
 
         /* ── Mobile styles ── */
         .mobile-navbar {
@@ -499,9 +465,20 @@
             border-radius: 30px; padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--text-primary);
         }
         .offcanvas.sidebar {
-            width: 280px;
-            background: var(--bg-sidebar);
-        }
+  width: 280px;
+  background: var(--bg-sidebar);
+}
+.offcanvas.sidebar .offcanvas-header {
+  align-items: flex-start;
+  padding: 0;
+}
+.offcanvas.sidebar .offcanvas-header .btn-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  margin: 0;
+  z-index: 10;
+}
         .offcanvas .sidebar-header {
             padding: 1.25rem;
         }
@@ -511,6 +488,156 @@
         }
         .offcanvas .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.3rem; margin-bottom: 2px; }
         .offcanvas .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
+
+        /* ── Mobile responsive fixes ── */
+        @media (max-width: 767.98px) {
+            .main-content {
+                padding: 1rem;
+                min-height: calc(100vh - 64px);
+            }
+
+            /* Cards */
+            .card {
+                border-radius: 16px !important;
+                margin-bottom: 1rem;
+            }
+
+            /* Tables scroll horizontally */
+            .table-responsive {
+                border-radius: 12px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Stack all col-md-* columns vertically */
+            .row.g-3 > [class*="col-md"],
+            .row.g-2 > [class*="col-md"] {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Modals near full screen */
+            .modal-dialog {
+                margin: 0.5rem auto;
+                max-width: calc(100vw - 1rem) !important;
+            }
+            .modal-lg,
+            .modal-xl {
+                max-width: calc(100vw - 1rem) !important;
+            }
+            .modal-body {
+                padding: 1rem !important;
+            }
+            .modal-header {
+                padding: 1rem !important;
+            }
+            .modal-footer {
+                padding: 0.75rem 1rem !important;
+                flex-direction: column;
+            }
+            .modal-footer .btn,
+            .modal-footer button {
+                width: 100% !important;
+            }
+
+            /* Page header */
+            .d-flex.justify-content-between.flex-wrap {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.75rem;
+            }
+
+            /* Add fee button full width */
+            .btn-add-fee {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Notification dropdown */
+          .notif-dropdown {
+  width: calc(100vw - 2rem);
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+.notif-dropdown.open {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+            /* Filter form buttons */
+            .col-md-3.d-flex.gap-2 {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+            }
+            .col-md-3.d-flex.gap-2 .btn {
+                flex: 1;
+            }
+
+            /* Detail grid in modals (audit logs etc) */
+            .detail-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .diff-wrap {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Stat cards grid */
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            /* Table action buttons */
+            .btn-action {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            /* Input groups on mobile */
+            .input-group {
+                flex-wrap: nowrap;
+            }
+
+            /* h2 page titles */
+            h2.fw-bold {
+                font-size: 1.2rem !important;
+            }
+
+            /* Dashboard cards */
+            .row.g-4 > [class*="col-"] {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        /* Shared (cards, tables, modals) */
+        .card, .modal-content {
+            background: var(--bg-main); border: none;
+            box-shadow: var(--card-shadow); transition: background 0.3s ease;
+        }
+        .modal-header { background: var(--modal-header-bg); color: white; border-radius: 20px 20px 0 0; }
+        .modal-header .btn-close { filter: brightness(0) invert(1); }
+        .modal-footer { border-top-color: var(--border-color); }
+        .table { color: var(--text-primary); }
+        .table td { border-bottom-color: var(--table-row-border); color: var(--text-secondary); }
+        .table th { background-color: var(--table-header-bg); color: var(--text-primary); border-bottom-color: var(--border-color); }
+        .form-control, .form-select {
+            background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
+            background-color: var(--input-bg);
+        }
+        .btn-primary { background: var(--btn-primary); border: none; }
+        .btn-primary:hover { background: var(--btn-primary-hover); }
+        .btn-outline-secondary { border-color: var(--border-color); color: var(--text-secondary); }
+        .btn-outline-secondary:hover { background: var(--hover-bg); border-color: var(--text-muted); }
+        .alert-light { background: var(--bg-main); color: var(--text-primary); }
+        .text-muted { color: var(--text-muted) !important; }
+        .bg-light { background-color: var(--input-bg) !important; }
     </style>
     @stack('styles')
 </head>
@@ -529,7 +656,7 @@
         </div>
     </div>
 
-    {{-- ── Mobile Navbar ── --}}
+    {{-- ── Mobile Navbar (visible only on mobile) ── --}}
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
@@ -546,15 +673,12 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
-                {{-- Mobile notification bell --}}
                 <div class="notif-wrapper">
                     <button class="notif-btn" id="mobileNotifBtn" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
                         <span class="notif-count-badge" id="mobileNotifBadge"></span>
                     </button>
-                    <div class="notif-dropdown" id="mobileNotifDropdown">
-                        {{-- filled by JS --}}
-                    </div>
+                    <div class="notif-dropdown" id="mobileNotifDropdown"></div>
                 </div>
                 <button class="theme-toggle-mobile" id="mobileThemeToggle">
                     <i class="fas fa-moon"></i>
@@ -565,7 +689,7 @@
 
     {{-- ── Mobile Offcanvas Sidebar ── --}}
     <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas">
-        <div class="offcanvas-header">
+        <div class="offcanvas-header" style="position: relative;">
             <div class="sidebar-header w-100">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
                 <h4>Non-UniPay</h4>
@@ -631,7 +755,14 @@
         </div>
     </div>
 
-    {{-- ── Desktop Layout ── --}}
+    {{-- ── Mobile Content Area (only visible on mobile) ── --}}
+    <div class="d-md-none">
+        <main class="main-content">
+            @yield('content')
+        </main>
+    </div>
+
+    {{-- ── Desktop Layout (only visible on desktop) ── --}}
     <div class="layout-wrapper d-none d-md-flex">
 
         {{-- Desktop Sidebar --}}
@@ -702,7 +833,6 @@
             {{-- Desktop Top Bar --}}
             <header class="desktop-topbar">
                 <div class="topbar-left">
-                    {{-- Sidebar toggle with arrow --}}
                     <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
                         <i class="fas fa-chevron-left"></i>
                     </button>
@@ -713,18 +843,14 @@
                 </div>
 
                 <div class="topbar-right">
-                    {{-- Notification Bell --}}
                     <div class="notif-wrapper">
                         <button class="notif-btn" id="desktopNotifBtn" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                             <span class="notif-count-badge" id="desktopNotifBadge"></span>
                         </button>
-                        <div class="notif-dropdown" id="desktopNotifDropdown">
-                            {{-- filled by JS --}}
-                        </div>
+                        <div class="notif-dropdown" id="desktopNotifDropdown"></div>
                     </div>
 
-                    {{-- Theme Toggle --}}
                     <button class="desktop-theme-toggle" id="desktopThemeToggle">
                         <i class="fas fa-moon"></i> Dark Mode
                     </button>
@@ -773,8 +899,8 @@
                 if (!btn) return;
                 if (btn.id === 'desktopThemeToggle') {
                     btn.innerHTML = isDark
-                        ? '<i class="fas fa-sun"></i>'
-                        : '<i class="fas fa-moon"></i>';
+                        ? '<i class="fas fa-sun"></i> Light Mode'
+                        : '<i class="fas fa-moon"></i> Dark Mode';
                 } else {
                     btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
                 }
@@ -794,8 +920,8 @@
 
     // ── Sidebar Toggle ───────────────────────────────────────────────────────
     (function () {
-        const sidebar = document.getElementById('desktopSidebar');
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const sidebar    = document.getElementById('desktopSidebar');
+        const toggleBtn  = document.getElementById('sidebarToggleBtn');
         const SIDEBAR_KEY = 'admin_sidebar_collapsed';
 
         function setSidebarState(collapsed) {
@@ -804,7 +930,6 @@
             localStorage.setItem(SIDEBAR_KEY, collapsed ? 'true' : 'false');
         }
 
-        // Restore state
         const stored = localStorage.getItem(SIDEBAR_KEY);
         if (stored === 'true') setSidebarState(true);
 
@@ -815,8 +940,8 @@
 
     // ── Page Loader ──────────────────────────────────────────────────────────
     (function () {
-        const loader = document.getElementById('page-loader');
-        const loaderText = loader?.querySelector('.loader-text');
+        const loader      = document.getElementById('page-loader');
+        const loaderText  = loader?.querySelector('.loader-text');
         const loaderSubtext = loader?.querySelector('.loader-subtext');
         let activeRequests = 0, hideTimeout = null;
 
@@ -870,7 +995,6 @@
 
     // ── Notifications ────────────────────────────────────────────────────────
     (function () {
-        // Local notification store (keyed by type+id)
         const NOTIF_KEY = 'admin_notifications';
         const SEEN_KEY  = 'admin_notifications_seen_ids';
 
@@ -891,8 +1015,7 @@
             const notifs = getStored();
             notifs.forEach(n => n.read = true);
             setStored(notifs);
-            const ids = notifs.map(n => n.uid);
-            localStorage.setItem(SEEN_KEY, JSON.stringify(ids));
+            localStorage.setItem(SEEN_KEY, JSON.stringify(notifs.map(n => n.uid)));
         }
 
         function timeAgo(ts) {
@@ -950,11 +1073,10 @@
 
         function renderAll() {
             const notifs = getStored();
-            const html = buildDropdownHTML(notifs);
+            const html   = buildDropdownHTML(notifs);
             document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
                 el.innerHTML = html;
             });
-
             const unread = notifs.filter(n => !n.read).length;
             document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
                 badge.textContent = unread > 9 ? '9+' : unread;
@@ -965,7 +1087,6 @@
             });
         }
 
-        // Global handlers used inside dynamic HTML
         window._markAllNotifRead = function (e) {
             e.stopPropagation();
             markAllSeen();
@@ -984,9 +1105,8 @@
             window.location.href = url;
         };
 
-        // Dropdown open/close
         function toggleDropdown(btnId, dropId) {
-            const btn = document.getElementById(btnId);
+            const btn  = document.getElementById(btnId);
             const drop = document.getElementById(dropId);
             if (!btn || !drop) return;
             btn.addEventListener('click', e => {
@@ -995,14 +1115,13 @@
             });
         }
         toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
-        toggleDropdown('mobileNotifBtn', 'mobileNotifDropdown');
+        toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
         document.addEventListener('click', e => {
             if (!e.target.closest('.notif-wrapper')) {
                 document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
             }
         });
 
-        // ── Poll for new payments & students ──────────────────────────────────
         let lastPaymentCount = null;
         let lastStudentCount = null;
 
@@ -1014,19 +1133,17 @@
             .then(data => {
                 const count = data.count || 0;
                 if (lastPaymentCount !== null && count > lastPaymentCount) {
-                    const diff = count - lastPaymentCount;
+                    const diff   = count - lastPaymentCount;
                     const notifs = getStored();
                     const seen   = getSeenIds();
                     const uid    = `pay_${Date.now()}`;
                     if (!seen.has(uid)) {
                         notifs.unshift({
-                            uid,
-                            type: 'payment',
+                            uid, type: 'payment',
                             title: `${diff} new payment${diff > 1 ? 's' : ''} pending`,
                             desc: 'New payment submission(s) awaiting your review.',
                             url: '{{ route("admin.payments") }}',
-                            ts: Date.now(),
-                            read: false
+                            ts: Date.now(), read: false
                         });
                         setStored(notifs);
                         renderAll();
@@ -1045,17 +1162,15 @@
             .then(data => {
                 const count = data.count || 0;
                 if (lastStudentCount !== null && count > lastStudentCount) {
-                    const diff = count - lastStudentCount;
+                    const diff   = count - lastStudentCount;
                     const notifs = getStored();
                     const uid    = `stu_${Date.now()}`;
                     notifs.unshift({
-                        uid,
-                        type: 'student',
+                        uid, type: 'student',
                         title: `${diff} new student${diff > 1 ? 's' : ''} registered`,
                         desc: 'New student registration(s) need confirmation.',
                         url: '{{ route("admin.students") }}',
-                        ts: Date.now(),
-                        read: false
+                        ts: Date.now(), read: false
                     });
                     setStored(notifs);
                     renderAll();
@@ -1065,7 +1180,6 @@
             .catch(() => {});
         }
 
-        // Initial render from stored, then start polling
         renderAll();
         checkPayments();
         checkStudents();

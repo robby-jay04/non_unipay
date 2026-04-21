@@ -243,7 +243,6 @@
                             </div>
                         </div>
 
-                        {{-- ── Course — built from $courses (Course models) ── --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
                                 Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
@@ -299,8 +298,9 @@
                                 <span class="input-group-text border-0 rounded-start-3 px-3" style="background: var(--input-bg); color: var(--text-primary);">
                                     <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
                                 </span>
+                                {{-- ✅ FIX: always starts empty — JS populates it after school year is selected --}}
                                 <select name="semester_id" id="create_semester_id" class="form-select border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
-                                    <option value="">-- Select School Year First --</option>
+                                    <option value="">-- Select Semester --</option>
                                 </select>
                             </div>
                         </div>
@@ -374,7 +374,6 @@
                             </div>
                         </div>
 
-                        {{-- ── Course — built from $courses (Course models) ── --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small mb-1" style="color: var(--text-muted);">
                                 Course <small class="fw-normal" style="color: var(--text-muted);">(blank = all)</small>
@@ -424,7 +423,7 @@
                                     <i class="fas fa-calendar-week" style="color: #0f3c91;"></i>
                                 </span>
                                 <select name="semester_id" id="edit_semester_id" class="form-select border-0 px-3 py-2" style="background: var(--input-bg); color: var(--text-primary);">
-                                    <option value="">-- Select School Year First --</option>
+                                    <option value="">-- Select Semester --</option>
                                 </select>
                             </div>
                         </div>
@@ -490,7 +489,6 @@
 
 @push('styles')
 <style>
-    /* Dark mode table overrides */
     .fee-table,
     .fee-table tbody,
     .fee-table tr,
@@ -507,201 +505,84 @@
         border-bottom: 1px solid var(--table-row-border);
         transition: background 0.2s;
     }
-    .fee-table tbody tr:hover {
-        background-color: var(--hover-bg) !important;
-    }
+    .fee-table tbody tr:hover { background-color: var(--hover-bg) !important; }
     .fee-table tbody td {
         background-color: var(--bg-main);
         color: var(--text-secondary);
         border-bottom: none;
     }
-    .fee-table tbody td:first-child {
-        color: var(--text-primary);
-        font-weight: 500;
-    }
+    .fee-table tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 
-    /* Placeholder dark mode */
-    .form-control::placeholder,
-    input::placeholder {
-        color: var(--text-muted);
-        opacity: 0.7;
-    }
-    body.dark .form-control::placeholder,
-    body.dark input::placeholder {
-        color: #94a3b8;
-        opacity: 0.6;
-    }
+    .form-control::placeholder, input::placeholder { color: var(--text-muted); opacity: 0.7; }
+    body.dark .form-control::placeholder, body.dark input::placeholder { color: #94a3b8; opacity: 0.6; }
 
-    /* Table Row Hover */
-    .fee-row {
-        transition: all 0.2s ease;
-    }
-    .fee-row:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    }
+    .fee-row { transition: all 0.2s ease; }
+    .fee-row:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
 
-    /* Action Buttons */
     .btn-action {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        cursor: pointer;
-        background: transparent;
-        color: var(--text-muted);
-        padding: 0;
+        width: 36px; height: 36px; border-radius: 50%; border: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; cursor: pointer; background: transparent;
+        color: var(--text-muted); padding: 0;
     }
-    .btn-action:hover {
-        background: rgba(15,60,145,0.1);
-        color: #0f3c91;
-        transform: scale(1.1);
-    }
-    .btn-action.delete-fee:hover {
-        background: rgba(220,53,69,0.1);
-        color: #dc3545;
-    }
+    .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
+    .btn-action.delete-fee:hover { background: rgba(220,53,69,0.1); color: #dc3545; }
 
-    /* Add Fee Button */
     .btn-add-fee {
-        background: #0f3c91;
-        color: white;
-        border: none;
-        font-weight: 500;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        text-decoration: none;
+        background: #0f3c91; color: white; border: none; font-weight: 500;
+        transition: all 0.2s; display: inline-flex; align-items: center; text-decoration: none;
     }
-    .btn-add-fee:hover {
-        background: #1a4da8;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(15,60,145,0.2);
-        color: white;
-    }
-    body.dark .btn-add-fee {
-        background: #3b82f6;
-    }
-    body.dark .btn-add-fee:hover {
-        background: #2563eb;
-    }
+    .btn-add-fee:hover { background: #1a4da8; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(15,60,145,0.2); color: white; }
+    body.dark .btn-add-fee { background: #3b82f6; }
+    body.dark .btn-add-fee:hover { background: #2563eb; }
 
-    /* Badges */
     .badge-type, .badge-course, .badge-all-courses, .badge-exam-period, .badge-all-periods {
-        font-weight: 600;
-        padding: 0.45rem 1rem;
-        border-radius: 40px;
-        display: inline-flex;
-        align-items: center;
-        font-size: 0.85rem;
-        gap: 0.4rem;
+        font-weight: 600; padding: 0.45rem 1rem; border-radius: 40px;
+        display: inline-flex; align-items: center; font-size: 0.85rem; gap: 0.4rem;
     }
-    .badge-type-tuition      { background: rgba(15,60,145,0.12); color: #0f3c91; }
+    .badge-type-tuition      { background: rgba(15,60,145,0.12);  color: #0f3c91; }
     .badge-type-miscellaneous{ background: rgba(244,180,20,0.12); color: #b26a00; }
-    .badge-type-exam         { background: rgba(76,175,80,0.12); color: #2e7d32; }
+    .badge-type-exam         { background: rgba(76,175,80,0.12);  color: #2e7d32; }
     .badge-course            { background: rgba(139,92,246,0.12); color: #6d28d9; }
     .badge-all-courses       { background: rgba(100,116,139,0.1); color: #64748b; font-weight: 500; }
-    .badge-exam-period       { background: rgba(234,88,12,0.12); color: #c2410c; }
+    .badge-exam-period       { background: rgba(234,88,12,0.12);  color: #c2410c; }
     .badge-all-periods       { background: rgba(100,116,139,0.1); color: #64748b; font-weight: 500; }
 
-    body.dark .badge-type-tuition      { background: rgba(59,130,246,0.2); color: #93c5fd; }
+    body.dark .badge-type-tuition      { background: rgba(59,130,246,0.2);  color: #93c5fd; }
     body.dark .badge-type-miscellaneous{ background: rgba(244,180,20,0.25); color: #ffd54f; }
-    body.dark .badge-type-exam         { background: rgba(76,175,80,0.25); color: #81c784; }
+    body.dark .badge-type-exam         { background: rgba(76,175,80,0.25);  color: #81c784; }
     body.dark .badge-course            { background: rgba(139,92,246,0.25); color: #a78bfa; }
     body.dark .badge-all-courses       { background: rgba(100,116,139,0.2); color: #94a3b8; }
-    body.dark .badge-exam-period       { background: rgba(249,115,22,0.2); color: #fdba74; }
+    body.dark .badge-exam-period       { background: rgba(249,115,22,0.2);  color: #fdba74; }
     body.dark .badge-all-periods       { background: rgba(100,116,139,0.2); color: #94a3b8; }
 
-    /* Empty State */
-    .empty-state {
-        padding: 2rem;
-        text-align: center;
-    }
-    .empty-state i {
-        opacity: 0.7;
-    }
+    .empty-state { padding: 2rem; text-align: center; }
+    .empty-state i { opacity: 0.7; }
 
-    /* Table base styling */
-    .table td {
-        border-bottom: 1px solid var(--table-row-border);
-        color: var(--text-secondary);
-        vertical-align: middle;
-    }
-    .table th {
-        font-weight: 600;
-        color: var(--text-primary);
-        border-bottom: 2px solid var(--border-color);
-        background: var(--table-header-bg);
-    }
+    .table td { border-bottom: 1px solid var(--table-row-border); color: var(--text-secondary); vertical-align: middle; }
+    .table th { font-weight: 600; color: var(--text-primary); border-bottom: 2px solid var(--border-color); background: var(--table-header-bg); }
 
-    /* Form Controls */
     .form-select, .form-control {
-        background-color: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--text-primary);
-        transition: all 0.2s;
+        background-color: var(--input-bg); border: 1px solid var(--input-border);
+        color: var(--text-primary); transition: all 0.2s;
     }
     .form-select:focus, .form-control:focus {
-        border-color: #0f3c91;
-        box-shadow: 0 0 0 3px rgba(15,60,145,0.12);
+        border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.12);
         background-color: var(--input-bg);
     }
-    .form-label {
-        font-weight: 600;
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
-    }
+    .form-label { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
 
-    /* Buttons */
-    .btn-primary {
-        background: #0f3c91;
-        border: none;
-        font-weight: 500;
-    }
-    .btn-primary:hover {
-        background: #1a4da8;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(15,60,145,0.2);
-    }
-    .btn-outline-secondary {
-        border: 1px solid var(--input-border);
-        color: var(--text-primary);
-        background: var(--bg-main);
-    }
-    .btn-outline-secondary:hover {
-        background: var(--hover-bg);
-        border-color: var(--text-muted);
-        transform: translateY(-1px);
-    }
-    .btn-light {
-        background: var(--input-bg);
-        border: none;
-        color: var(--text-primary);
-    }
-    .btn-light:hover {
-        background: var(--hover-bg);
-    }
-    body.dark .btn-primary {
-        background: #3b82f6;
-    }
-    body.dark .btn-primary:hover {
-        background: #2563eb;
-    }
+    .btn-primary { background: #0f3c91; border: none; font-weight: 500; }
+    .btn-primary:hover { background: #1a4da8; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(15,60,145,0.2); }
+    .btn-outline-secondary { border: 1px solid var(--input-border); color: var(--text-primary); background: var(--bg-main); }
+    .btn-outline-secondary:hover { background: var(--hover-bg); border-color: var(--text-muted); transform: translateY(-1px); }
+    .btn-light { background: var(--input-bg); border: none; color: var(--text-primary); }
+    .btn-light:hover { background: var(--hover-bg); }
+    body.dark .btn-primary { background: #3b82f6; }
+    body.dark .btn-primary:hover { background: #2563eb; }
 
-    /* Modal Input Group Tweaks */
-    .modal .input-group-text {
-        border-top-right-radius: 0 !important;
-        border-bottom-right-radius: 0 !important;
-    }
-    .modal .form-control,
-    .modal .form-select {
-        border-top-left-radius: 0 !important;
-        border-bottom-left-radius: 0 !important;
-    }
+    .modal .input-group-text { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+    .modal .form-control, .modal .form-select { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
 </style>
 @endpush
 
@@ -709,14 +590,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Helpers: AJAX loaders ─────────────────────────────────────────────────
-    function loadSemesters(schoolYearId, semesterSelect, examPeriodSelect, preselectId = null, afterLoad = null) {
+    // ── Shared AJAX helpers ───────────────────────────────────────────────────
+
+    /**
+     * Populate a semester <select> for a given school-year ID.
+     * @param {string}   schoolYearId
+     * @param {Element}  semesterSelect
+     * @param {Element}  examPeriodSelect
+     * @param {string|null} preselectSemId   – semester ID to pre-select
+     * @param {string|null} preselectExamId  – exam-period ID to pre-select after semesters load
+     */
+    function loadSemesters(schoolYearId, semesterSelect, examPeriodSelect, preselectSemId = null, preselectExamId = null) {
         if (!schoolYearId) {
-            semesterSelect.innerHTML   = '<option value="">-- Select School Year First --</option>';
+            semesterSelect.innerHTML   = '<option value="">-- Select Semester --</option>';
             examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
             return;
         }
-        semesterSelect.innerHTML   = '<option value="">Loading...</option>';
+
+        semesterSelect.innerHTML   = '<option value="">Loading…</option>';
         examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
 
         fetch(`/admin/api/semesters/${schoolYearId}`)
@@ -724,37 +615,54 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
                 data.forEach(sem => {
-                    const selected = preselectId ? sem.id == preselectId : sem.is_current;
-                    semesterSelect.innerHTML += `<option value="${sem.id}" ${selected ? 'selected' : ''}>${sem.name}</option>`;
+                    const selected = preselectSemId
+                        ? String(sem.id) === String(preselectSemId)
+                        : false; // never auto-select on the CREATE form
+                    semesterSelect.innerHTML +=
+                        `<option value="${sem.id}" ${selected ? 'selected' : ''}>${sem.name}</option>`;
                 });
-                if (afterLoad) afterLoad();
-                else if (semesterSelect.value) {
-                    loadExamPeriods(semesterSelect.value, examPeriodSelect);
+
+                // If a semester was pre-selected, immediately load its exam periods
+                const selectedSemId = semesterSelect.value;
+                if (selectedSemId) {
+                    loadExamPeriods(selectedSemId, examPeriodSelect, preselectExamId);
                 }
             })
-            .catch(() => { semesterSelect.innerHTML = '<option value="">Failed to load</option>'; });
+            .catch(() => {
+                semesterSelect.innerHTML = '<option value="">Failed to load</option>';
+            });
     }
 
+    /**
+     * Populate an exam-period <select> for a given semester ID.
+     * @param {string}      semesterId
+     * @param {Element}     examPeriodSelect
+     * @param {string|null} preselectId  – exam-period ID to pre-select
+     */
     function loadExamPeriods(semesterId, examPeriodSelect, preselectId = null) {
         if (!semesterId) {
             examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
             return;
         }
-        examPeriodSelect.innerHTML = '<option value="">Loading...</option>';
+
+        examPeriodSelect.innerHTML = '<option value="">Loading…</option>';
 
         fetch(`/admin/api/exam-periods/${semesterId}`)
             .then(r => r.json())
             .then(data => {
                 examPeriodSelect.innerHTML = '<option value="">-- All Exam Periods --</option>';
                 data.forEach(p => {
-                    const selected = preselectId && p.id == preselectId;
-                    examPeriodSelect.innerHTML += `<option value="${p.id}" ${selected ? 'selected' : ''}>${p.name}</option>`;
+                    const selected = preselectId && String(p.id) === String(preselectId);
+                    examPeriodSelect.innerHTML +=
+                        `<option value="${p.id}" ${selected ? 'selected' : ''}>${p.name}</option>`;
                 });
             })
-            .catch(() => { examPeriodSelect.innerHTML = '<option value="">Failed to load</option>'; });
+            .catch(() => {
+                examPeriodSelect.innerHTML = '<option value="">Failed to load</option>';
+            });
     }
 
-    // ── CREATE modal ─────────────────────────────────────────────────────────
+    // ── CREATE modal ──────────────────────────────────────────────────────────
     const createSchoolYear  = document.getElementById('create_school_year_id');
     const createSemester    = document.getElementById('create_semester_id');
     const createExamPeriod  = document.getElementById('create_exam_period_id');
@@ -762,30 +670,43 @@ document.addEventListener('DOMContentLoaded', function () {
     const oldCreateExPerId  = "{{ old('exam_period_id') }}";
 
     createSchoolYear.addEventListener('change', function () {
+        // No pre-selection on manual change — let the user choose
         loadSemesters(this.value, createSemester, createExamPeriod);
     });
     createSemester.addEventListener('change', function () {
         loadExamPeriods(this.value, createExamPeriod);
     });
 
-    // Auto-load on page open if old() values exist (after validation error)
-    if (createSchoolYear.value) {
-        loadSemesters(createSchoolYear.value, createSemester, createExamPeriod, oldCreateSemId || null, function () {
-            if (createSemester.value && oldCreateExPerId) {
-                loadExamPeriods(createSemester.value, createExamPeriod, oldCreateExPerId);
-            }
-        });
+// Re-open modal on validation error and restore old() values
+if (createSchoolYear.value && oldCreateSemId) {
+    loadSemesters(createSchoolYear.value, createSemester, createExamPeriod, oldCreateSemId, oldCreateExPerId);
+    <?php if($errors->any() && old('_modal') === 'create'): ?>
+        new bootstrap.Modal(document.getElementById('createFeeModal')).show();
+    <?php endif; ?>
+}
 
-        // Re-open modal automatically if there were validation errors
-        <?php if($errors->any() && old('_modal') === 'create'): ?>
-            new bootstrap.Modal(document.getElementById('createFeeModal')).show();
-        <?php endif; ?>
+// ── AUTO-LOAD semesters when Create modal opens ──────────────────
+document.getElementById('createFeeModal').addEventListener('show.bs.modal', function () {
+    const schoolYearId = createSchoolYear.value;
+    if (schoolYearId) {
+        // Only load if dropdown is still empty (avoid duplicate loads on re-open)
+        const hasOptions = createSemester.querySelectorAll('option[value]:not([value=""])').length > 0;
+        if (!hasOptions) {
+            loadSemesters(schoolYearId, createSemester, createExamPeriod);
+        }
     }
+});
 
-    // ── EDIT modal ───────────────────────────────────────────────────────────
-    const editSchoolYear   = document.getElementById('edit_school_year_id');
-    const editSemester     = document.getElementById('edit_semester_id');
-    const editExamPeriod   = document.getElementById('edit_exam_period_id');
+// ── RESET dropdowns when Create modal is closed ──────────────────
+document.getElementById('createFeeModal').addEventListener('hidden.bs.modal', function () {
+    createSemester.innerHTML   = '<option value="">-- Select Semester --</option>';
+    createExamPeriod.innerHTML = '<option value="">-- All Exam Periods --</option>';
+});
+
+    // ── EDIT modal ────────────────────────────────────────────────────────────
+    const editSchoolYear  = document.getElementById('edit_school_year_id');
+    const editSemester    = document.getElementById('edit_semester_id');
+    const editExamPeriod  = document.getElementById('edit_exam_period_id');
 
     editSchoolYear.addEventListener('change', function () {
         loadSemesters(this.value, editSemester, editExamPeriod);
@@ -794,41 +715,39 @@ document.addEventListener('DOMContentLoaded', function () {
         loadExamPeriods(this.value, editExamPeriod);
     });
 
-    // Populate edit modal when the edit button is clicked
     document.querySelectorAll('.edit-fee-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const feeId        = this.dataset.id;
+            const schoolYearId = this.dataset.schoolYearId || '';
             const semesterId   = this.dataset.semesterId   || '';
             const examPeriodId = this.dataset.examPeriodId || '';
 
-            // Set the form action
+            // Set form action
             document.getElementById('editFeeForm').action =
                 "{{ route('admin.fees.update', ':id') }}".replace(':id', feeId);
 
-            // Fill simple fields
+            // Populate simple fields
             document.getElementById('edit_name').value   = this.dataset.name;
             document.getElementById('edit_amount').value = this.dataset.amount;
-
-            // Set type
-            document.getElementById('edit_type').value = this.dataset.type;
-
-            // Set course — matches against $course->code values in the select
+            document.getElementById('edit_type').value   = this.dataset.type;
             document.getElementById('edit_course').value = this.dataset.course || '';
 
-            // Set school year then cascade-load semester + exam period
-            editSchoolYear.value = this.dataset.schoolYearId;
-            loadSemesters(editSchoolYear.value, editSemester, editExamPeriod, semesterId, function () {
-                if (editSemester.value && examPeriodId) {
-                    loadExamPeriods(editSemester.value, editExamPeriod, examPeriodId);
-                }
-            });
+            // Set school year, then load semesters and pre-select the correct
+            // one; after semesters load, pre-select the correct exam period.
+            editSchoolYear.value = schoolYearId;
 
-            // Show the modal
+            if (schoolYearId) {
+                loadSemesters(schoolYearId, editSemester, editExamPeriod, semesterId, examPeriodId);
+            } else {
+                editSemester.innerHTML   = '<option value="">-- Select Semester --</option>';
+                editExamPeriod.innerHTML = '<option value="">-- All Exam Periods --</option>';
+            }
+
             new bootstrap.Modal(document.getElementById('editFeeModal')).show();
         });
     });
 
-    // ── DELETE modal ─────────────────────────────────────────────────────────
+    // ── DELETE modal ──────────────────────────────────────────────────────────
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {

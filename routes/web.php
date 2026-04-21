@@ -11,9 +11,8 @@ use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
-use App\Http\Controllers\Admin\AuditLogController; // ✅ ADD THIS
+use App\Http\Controllers\Admin\AuditLogController;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -82,9 +81,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/school-years/{id}/set-current', [SchoolYearController::class, 'setCurrent'])->name('school-years.setCurrent');
         Route::post('/school-years/{id}/set-semester', [SchoolYearController::class, 'setSemester'])->name('school-years.setSemester');
         Route::delete('/school-years/{id}', [SchoolYearController::class, 'destroy'])->name('school-years.destroy');
-        Route::post  ('courses', [SchoolYearController::class, 'storeCourse'])->name('courses.store');
-        Route::put   ('courses/{id}', [SchoolYearController::class, 'updateCourse'])->name('courses.update');
+        Route::post('courses', [SchoolYearController::class, 'storeCourse'])->name('courses.store');
+        Route::put('courses/{id}', [SchoolYearController::class, 'updateCourse'])->name('courses.update');
         Route::delete('courses/{id}', [SchoolYearController::class, 'destroyCourse'])->name('courses.destroy');
+
         // EXAM PERIODS
         Route::post('/exam-periods/set-current', [ExamPeriodController::class, 'setCurrent'])->name('exam-periods.setCurrent');
 
@@ -107,32 +107,23 @@ Route::middleware(['auth', 'active'])->group(function () {
             return response()->json($periods);
         })->name('api.exam-periods');
 
-       // SUPER ADMIN ONLY
-Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::resource('admins', SuperAdminController::class);
-
-    // ========== AUDIT LOGS (super admin only) ==========
-    Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
-        Route::get('/',           [AuditLogController::class, 'index'])->name('index');
-        Route::get('/stats',      [AuditLogController::class, 'stats'])->name('stats');
-        Route::get('/export',     [AuditLogController::class, 'export'])->name('export');
-        Route::get('/{auditLog}', [AuditLogController::class, 'show'])->name('show');
-    });
-});
-
         // SUPER ADMIN ONLY
         Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
+
+            // Manage Admins
             Route::resource('admins', SuperAdminController::class);
-        });
+
+            // Audit Logs
+            Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
+                Route::get('/',           [AuditLogController::class, 'index'])->name('index');
+                Route::get('/stats',      [AuditLogController::class, 'stats'])->name('stats');
+                Route::get('/export',     [AuditLogController::class, 'export'])->name('export');
+                Route::get('/{auditLog}', [AuditLogController::class, 'show'])->name('show');
+            });
+
+        }); // closes superadmin middleware
 
     }); // closes admin middleware
 
 }); // closes auth + active middleware
-Route::get('/db-test', function () {
-    try {
-        $results = DB::select('SELECT 1');
-        return response()->json(['status' => 'connected', 'result' => $results]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
-});
+

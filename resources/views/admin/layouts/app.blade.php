@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Non-UniPay Admin</title>
 
-    {{-- ── Favicon ── --}}
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
@@ -13,10 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- ── Global CSS Variables & Dark Mode Support ── --}}
     <style>
         :root {
-            /* Light mode (default) */
             --bg-body: #f0f2f5;
             --bg-main: #ffffff;
             --bg-sidebar: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%);
@@ -24,8 +21,8 @@
             --text-secondary: #475569;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            --hover-bg: rgba(15, 60, 145, 0.04);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --hover-bg: rgba(15,60,145,0.04);
             --modal-header-bg: linear-gradient(135deg, #0f3c91, #1a4da8);
             --btn-primary: #0f3c91;
             --btn-primary-hover: #1a4da8;
@@ -34,6 +31,7 @@
             --table-header-bg: #f9fafb;
             --table-row-border: #f0f2f5;
             --topbar-bg: #ffffff;
+            --sidebar-width: 280px;
         }
 
         body.dark {
@@ -44,8 +42,8 @@
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
             --border-color: #334155;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            --hover-bg: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --hover-bg: rgba(255,255,255,0.05);
             --modal-header-bg: linear-gradient(135deg, #1e293b, #0f172a);
             --btn-primary: #3b82f6;
             --btn-primary-hover: #2563eb;
@@ -63,231 +61,430 @@
             transition: background-color 0.3s ease, color 0.2s ease;
         }
 
-        /* ─── Enhanced Page Loading Overlay ─────────────────────────────────── */
+        /* ── Page Loader ── */
         #page-loader {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: rgba(5, 15, 50, 0.9);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(5,15,50,0.9); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0s linear 0.3s;
         }
         #page-loader.visible {
-            opacity: 1;
-            visibility: visible;
+            opacity: 1; visibility: visible;
             transition: opacity 0.3s ease, visibility 0s linear 0s;
         }
         .loader-card {
             background: linear-gradient(135deg, #0f3c91, #1a4da8);
-            border-radius: 32px;
-            padding: 2.5rem 3rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-            min-width: 260px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border-radius: 32px; padding: 2.5rem 3rem;
+            display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+            min-width: 260px; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
         }
-        #page-loader.visible .loader-card {
-            transform: scale(1);
-        }
-        body.dark .loader-card {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-        }
-        .loader-logo-ring {
-            position: relative;
-            width: 90px;
-            height: 90px;
-        }
+        #page-loader.visible .loader-card { transform: scale(1); }
+        body.dark .loader-card { background: linear-gradient(135deg, #1e293b, #0f172a); }
+        .loader-logo-ring { position: relative; width: 90px; height: 90px; }
         .loader-logo-ring img {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: white;
-            padding: 10px;
-            object-fit: contain;
-            display: block;
+            width: 90px; height: 90px; border-radius: 50%; background: white;
+            padding: 10px; object-fit: contain; display: block;
             box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
             animation: pulse-logo 1.5s infinite ease-in-out;
         }
         @keyframes pulse-logo {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+            0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            70%  { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
         }
         .loader-spinner {
-            position: absolute;
-            inset: -6px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: #f4b400;
-            border-right-color: #f4b400;
-            border-bottom-color: rgba(244, 180, 0, 0.3);
+            position: absolute; inset: -6px; border-radius: 50%;
+            border: 3px solid transparent; border-top-color: #f4b400;
+            border-right-color: #f4b400; border-bottom-color: rgba(244,180,0,0.3);
             animation: loader-spin 0.9s linear infinite;
         }
-        @keyframes loader-spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes loader-spin { to { transform: rotate(360deg); } }
         .loader-text {
-            color: white;
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin: 0;
-            background: rgba(0,0,0,0.2);
-            padding: 4px 12px;
-            border-radius: 40px;
+            color: white; font-size: 1.2rem; font-weight: 700;
+            letter-spacing: 0.5px; margin: 0;
+            background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 40px;
         }
-        .loader-subtext {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.8rem;
-            margin: -0.5rem 0 0;
-            font-weight: 500;
-        }
+        .loader-subtext { color: rgba(255,255,255,0.7); font-size: 0.8rem; margin: -0.5rem 0 0; font-weight: 500; }
         .loader-bar-track {
-            width: 180px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-top: 0.25rem;
+            width: 180px; height: 5px; background: rgba(255,255,255,0.2);
+            border-radius: 99px; overflow: hidden; margin-top: 0.25rem;
         }
         .loader-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f4b400, #ffdd77);
-            border-radius: 99px;
-            width: 0%;
+            height: 100%; background: linear-gradient(90deg, #f4b400, #ffdd77);
+            border-radius: 99px; width: 0%;
             animation: loader-bar 1.8s ease-in-out infinite alternate;
         }
-        @keyframes loader-bar {
-            0% { width: 5%; }
-            100% { width: 95%; }
+        @keyframes loader-bar { 0% { width: 5%; } 100% { width: 95%; } }
+
+        /* ── Desktop Layout ── */
+        .layout-wrapper {
+            display: flex;
+            min-height: 100vh;
         }
 
-        /* Rest of your existing styles (unchanged) */
-        /* ─── Desktop Top Bar ───────────────────────────────────────── */
-        .desktop-topbar {
-            background: var(--topbar-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.75rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-            transition: background 0.3s ease;
-        }
-        .desktop-topbar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .desktop-topbar-logo img {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 50%;
-            background: white;
-            padding: 4px;
-            border: 1px solid var(--border-color);
-        }
-        .desktop-topbar-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--text-primary);
-        }
-        .desktop-topbar-subtitle {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .desktop-theme-toggle {
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 30px;
-            padding: 0.5rem 1rem;
-            color: var(--text-primary);
-            transition: all 0.2s;
-        }
-        .desktop-theme-toggle:hover {
-            background: var(--hover-bg);
-            transform: translateY(-1px);
-        }
-
-        /* ─── Sidebar & Navigation ───────────────────────────────────────── */
-        .sidebar {
+        /* ── Sidebar ── */
+        .sidebar-desktop {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background: var(--bg-sidebar);
             color: white;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-            transition: background 0.3s ease;
+            transition: width 0.3s cubic-bezier(0.4,0,0.2,1),
+                        min-width 0.3s cubic-bezier(0.4,0,0.2,1),
+                        transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 200;
+            flex-shrink: 0;
         }
-        .offcanvas.sidebar {
-            width: 280px;
-            background: var(--bg-sidebar);
+        .sidebar-desktop.collapsed {
+            width: 0;
+            min-width: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.25rem 1rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+            overflow: hidden;
         }
         .sidebar-header img {
-            width: 60px; height: 60px; object-fit: contain;
-            border-radius: 30px; background: white; padding: 5px;
+            width: 52px; height: 52px; object-fit: contain;
+            border-radius: 26px; background: white; padding: 5px;
+            display: block; margin-bottom: 0.75rem;
         }
-        .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.5rem; margin-bottom: 0; }
-        .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.85rem; }
+        .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.3rem; margin-bottom: 2px; }
+        .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
         .role-badge {
             display: inline-block; font-size: 0.7rem; font-weight: 600;
-            letter-spacing: 0.5px; padding: 2px 10px; border-radius: 20px; margin-top: 4px;
+            letter-spacing: 0.5px; padding: 2px 10px; border-radius: 20px; margin-top: 6px;
         }
         .role-badge.superadmin { background: linear-gradient(135deg, #f6c90e, #f39c12); color: #5a3e00; }
         .role-badge.admin { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); }
-        .sidebar-nav .nav-link {
-            color: rgba(255,255,255,0.85); padding: 0.85rem 1.5rem;
-            border-radius: 30px; transition: all 0.2s ease;
-            font-weight: 500; display: flex; align-items: center; gap: 12px;
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 0.5rem;
         }
-        .sidebar-nav .nav-link i { font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
+
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,0.85); padding: 0.75rem 1rem;
+            border-radius: 12px; transition: all 0.2s ease;
+            font-weight: 500; display: flex; align-items: center; gap: 12px;
+            white-space: nowrap; overflow: hidden;
+        }
+        .sidebar-nav .nav-link i { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
         .sidebar-nav .nav-link:hover {
             color: white; background: rgba(255,255,255,0.15); transform: translateX(4px);
         }
         .sidebar-nav .nav-item.active .nav-link {
             background: white; color: #0f3c91; font-weight: 600;
-            box-shadow: -4px 0 10px rgba(0,0,0,0.05);
         }
-        body.dark .sidebar-nav .nav-item.active .nav-link {
-            background: #3b82f6; color: white;
-        }
+        body.dark .sidebar-nav .nav-item.active .nav-link { background: #3b82f6; color: white; }
         .nav-section-title {
-            color: rgba(255,255,255,0.5); font-size: 0.75rem;
-            text-transform: uppercase; letter-spacing: 1px;
-            font-weight: 600; padding: 1rem 1.5rem 0.25rem;
+            color: rgba(255,255,255,0.45); font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+            padding: 1rem 1rem 0.35rem; white-space: nowrap; overflow: hidden;
         }
         .superadmin-link { color: rgba(246,201,14,0.9) !important; }
         .superadmin-link:hover { background: rgba(246,201,14,0.15) !important; color: #f6c90e !important; }
+
         .logout-btn {
             background: transparent; border: none; color: rgba(255,255,255,0.85);
-            padding: 0.85rem 1.5rem; border-radius: 30px; margin: 1rem 0.5rem;
+            padding: 0.85rem 1rem; margin: 0.5rem;
             width: calc(100% - 1rem); text-align: left;
-            display: flex; align-items: center; gap: 12px; transition: all 0.2s;
+            display: flex; align-items: center; gap: 12px;
+            transition: all 0.2s; border-radius: 12px;
+            white-space: nowrap; overflow: hidden; cursor: pointer;
         }
         .logout-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+        .logout-btn i { flex-shrink: 0; }
 
-        /* Mobile navbar */
+        /* ── Content side ── */
+        .content-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* ── Desktop Top Bar ── */
+        .desktop-topbar {
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 1.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 150;
+            transition: background 0.3s ease;
+            gap: 1rem;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Sidebar toggle button */
+        .sidebar-toggle-btn {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--btn-primary);
+            color: white;
+            border-color: var(--btn-primary);
+            transform: scale(1.05);
+        }
+        .sidebar-toggle-btn i { font-size: 0.9rem; transition: transform 0.3s ease; }
+        .sidebar-toggle-btn.collapsed i { transform: rotate(180deg); }
+
+        .topbar-title {
+            font-weight: 700; font-size: 1rem; color: var(--text-primary);
+            white-space: nowrap;
+        }
+        .topbar-subtitle {
+            font-size: 0.72rem; color: var(--text-muted);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ── Notification Bell ── */
+        .notif-btn {
+            position: relative;
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .notif-btn:hover {
+            background: var(--btn-primary);
+            color: white;
+            border-color: var(--btn-primary);
+        }
+        .notif-btn i { font-size: 1rem; }
+
+        /* Bell shake animation */
+        .notif-btn.has-notifs i {
+            animation: bell-shake 2s ease infinite;
+            transform-origin: top center;
+        }
+        @keyframes bell-shake {
+            0%,90%,100% { transform: rotate(0deg); }
+            92%  { transform: rotate(12deg); }
+            94%  { transform: rotate(-10deg); }
+            96%  { transform: rotate(8deg); }
+            98%  { transform: rotate(-6deg); }
+        }
+
+        .notif-count-badge {
+            position: absolute;
+            top: 6px; right: 6px;
+            width: 18px; height: 18px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.62rem;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--topbar-bg);
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        .notif-count-badge.show { transform: scale(1); }
+
+        /* ── Notification Dropdown ── */
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 360px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            z-index: 9999;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform-origin: top right;
+        }
+        .notif-dropdown.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .notif-dropdown-header {
+            padding: 1rem 1.25rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .notif-dropdown-header h6 {
+            margin: 0; font-weight: 700; font-size: 0.9rem; color: var(--text-primary);
+        }
+        .notif-mark-read {
+            font-size: 0.75rem; color: var(--btn-primary);
+            cursor: pointer; font-weight: 600; background: none; border: none; padding: 0;
+            transition: opacity 0.2s;
+        }
+        .notif-mark-read:hover { opacity: 0.7; }
+
+        .notif-list {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .notif-list::-webkit-scrollbar { width: 4px; }
+        .notif-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
+
+        .notif-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 0.9rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--border-color);
+            text-decoration: none;
+        }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item:hover { background: var(--hover-bg); }
+        .notif-item.unread { background: rgba(15,60,145,0.04); }
+        body.dark .notif-item.unread { background: rgba(59,130,246,0.08); }
+
+        .notif-icon-wrap {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .notif-icon-wrap.payment { background: rgba(34,197,94,0.12); color: #16a34a; }
+        .notif-icon-wrap.student { background: rgba(59,130,246,0.12); color: #2563eb; }
+
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-title { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+        .notif-desc { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
+
+        .notif-unread-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--btn-primary); flex-shrink: 0; margin-top: 6px;
+        }
+
+        .notif-empty {
+            padding: 2.5rem 1.25rem;
+            text-align: center; color: var(--text-muted);
+        }
+        .notif-empty i { font-size: 2rem; opacity: 0.4; display: block; margin-bottom: 0.5rem; }
+        .notif-empty p { font-size: 0.82rem; margin: 0; }
+
+        .notif-footer {
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .notif-footer a { font-size: 0.78rem; color: var(--btn-primary); font-weight: 600; text-decoration: none; }
+        .notif-footer a:hover { text-decoration: underline; }
+
+        /* Relative wrapper for dropdown positioning */
+        .notif-wrapper { position: relative; }
+
+        /* ── Theme toggle ── */
+        .desktop-theme-toggle {
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            padding: 0 1rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .desktop-theme-toggle:hover { background: var(--hover-bg); transform: translateY(-1px); }
+
+        /* ── Main content ── */
+        .main-content {
+            background: var(--bg-body);
+            padding: 2rem;
+            flex: 1;
+            transition: background 0.3s ease;
+        }
+        @media (max-width: 767.98px) {
+            .main-content { padding: 1rem; }
+            .desktop-topbar { display: none !important; }
+            .sidebar-desktop { display: none !important; }
+        }
+
+        /* Cards, Tables, Modals */
+        .card, .modal-content {
+            background: var(--bg-main); border: none;
+            box-shadow: var(--card-shadow); transition: background 0.3s ease;
+        }
+        .modal-header { background: var(--modal-header-bg); color: white; border-radius: 20px 20px 0 0; }
+        .modal-header .btn-close { filter: brightness(0) invert(1); }
+        .modal-footer { border-top-color: var(--border-color); }
+        .table { color: var(--text-primary); }
+        .table td { border-bottom-color: var(--table-row-border); color: var(--text-secondary); }
+        .table th { background-color: var(--table-header-bg); color: var(--text-primary); border-bottom-color: var(--border-color); }
+        .form-control, .form-select {
+            background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
+            background-color: var(--input-bg);
+        }
+        .btn-primary { background: var(--btn-primary); border: none; }
+        .btn-primary:hover { background: var(--btn-primary-hover); }
+        .btn-outline-secondary { border-color: var(--border-color); color: var(--text-secondary); }
+        .btn-outline-secondary:hover { background: var(--hover-bg); border-color: var(--text-muted); }
+        .alert-light { background: var(--bg-main); color: var(--text-primary); }
+        .text-muted { color: var(--text-muted) !important; }
+        .bg-light { background-color: var(--input-bg) !important; }
+
+        /* ── Mobile styles ── */
         .mobile-navbar {
             background: var(--bg-main);
             padding: 0.75rem 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 100;
             transition: background 0.3s ease;
         }
         .mobile-navbar-logo {
-            width: 38px; height: 38px; object-fit: cover;
+            width: 36px; height: 36px; object-fit: cover;
             border-radius: 50%; border: 2px solid #0f3c91; padding: 2px; background: white;
         }
         .mobile-navbar-title { font-weight: 700; color: var(--text-primary); font-size: 1rem; line-height: 1.2; }
@@ -296,118 +493,30 @@
             background: #0f3c91; border: none; color: white;
             font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px;
         }
-        body.dark .navbar-toggle {
-            background: #3b82f6;
-        }
+        body.dark .navbar-toggle { background: #3b82f6; }
         .theme-toggle-mobile {
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 30px;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            color: var(--text-primary);
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            border-radius: 30px; padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--text-primary);
         }
-
-        /* Main content adjustment */
-        .main-content {
-            background: var(--bg-body);
-            padding: 2rem;
-            min-height: calc(100vh - 65px);
-            transition: background 0.3s ease;
+        .offcanvas.sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
         }
-        @media (max-width: 767.98px) {
-            .main-content { padding: 1rem; min-height: auto; }
+        .offcanvas .sidebar-header {
+            padding: 1.25rem;
         }
-        .content-card {
-            background: var(--bg-main);
-            border-radius: 24px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            transition: background 0.3s ease, box-shadow 0.3s ease;
+        .offcanvas .sidebar-header img {
+            width: 52px; height: 52px; object-fit: contain;
+            border-radius: 26px; background: white; padding: 5px; display: block; margin-bottom: 0.75rem;
         }
-
-        /* Cards, Tables, Modals (themed via variables) */
-        .card, .modal-content {
-            background: var(--bg-main);
-            border: none;
-            box-shadow: var(--card-shadow);
-            transition: background 0.3s ease;
-        }
-        .modal-header {
-            background: var(--modal-header-bg);
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-        .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-        .modal-footer {
-            border-top-color: var(--border-color);
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table td {
-            border-bottom-color: var(--table-row-border);
-            color: var(--text-secondary);
-        }
-        .table th {
-            background-color: var(--table-header-bg);
-            color: var(--text-primary);
-            border-bottom-color: var(--border-color);
-        }
-        .form-control, .form-select {
-            background-color: var(--input-bg);
-            border-color: var(--input-border);
-            color: var(--text-primary);
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0f3c91;
-            box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
-            background-color: var(--input-bg);
-        }
-        .btn-primary {
-            background: var(--btn-primary);
-            border: none;
-        }
-        .btn-primary:hover {
-            background: var(--btn-primary-hover);
-        }
-        .btn-outline-secondary {
-            border-color: var(--border-color);
-            color: var(--text-secondary);
-        }
-        .btn-outline-secondary:hover {
-            background: var(--hover-bg);
-            border-color: var(--text-muted);
-        }
-        .alert-light {
-            background: var(--bg-main);
-            color: var(--text-primary);
-            border-left-color: #28a745;
-        }
-        .text-muted {
-            color: var(--text-muted) !important;
-        }
-        .bg-light {
-            background-color: var(--input-bg) !important;
-        }
-        .badge-notification {
-            display: inline-block; width: 8px; height: 8px;
-            background-color: #ff3b30; border-radius: 50%; margin-left: 8px;
-            box-shadow: 0 0 0 2px rgba(255,59,48,0.2); animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%   { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); }
-            70%  { box-shadow: 0 0 0 6px rgba(255,59,48,0); }
-            100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
-        }
+        .offcanvas .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.3rem; margin-bottom: 2px; }
+        .offcanvas .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
     </style>
     @stack('styles')
 </head>
 <body>
 
-    {{-- ── Enhanced Page Loading Overlay ── --}}
+    {{-- ── Page Loader ── --}}
     <div id="page-loader" role="status" aria-label="Loading page">
         <div class="loader-card">
             <div class="loader-logo-ring">
@@ -416,13 +525,11 @@
             </div>
             <p class="loader-text">Non-UniPay</p>
             <p class="loader-subtext">Loading your dashboard</p>
-            <div class="loader-bar-track">
-                <div class="loader-bar-fill"></div>
-            </div>
+            <div class="loader-bar-track"><div class="loader-bar-fill"></div></div>
         </div>
     </div>
 
-    {{-- ── Mobile Navbar (with dark mode toggle) ── --}}
+    {{-- ── Mobile Navbar ── --}}
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
@@ -438,14 +545,26 @@
                     <div class="mobile-navbar-subtitle">Admin Panel</div>
                 </div>
             </div>
-            <button class="theme-toggle-mobile" id="mobileThemeToggle">
-                <i class="fas fa-moon"></i>
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                {{-- Mobile notification bell --}}
+                <div class="notif-wrapper">
+                    <button class="notif-btn" id="mobileNotifBtn" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-count-badge" id="mobileNotifBadge"></span>
+                    </button>
+                    <div class="notif-dropdown" id="mobileNotifDropdown">
+                        {{-- filled by JS --}}
+                    </div>
+                </div>
+                <button class="theme-toggle-mobile" id="mobileThemeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <!-- Mobile Offcanvas Sidebar -->
-    <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarLabel">
+    {{-- ── Mobile Offcanvas Sidebar ── --}}
+    <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas">
         <div class="offcanvas-header">
             <div class="sidebar-header w-100">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
@@ -468,13 +587,11 @@
                     <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('admin.payments') }}">
                             <i class="fas fa-money-bill-wave"></i> Payments
-                            <span class="badge-notification" id="payments-badge" style="display: none;"></span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('admin.students') }}">
                             <i class="fas fa-user-graduate"></i> Students
-                            <span class="badge-notification" id="students-badge" style="display: none;"></span>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
@@ -495,17 +612,16 @@
                     </li>
                     @if(auth()->user()->role === 'superadmin')
                         <li class="nav-section-title">ADMINISTRATION</li>
-                       <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
+                        <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
                             <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
                                 <i class="fas fa-user-shield"></i> Manage Admins
                             </a>
                         </li>
-                        {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
-                                <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
-                                    <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
-                                        <i class="fas fa-history"></i> Audit Logs
-                                    </a>
-                                </li>
+                        <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
+                            <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
+                                <i class="fas fa-history"></i> Audit Logs
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </div>
@@ -515,288 +631,446 @@
         </div>
     </div>
 
-    <!-- Main layout -->
-    <div class="container-fluid p-0">
-        <div class="row g-0">
+    {{-- ── Desktop Layout ── --}}
+    <div class="layout-wrapper d-none d-md-flex">
 
-            <!-- Desktop Sidebar -->
-            <div class="col-auto d-none d-md-block" style="width: 280px;">
-                <div class="sidebar d-flex flex-column vh-100 sticky-top">
-                    <div class="sidebar-header p-4">
-                        <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
-                        <h4>Non-UniPay</h4>
-                        <small>Admin Panel</small><br>
-                        <span class="role-badge {{ auth()->user()->role }}">
-                            {{ auth()->user()->role === 'superadmin' ? '★ Super Admin' : 'Admin' }}
-                        </span>
-                    </div>
-                    <div class="sidebar-nav flex-grow-1">
-                        <ul class="nav flex-column">
-                            <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                                    <i class="fas fa-chart-pie"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.payments') }}">
-                                    <i class="fas fa-money-bill-wave"></i> Payments
-                                    <span class="badge-notification" id="payments-badge-desktop" style="display: none;"></span>
-                                </a>
-                            </li>
-                            <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.students') }}">
-                                    <i class="fas fa-user-graduate"></i> Students
-                                    <span class="badge-notification" id="students-badge-desktop" style="display: none;"></span>
-                                </a>
-                            </li>
-                            <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.reports') }}">
-                                    <i class="fas fa-chart-bar"></i> Reports
-                                </a>
-                            </li>
-                            <li class="nav-section-title">ACADEMIC</li>
-                            <li class="nav-item {{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.school-years.index') }}">
-                                    <i class="fas fa-calendar-alt"></i> School Years
-                                </a>
-                            </li>
-                            <li class="nav-item {{ request()->routeIs('admin.fees*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.fees.index') }}">
-                                    <i class="fas fa-coins"></i> Fee Management
-                                </a>
-                            </li>
-                            @if(auth()->user()->role === 'superadmin')
-                                <li class="nav-section-title">ADMINISTRATION</li>
-                                <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
-                                    <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
-                                        <i class="fas fa-user-shield"></i> Manage Admins
-                                    </a>
-                                </li>
-                                
-                        {{-- ✅ NEW: Audit Logs (Super Admin only) --}}
-                                <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
-                                    <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
-                                        <i class="fas fa-history"></i> Audit Logs
-                                    </a>
-                                </li>
-                            @endif
-                        </ul>
-                    </div>
-                    <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
+        {{-- Desktop Sidebar --}}
+        <aside class="sidebar-desktop" id="desktopSidebar">
+            <div class="sidebar-header">
+                <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
+                <h4>Non-UniPay</h4>
+                <small>Admin Panel</small><br>
+                <span class="role-badge {{ auth()->user()->role }}">
+                    {{ auth()->user()->role === 'superadmin' ? '★ Super Admin' : 'Admin' }}
+                </span>
             </div>
+            <div class="sidebar-nav flex-grow-1">
+                <ul class="nav flex-column">
+                    <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                            <i class="fas fa-chart-pie"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.payments') }}">
+                            <i class="fas fa-money-bill-wave"></i> Payments
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.students') }}">
+                            <i class="fas fa-user-graduate"></i> Students
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.reports') }}">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-section-title">ACADEMIC</li>
+                    <li class="nav-item {{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.school-years.index') }}">
+                            <i class="fas fa-calendar-alt"></i> School Years
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.fees*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.fees.index') }}">
+                            <i class="fas fa-coins"></i> Fee Management
+                        </a>
+                    </li>
+                    @if(auth()->user()->role === 'superadmin')
+                        <li class="nav-section-title">ADMINISTRATION</li>
+                        <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
+                            <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
+                                <i class="fas fa-user-shield"></i> Manage Admins
+                            </a>
+                        </li>
+                        <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
+                            <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
+                                <i class="fas fa-history"></i> Audit Logs
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </div>
+            <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </aside>
 
-            <!-- Page Content with Desktop Top Bar -->
-            <div class="col">
-                <div class="desktop-topbar d-none d-md-flex">
-                    <div class="desktop-topbar-logo">
-                        <img src="{{ asset('logo.png') }}" alt="Logo">
-                        <div>
-                            <div class="desktop-topbar-title">Non-UniPay Admin</div>
-                            <div class="desktop-topbar-subtitle">Control Panel</div>
+        {{-- Content side --}}
+        <div class="content-side">
+            {{-- Desktop Top Bar --}}
+            <header class="desktop-topbar">
+                <div class="topbar-left">
+                    {{-- Sidebar toggle with arrow --}}
+                    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div>
+                        <div class="topbar-title">@yield('title', 'Dashboard')</div>
+                        <div class="topbar-subtitle">Non-UniPay Admin Panel</div>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    {{-- Notification Bell --}}
+                    <div class="notif-wrapper">
+                        <button class="notif-btn" id="desktopNotifBtn" aria-label="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="notif-count-badge" id="desktopNotifBadge"></span>
+                        </button>
+                        <div class="notif-dropdown" id="desktopNotifDropdown">
+                            {{-- filled by JS --}}
                         </div>
                     </div>
+
+                    {{-- Theme Toggle --}}
                     <button class="desktop-theme-toggle" id="desktopThemeToggle">
                         <i class="fas fa-moon"></i> Dark Mode
                     </button>
                 </div>
-                <div class="main-content">
-                    @yield('content')
+            </header>
+
+            <main class="main-content">
+                @yield('content')
+            </main>
+        </div>
+    </div>
+
+    {{-- ── Logout Modal ── --}}
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Are you sure you want to logout?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline requires-loader">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
                 </div>
             </div>
-
         </div>
     </div>
-
-    <!-- Logout Modal -->
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Logout</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">Are you sure you want to logout?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ route('logout') }}" method="POST" class="d-inline requires-loader">
-                    @csrf
-                    <button type="submit" class="btn btn-danger">Logout</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 
     <script>
-    // ── Dark Mode Toggle & Persistence ─────────────────────────────────────
-    (function() {
-        const darkModeKey = 'admin_dark_mode';
-
+    // ── Dark Mode ────────────────────────────────────────────────────────────
+    (function () {
+        const KEY = 'admin_dark_mode';
         function setDarkMode(isDark) {
-            if (isDark) {
-                document.body.classList.add('dark');
-                localStorage.setItem(darkModeKey, 'true');
-            } else {
-                document.body.classList.remove('dark');
-                localStorage.setItem(darkModeKey, 'false');
-            }
-            const desktopToggle = document.getElementById('desktopThemeToggle');
-            const mobileToggle = document.getElementById('mobileThemeToggle');
-            if (desktopToggle) {
-                desktopToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
-            }
-            if (mobileToggle) {
-                mobileToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            }
+            document.body.classList.toggle('dark', isDark);
+            localStorage.setItem(KEY, isDark ? 'true' : 'false');
+            document.querySelectorAll('#desktopThemeToggle, #mobileThemeToggle').forEach(btn => {
+                if (!btn) return;
+                if (btn.id === 'desktopThemeToggle') {
+                    btn.innerHTML = isDark
+                        ? '<i class="fas fa-sun"></i>'
+                        : '<i class="fas fa-moon"></i>';
+                } else {
+                    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                }
+            });
         }
-
-        function initDarkMode() {
-            const stored = localStorage.getItem(darkModeKey);
-            if (stored !== null) {
-                setDarkMode(stored === 'true');
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                setDarkMode(prefersDark);
+        const stored = localStorage.getItem(KEY);
+        setDarkMode(stored !== null ? stored === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.addEventListener('click', e => {
+            if (e.target.closest('#desktopThemeToggle') || e.target.closest('#mobileThemeToggle')) {
+                setDarkMode(!document.body.classList.contains('dark'));
             }
-        }
-
-        function bindToggleButtons() {
-            const desktopBtn = document.getElementById('desktopThemeToggle');
-            const mobileBtn = document.getElementById('mobileThemeToggle');
-            if (desktopBtn) {
-                desktopBtn.addEventListener('click', () => setDarkMode(!document.body.classList.contains('dark')));
-            }
-            if (mobileBtn) {
-                mobileBtn.addEventListener('click', () => setDarkMode(!document.body.classList.contains('dark')));
-            }
-        }
-
-        initDarkMode();
-        bindToggleButtons();
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            if (localStorage.getItem(darkModeKey) === null) setDarkMode(e.matches);
+        });
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem(KEY) === null) setDarkMode(e.matches);
         });
     })();
 
-    // ── Enhanced Page Loading Overlay ─────────────────────────────────────
-    // ── Enhanced Page Loading Overlay with dynamic messages ─────────────────────
-(function () {
-    const loader = document.getElementById('page-loader');
-    const loaderText = loader?.querySelector('.loader-text');
-    const loaderSubtext = loader?.querySelector('.loader-subtext');
-    let activeRequests = 0;
-    let hideTimeout = null;
+    // ── Sidebar Toggle ───────────────────────────────────────────────────────
+    (function () {
+        const sidebar = document.getElementById('desktopSidebar');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const SIDEBAR_KEY = 'admin_sidebar_collapsed';
 
-    function showLoader(customMessage, customSubtext) {
-        if (hideTimeout) clearTimeout(hideTimeout);
-        activeRequests++;
-        if (loaderText && customMessage) loaderText.innerText = customMessage;
-        if (loaderSubtext && customSubtext) loaderSubtext.innerText = customSubtext;
-        loader.classList.add('visible');
-    }
-
-    function hideLoader() {
-        activeRequests--;
-        if (activeRequests <= 0) {
-            hideTimeout = setTimeout(() => {
-                loader.classList.remove('visible');
-                // Reset texts after hiding (optional)
-                if (loaderText) loaderText.innerText = 'Non-UniPay';
-                if (loaderSubtext) loaderSubtext.innerText = 'Loading your dashboard';
-                hideTimeout = null;
-            }, 150);
-        }
-    }
-
-    // Intercept all link clicks (same-origin, non-special)
-    document.addEventListener('click', function (e) {
-        const target = e.target.closest('a');
-        if (!target) return;
-        if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-        if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
-        if (target.hasAttribute('data-bs-toggle')) return;
-        if (target.closest('.pagination')) return;
-        if (target.closest('#statusFilter') || target.closest('#searchBtn') || target.closest('#searchInput')) return;
-
-        const href = target.getAttribute('href') || '';
-        if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
-
-        try {
-            const url = new URL(href, window.location.href);
-            if (url.origin !== window.location.origin) return;
-        } catch (err) {
-            return;
+        function setSidebarState(collapsed) {
+            sidebar.classList.toggle('collapsed', collapsed);
+            toggleBtn.classList.toggle('collapsed', collapsed);
+            localStorage.setItem(SIDEBAR_KEY, collapsed ? 'true' : 'false');
         }
 
-        showLoader('Loading...', 'Please wait');
-    });
+        // Restore state
+        const stored = localStorage.getItem(SIDEBAR_KEY);
+        if (stored === 'true') setSidebarState(true);
 
-    // Intercept form submissions
-    document.addEventListener('submit', function (e) {
-        const form = e.target.closest('form');
-        if (!form) return;
-        if (form.classList.contains('requires-loader')) {
-            // Check if it's a logout form
-            if (form.action && form.action.includes('/logout')) {
-                showLoader('Logging out...', 'Redirecting to login');
-            } else {
-                showLoader('Processing...', 'Please wait');
+        toggleBtn && toggleBtn.addEventListener('click', () => {
+            setSidebarState(!sidebar.classList.contains('collapsed'));
+        });
+    })();
+
+    // ── Page Loader ──────────────────────────────────────────────────────────
+    (function () {
+        const loader = document.getElementById('page-loader');
+        const loaderText = loader?.querySelector('.loader-text');
+        const loaderSubtext = loader?.querySelector('.loader-subtext');
+        let activeRequests = 0, hideTimeout = null;
+
+        function showLoader(msg, sub) {
+            if (hideTimeout) clearTimeout(hideTimeout);
+            activeRequests++;
+            if (loaderText && msg) loaderText.innerText = msg;
+            if (loaderSubtext && sub) loaderSubtext.innerText = sub;
+            loader.classList.add('visible');
+        }
+        function hideLoader() {
+            activeRequests--;
+            if (activeRequests <= 0) {
+                hideTimeout = setTimeout(() => {
+                    loader.classList.remove('visible');
+                    if (loaderText) loaderText.innerText = 'Non-UniPay';
+                    if (loaderSubtext) loaderSubtext.innerText = 'Loading your dashboard';
+                }, 150);
             }
         }
-    });
 
-    // Hide loader when page is fully loaded
-    window.addEventListener('load', hideLoader);
-    window.addEventListener('pageshow', function (e) {
-        if (e.persisted) hideLoader();
-    });
+        document.addEventListener('click', e => {
+            const target = e.target.closest('a');
+            if (!target || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+            if (target.hasAttribute('download') || target.getAttribute('target') === '_blank') return;
+            if (target.hasAttribute('data-bs-toggle')) return;
+            const href = target.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+            try {
+                const url = new URL(href, window.location.href);
+                if (url.origin !== window.location.origin) return;
+            } catch { return; }
+            showLoader('Loading...', 'Please wait');
+        });
 
-    // Safety: if loader stays visible for more than 8 seconds, hide it
-    setInterval(() => {
-        if (loader.classList.contains('visible') && activeRequests === 0) {
-            loader.classList.remove('visible');
+        document.addEventListener('submit', e => {
+            const form = e.target.closest('form.requires-loader');
+            if (!form) return;
+            const msg = form.action && form.action.includes('/logout')
+                ? 'Logging out...' : 'Processing...';
+            showLoader(msg, 'Please wait');
+        });
+
+        window.addEventListener('load', hideLoader);
+        window.addEventListener('pageshow', e => { if (e.persisted) hideLoader(); });
+        setInterval(() => {
+            if (loader.classList.contains('visible') && activeRequests === 0)
+                loader.classList.remove('visible');
+        }, 8000);
+    })();
+
+    // ── Notifications ────────────────────────────────────────────────────────
+    (function () {
+        // Local notification store (keyed by type+id)
+        const NOTIF_KEY = 'admin_notifications';
+        const SEEN_KEY  = 'admin_notifications_seen_ids';
+
+        function getStored() {
+            try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; }
         }
-    }, 8000);
-})();
+        function setStored(arr) {
+            localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50)));
+        }
+        function getSeenIds() {
+            try { return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')); } catch { return new Set(); }
+        }
+        function addSeenId(id) {
+            const s = getSeenIds(); s.add(id);
+            localStorage.setItem(SEEN_KEY, JSON.stringify([...s]));
+        }
+        function markAllSeen() {
+            const notifs = getStored();
+            notifs.forEach(n => n.read = true);
+            setStored(notifs);
+            const ids = notifs.map(n => n.uid);
+            localStorage.setItem(SEEN_KEY, JSON.stringify(ids));
+        }
 
-    // ── Notification badge polling ─────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function () {
-        function fetchNotificationCounts() {
-           fetch('/admin/api/pending-payments-count', {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-})
-    .then(r => r.json())
-    .then(data => {
+        function timeAgo(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            return Math.floor(diff / 86400) + 'd ago';
+        }
 
-                    document.querySelectorAll('#payments-badge, #payments-badge-desktop').forEach(b => {
-                        b.style.display = data.count > 0 ? 'inline-block' : 'none';
-                    });
-                })
-                .catch(err => console.error('Payments count error:', err));
+        function buildDropdownHTML(notifs) {
+            const unreadCount = notifs.filter(n => !n.read).length;
+            let html = `
+                <div class="notif-dropdown-header">
+                    <h6><i class="fas fa-bell me-2" style="color:#0f3c91;"></i> Notifications
+                        ${unreadCount > 0 ? `<span style="font-size:0.72rem;background:rgba(15,60,145,0.1);color:#0f3c91;padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:600;">${unreadCount} new</span>` : ''}
+                    </h6>
+                    ${unreadCount > 0 ? `<button class="notif-mark-read" onclick="window._markAllNotifRead(event)">Mark all read</button>` : ''}
+                </div>
+                <div class="notif-list">`;
 
+            if (notifs.length === 0) {
+                html += `<div class="notif-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications yet</p>
+                </div>`;
+            } else {
+                notifs.forEach(n => {
+                    const isPayment = n.type === 'payment';
+                    html += `
+                        <a href="${n.url}" class="notif-item ${n.read ? '' : 'unread'}" onclick="window._handleNotifClick(event, '${n.uid}', '${n.url}')">
+                            <div class="notif-icon-wrap ${n.type}">
+                                <i class="fas ${isPayment ? 'fa-money-bill-wave' : 'fa-user-graduate'}"></i>
+                            </div>
+                            <div class="notif-body">
+                                <div class="notif-title">${n.title}</div>
+                                <div class="notif-desc">${n.desc}</div>
+                                <div class="notif-time">${timeAgo(n.ts)}</div>
+                            </div>
+                            ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+                        </a>`;
+                });
+            }
+
+            html += `</div>`;
+            if (notifs.length > 0) {
+                html += `<div class="notif-footer">
+                    <a href="{{ route('admin.payments') }}">View all payments</a>
+                    &nbsp;·&nbsp;
+                    <a href="{{ route('admin.students') }}">View all students</a>
+                </div>`;
+            }
+            return html;
+        }
+
+        function renderAll() {
+            const notifs = getStored();
+            const html = buildDropdownHTML(notifs);
+            document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
+                el.innerHTML = html;
+            });
+
+            const unread = notifs.filter(n => !n.read).length;
+            document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
+                badge.textContent = unread > 9 ? '9+' : unread;
+                badge.classList.toggle('show', unread > 0);
+            });
+            document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
+                btn.classList.toggle('has-notifs', unread > 0);
+            });
+        }
+
+        // Global handlers used inside dynamic HTML
+        window._markAllNotifRead = function (e) {
+            e.stopPropagation();
+            markAllSeen();
+            const notifs = getStored();
+            notifs.forEach(n => n.read = true);
+            setStored(notifs);
+            renderAll();
+        };
+        window._handleNotifClick = function (e, uid, url) {
+            e.preventDefault();
+            addSeenId(uid);
+            const notifs = getStored();
+            notifs.forEach(n => { if (n.uid === uid) n.read = true; });
+            setStored(notifs);
+            renderAll();
+            window.location.href = url;
+        };
+
+        // Dropdown open/close
+        function toggleDropdown(btnId, dropId) {
+            const btn = document.getElementById(btnId);
+            const drop = document.getElementById(dropId);
+            if (!btn || !drop) return;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                drop.classList.toggle('open');
+            });
+        }
+        toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
+        toggleDropdown('mobileNotifBtn', 'mobileNotifDropdown');
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.notif-wrapper')) {
+                document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        // ── Poll for new payments & students ──────────────────────────────────
+        let lastPaymentCount = null;
+        let lastStudentCount = null;
+
+        function checkPayments() {
+            fetch('/admin/api/pending-payments-count', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const count = data.count || 0;
+                if (lastPaymentCount !== null && count > lastPaymentCount) {
+                    const diff = count - lastPaymentCount;
+                    const notifs = getStored();
+                    const seen   = getSeenIds();
+                    const uid    = `pay_${Date.now()}`;
+                    if (!seen.has(uid)) {
+                        notifs.unshift({
+                            uid,
+                            type: 'payment',
+                            title: `${diff} new payment${diff > 1 ? 's' : ''} pending`,
+                            desc: 'New payment submission(s) awaiting your review.',
+                            url: '{{ route("admin.payments") }}',
+                            ts: Date.now(),
+                            read: false
+                        });
+                        setStored(notifs);
+                        renderAll();
+                    }
+                }
+                lastPaymentCount = count;
+            })
+            .catch(() => {});
+        }
+
+        function checkStudents() {
             fetch('/admin/api/new-students-count', {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-})
-    .then(r => r.json())
-    .then(data => {
-                    document.querySelectorAll('#students-badge, #students-badge-desktop').forEach(b => {
-                        b.style.display = data.count > 0 ? 'inline-block' : 'none';
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const count = data.count || 0;
+                if (lastStudentCount !== null && count > lastStudentCount) {
+                    const diff = count - lastStudentCount;
+                    const notifs = getStored();
+                    const uid    = `stu_${Date.now()}`;
+                    notifs.unshift({
+                        uid,
+                        type: 'student',
+                        title: `${diff} new student${diff > 1 ? 's' : ''} registered`,
+                        desc: 'New student registration(s) need confirmation.',
+                        url: '{{ route("admin.students") }}',
+                        ts: Date.now(),
+                        read: false
                     });
-                })
-                .catch(err => console.error('Students count error:', err));
+                    setStored(notifs);
+                    renderAll();
+                }
+                lastStudentCount = count;
+            })
+            .catch(() => {});
         }
-        fetchNotificationCounts();
-        setInterval(fetchNotificationCounts, 5000);
-    });
+
+        // Initial render from stored, then start polling
+        renderAll();
+        checkPayments();
+        checkStudents();
+        setInterval(() => { checkPayments(); checkStudents(); }, 5000);
+    })();
     </script>
 </body>
 </html>

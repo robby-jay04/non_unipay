@@ -59,13 +59,9 @@
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             transition: background-color 0.3s ease, color 0.2s ease;
+            margin: 0;
+            padding: 0;
         }
-
-        /* ── Z-index layering fix ── */
-        .offcanvas { z-index: 1045 !important; }
-        .offcanvas-backdrop { z-index: 1040 !important; }
-        .modal { z-index: 1060 !important; }
-        .modal-backdrop { z-index: 1055 !important; }
 
         /* ── Page Loader ── */
         #page-loader {
@@ -124,36 +120,75 @@
         }
         @keyframes loader-bar { 0% { width: 5%; } 100% { width: 95%; } }
 
-        /* ── Desktop Layout ── */
-        .layout-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar-desktop {
+        /* ── Desktop Sidebar (fixed, visible only on md+) ── */
+        .desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
+            height: 100vh;
             background: var(--bg-sidebar);
             color: white;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-            transition: width 0.3s cubic-bezier(0.4,0,0.2,1),
-                        min-width 0.3s cubic-bezier(0.4,0,0.2,1),
-                        transform 0.3s cubic-bezier(0.4,0,0.2,1);
-            position: sticky;
-            top: 0;
-            height: 100vh;
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            z-index: 200;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            z-index: 200;
-            flex-shrink: 0;
         }
-        .sidebar-desktop.collapsed {
-            width: 0;
-            min-width: 0;
+        .desktop-sidebar.collapsed {
+            transform: translateX(calc(-1 * var(--sidebar-width)));
         }
 
+        /* ── Desktop Top Bar (fixed, visible only on md+) ── */
+        .desktop-topbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            height: 64px;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.3s ease;
+            z-index: 150;
+        }
+        .desktop-sidebar.collapsed ~ .desktop-topbar {
+            left: 0;
+        }
+
+        /* ── Main Content (always visible) ── */
+        .main-content {
+            background: var(--bg-body);
+            transition: background 0.3s ease;
+            min-height: 100vh;
+        }
+        /* Desktop: add margin for fixed sidebar + topbar */
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: var(--sidebar-width);
+                padding-top: 64px;
+                transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+            }
+            .desktop-sidebar.collapsed ~ .main-content {
+                margin-left: 0;
+            }
+        }
+        /* Mobile: no extra margin, desktop elements hidden */
+        @media (max-width: 767.98px) {
+            .desktop-sidebar, .desktop-topbar {
+                display: none;
+            }
+            .main-content {
+                padding: 1rem;
+                min-height: calc(100vh - 64px);
+            }
+        }
+
+        /* Sidebar internal styles */
         .sidebar-header {
             padding: 1.5rem 1.25rem 1rem;
             flex-shrink: 0;
@@ -217,37 +252,12 @@
         .logout-btn:hover { background: rgba(255,255,255,0.15); color: white; }
         .logout-btn i { flex-shrink: 0; }
 
-        /* ── Content side ── */
-        .content-side {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            transition: all 0.3s ease;
-        }
-
-        /* ── Desktop Top Bar ── */
-        .desktop-topbar {
-            background: var(--topbar-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 1.5rem;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 150;
-            transition: background 0.3s ease;
-            gap: 1rem;
-        }
-
+        /* Topbar internal */
         .topbar-left {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
-
         .sidebar-toggle-btn {
             width: 38px; height: 38px;
             border-radius: 10px;
@@ -266,7 +276,6 @@
         }
         .sidebar-toggle-btn i { font-size: 0.9rem; transition: transform 0.3s ease; }
         .sidebar-toggle-btn.collapsed i { transform: rotate(180deg); }
-
         .topbar-title {
             font-weight: 700; font-size: 1rem; color: var(--text-primary);
             white-space: nowrap;
@@ -274,14 +283,28 @@
         .topbar-subtitle {
             font-size: 0.72rem; color: var(--text-muted);
         }
-
         .topbar-right {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
+        .desktop-theme-toggle {
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            padding: 0 1rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .desktop-theme-toggle:hover { background: var(--hover-bg); transform: translateY(-1px); }
 
-        /* ── Notification Bell ── */
+        /* Notification Bell */
         .notif-btn {
             position: relative;
             width: 42px; height: 42px;
@@ -299,7 +322,6 @@
             border-color: var(--btn-primary);
         }
         .notif-btn i { font-size: 1rem; }
-
         .notif-btn.has-notifs i {
             animation: bell-shake 2s ease infinite;
             transform-origin: top center;
@@ -311,7 +333,6 @@
             96%  { transform: rotate(8deg); }
             98%  { transform: rotate(-6deg); }
         }
-
         .notif-count-badge {
             position: absolute;
             top: 6px; right: 6px;
@@ -328,7 +349,7 @@
         }
         .notif-count-badge.show { transform: scale(1); }
 
-        /* ── Notification Dropdown ── */
+        /* Notification Dropdown */
         .notif-dropdown {
             position: absolute;
             top: calc(100% + 10px);
@@ -351,7 +372,6 @@
             transform: translateY(0) scale(1);
             pointer-events: all;
         }
-
         .notif-dropdown-header {
             padding: 1rem 1.25rem 0.75rem;
             border-bottom: 1px solid var(--border-color);
@@ -366,14 +386,12 @@
             transition: opacity 0.2s;
         }
         .notif-mark-read:hover { opacity: 0.7; }
-
         .notif-list {
             max-height: 380px;
             overflow-y: auto;
         }
         .notif-list::-webkit-scrollbar { width: 4px; }
         .notif-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
-
         .notif-item {
             display: flex; align-items: flex-start; gap: 12px;
             padding: 0.9rem 1.25rem;
@@ -386,7 +404,6 @@
         .notif-item:hover { background: var(--hover-bg); }
         .notif-item.unread { background: rgba(15,60,145,0.04); }
         body.dark .notif-item.unread { background: rgba(59,130,246,0.08); }
-
         .notif-icon-wrap {
             width: 40px; height: 40px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
@@ -394,24 +411,20 @@
         }
         .notif-icon-wrap.payment { background: rgba(34,197,94,0.12); color: #16a34a; }
         .notif-icon-wrap.student { background: rgba(59,130,246,0.12); color: #2563eb; }
-
         .notif-body { flex: 1; min-width: 0; }
         .notif-title { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
         .notif-desc { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .notif-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
-
         .notif-unread-dot {
             width: 8px; height: 8px; border-radius: 50%;
             background: var(--btn-primary); flex-shrink: 0; margin-top: 6px;
         }
-
         .notif-empty {
             padding: 2.5rem 1.25rem;
             text-align: center; color: var(--text-muted);
         }
         .notif-empty i { font-size: 2rem; opacity: 0.4; display: block; margin-bottom: 0.5rem; }
         .notif-empty p { font-size: 0.82rem; margin: 0; }
-
         .notif-footer {
             padding: 0.75rem 1.25rem;
             border-top: 1px solid var(--border-color);
@@ -419,35 +432,9 @@
         }
         .notif-footer a { font-size: 0.78rem; color: var(--btn-primary); font-weight: 600; text-decoration: none; }
         .notif-footer a:hover { text-decoration: underline; }
-
         .notif-wrapper { position: relative; }
 
-        /* ── Theme toggle ── */
-        .desktop-theme-toggle {
-            height: 38px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--input-bg);
-            color: var(--text-primary);
-            padding: 0 1rem;
-            font-size: 0.82rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .desktop-theme-toggle:hover { background: var(--hover-bg); transform: translateY(-1px); }
-
-        /* ── Main content ── */
-        .main-content {
-            background: var(--bg-body);
-            padding: 2rem;
-            flex: 1;
-            transition: background 0.3s ease;
-        }
-
-        /* ── Mobile styles ── */
+        /* Mobile Navbar */
         .mobile-navbar {
             background: var(--bg-main);
             padding: 0.75rem 1rem;
@@ -471,7 +458,7 @@
             border-radius: 30px; padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--text-primary);
         }
 
-        /* ── Offcanvas sidebar ── */
+        /* Offcanvas Sidebar */
         .offcanvas.sidebar {
             width: 280px;
             background: var(--bg-sidebar);
@@ -504,41 +491,28 @@
         .offcanvas .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.3rem; margin-bottom: 2px; }
         .offcanvas .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
 
-        /* ── Mobile responsive fixes ── */
+        /* Mobile responsive overrides */
         @media (max-width: 767.98px) {
-            .main-content {
-                padding: 1rem;
-                min-height: calc(100vh - 64px);
-            }
-
-            /* Cards */
             .card {
                 border-radius: 16px !important;
                 margin-bottom: 1rem;
             }
-
-            /* Tables scroll horizontally */
             .table-responsive {
                 border-radius: 12px;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
-
-            /* Stack all col-md-* columns vertically */
             .row.g-3 > [class*="col-md"],
             .row.g-2 > [class*="col-md"] {
                 width: 100% !important;
                 flex: 0 0 100% !important;
                 max-width: 100% !important;
             }
-
-            /* Modals near full screen */
             .modal-dialog {
                 margin: 0.5rem auto;
                 max-width: calc(100vw - 1rem) !important;
             }
-            .modal-lg,
-            .modal-xl {
+            .modal-lg, .modal-xl {
                 max-width: calc(100vw - 1rem) !important;
             }
             .modal-body {
@@ -552,21 +526,15 @@
             .modal-footer button {
                 width: 100% !important;
             }
-
-            /* Page header */
             .d-flex.justify-content-between.flex-wrap {
                 flex-direction: column;
                 align-items: flex-start !important;
                 gap: 0.75rem;
             }
-
-            /* Add fee button full width */
             .btn-add-fee {
                 width: 100%;
                 justify-content: center;
             }
-
-            /* Notification dropdown — centered on mobile */
             .notif-dropdown {
                 width: calc(100vw - 2rem);
                 position: fixed;
@@ -580,8 +548,6 @@
                 transform: translateX(-50%) translateY(0) scale(1);
                 pointer-events: all;
             }
-
-            /* Filter form buttons */
             .col-md-3.d-flex.gap-2 {
                 width: 100% !important;
                 flex: 0 0 100% !important;
@@ -589,37 +555,25 @@
             .col-md-3.d-flex.gap-2 .btn {
                 flex: 1;
             }
-
-            /* Detail grid in modals (audit logs etc) */
             .detail-grid {
                 grid-template-columns: 1fr !important;
             }
             .diff-wrap {
                 grid-template-columns: 1fr !important;
             }
-
-            /* Stat cards grid */
             .stat-grid {
                 grid-template-columns: repeat(2, 1fr) !important;
             }
-
-            /* Table action buttons */
             .btn-action {
                 width: 32px !important;
                 height: 32px !important;
             }
-
-            /* Input groups on mobile */
             .input-group {
                 flex-wrap: nowrap;
             }
-
-            /* h2 page titles */
             h2.fw-bold {
                 font-size: 1.2rem !important;
             }
-
-            /* Dashboard cards */
             .row.g-4 > [class*="col-"] {
                 width: 100% !important;
                 flex: 0 0 100% !important;
@@ -627,7 +581,7 @@
             }
         }
 
-        /* Shared (cards, tables, modals) */
+        /* Shared components */
         .card, .modal-content {
             background: var(--bg-main); border: none;
             box-shadow: var(--card-shadow); transition: background 0.3s ease;
@@ -657,7 +611,7 @@
 </head>
 <body>
 
-    {{-- ── Page Loader ── --}}
+    {{-- Page Loader --}}
     <div id="page-loader" role="status" aria-label="Loading page">
         <div class="loader-card">
             <div class="loader-logo-ring">
@@ -670,7 +624,7 @@
         </div>
     </div>
 
-    {{-- ── Mobile Navbar (visible only on mobile) ── --}}
+    {{-- Mobile Navbar (visible only on mobile) --}}
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
@@ -701,7 +655,7 @@
         </div>
     </nav>
 
-    {{-- ── Mobile Offcanvas Sidebar ── --}}
+    {{-- Mobile Offcanvas Sidebar --}}
     <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas">
         <div class="offcanvas-header">
             <div class="sidebar-header">
@@ -769,115 +723,100 @@
         </div>
     </div>
 
-    {{-- ── Mobile Content Area (only visible on mobile) ── --}}
-    <div class="d-md-none">
-        <main class="main-content">
-            @yield('content')
-        </main>
-    </div>
-
-    {{-- ── Desktop Layout (only visible on desktop) ── --}}
-    <div class="layout-wrapper d-none d-md-flex">
-
-        {{-- Desktop Sidebar --}}
-        <aside class="sidebar-desktop" id="desktopSidebar">
-            <div class="sidebar-header">
-                <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
-                <h4>Non-UniPay</h4>
-                <small>Admin Panel</small><br>
-                <span class="role-badge {{ auth()->user()->role }}">
-                    {{ auth()->user()->role === 'superadmin' ? '★ Super Admin' : 'Admin' }}
-                </span>
-            </div>
-            <div class="sidebar-nav flex-grow-1">
-                <ul class="nav flex-column">
-                    <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                            <i class="fas fa-chart-pie"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.payments') }}">
-                            <i class="fas fa-money-bill-wave"></i> Payments
-                        </a>
-                    </li>
-                    <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.students') }}">
-                            <i class="fas fa-user-graduate"></i> Students
-                        </a>
-                    </li>
-                    <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.reports') }}">
-                            <i class="fas fa-chart-bar"></i> Reports
-                        </a>
-                    </li>
-                    <li class="nav-section-title">ACADEMIC</li>
-                    <li class="nav-item {{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.school-years.index') }}">
-                            <i class="fas fa-calendar-alt"></i> School Years
-                        </a>
-                    </li>
-                    <li class="nav-item {{ request()->routeIs('admin.fees*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.fees.index') }}">
-                            <i class="fas fa-coins"></i> Fee Management
-                        </a>
-                    </li>
-                    @if(auth()->user()->role === 'superadmin')
-                        <li class="nav-section-title">ADMINISTRATION</li>
-                        <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
-                            <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
-                                <i class="fas fa-user-shield"></i> Manage Admins
-                            </a>
-                        </li>
-                        <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
-                            <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
-                                <i class="fas fa-history"></i> Audit Logs
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </div>
-            <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </aside>
-
-        {{-- Content side --}}
-        <div class="content-side">
-            {{-- Desktop Top Bar --}}
-            <header class="desktop-topbar">
-                <div class="topbar-left">
-                    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div>
-                        <div class="topbar-title">@yield('title', 'Dashboard')</div>
-                        <div class="topbar-subtitle">Non-UniPay Admin Panel</div>
-                    </div>
-                </div>
-
-                <div class="topbar-right">
-                    <div class="notif-wrapper">
-                        <button class="notif-btn" id="desktopNotifBtn" aria-label="Notifications">
-                            <i class="fas fa-bell"></i>
-                            <span class="notif-count-badge" id="desktopNotifBadge"></span>
-                        </button>
-                        <div class="notif-dropdown" id="desktopNotifDropdown"></div>
-                    </div>
-
-                    <button class="desktop-theme-toggle" id="desktopThemeToggle">
-                        <i class="fas fa-moon"></i> Dark Mode
-                    </button>
-                </div>
-            </header>
-
-            <main class="main-content">
-                @yield('content')
-            </main>
+    {{-- Desktop Sidebar (fixed, visible on md+) --}}
+    <aside class="desktop-sidebar" id="desktopSidebar">
+        <div class="sidebar-header">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
+            <h4>Non-UniPay</h4>
+            <small>Admin Panel</small><br>
+            <span class="role-badge {{ auth()->user()->role }}">
+                {{ auth()->user()->role === 'superadmin' ? '★ Super Admin' : 'Admin' }}
+            </span>
         </div>
-    </div>
+        <div class="sidebar-nav flex-grow-1">
+            <ul class="nav flex-column">
+                <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.payments') }}">
+                        <i class="fas fa-money-bill-wave"></i> Payments
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.students') }}">
+                        <i class="fas fa-user-graduate"></i> Students
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.reports') }}">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-section-title">ACADEMIC</li>
+                <li class="nav-item {{ request()->routeIs('admin.school-years*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.school-years.index') }}">
+                        <i class="fas fa-calendar-alt"></i> School Years
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->routeIs('admin.fees*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.fees.index') }}">
+                        <i class="fas fa-coins"></i> Fee Management
+                    </a>
+                </li>
+                @if(auth()->user()->role === 'superadmin')
+                    <li class="nav-section-title">ADMINISTRATION</li>
+                    <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
+                        <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.admins.index') }}">
+                            <i class="fas fa-user-shield"></i> Manage Admins
+                        </a>
+                    </li>
+                    <li class="nav-item {{ request()->routeIs('admin.superadmin.audit-logs*') ? 'active' : '' }}">
+                        <a class="nav-link superadmin-link" href="{{ route('admin.superadmin.audit-logs.index') }}">
+                            <i class="fas fa-history"></i> Audit Logs
+                        </a>
+                    </li>
+                @endif
+            </ul>
+        </div>
+        <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </aside>
 
-    {{-- ── Logout Modal ── --}}
+    {{-- Desktop Top Bar (fixed, visible on md+) --}}
+    <header class="desktop-topbar" id="desktopTopbar">
+        <div class="topbar-left">
+            <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div>
+                <div class="topbar-title">@yield('title', 'Dashboard')</div>
+                <div class="topbar-subtitle">Non-UniPay Admin Panel</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="notif-wrapper">
+                <button class="notif-btn" id="desktopNotifBtn" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-count-badge" id="desktopNotifBadge"></span>
+                </button>
+                <div class="notif-dropdown" id="desktopNotifDropdown"></div>
+            </div>
+            <button class="desktop-theme-toggle" id="desktopThemeToggle">
+                <i class="fas fa-moon"></i> Dark Mode
+            </button>
+        </div>
+    </header>
+
+    {{-- MAIN CONTENT (always visible, on desktop it's pushed by the fixed sidebar) --}}
+    <main class="main-content">
+        @yield('content')
+    </main>
+
+    {{-- Logout Modal --}}
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -932,24 +871,27 @@
         });
     })();
 
-    // ── Sidebar Toggle ───────────────────────────────────────────────────────
+    // ── Sidebar Toggle (Desktop) ──────────────────────────────────────────────
     (function () {
         const sidebar    = document.getElementById('desktopSidebar');
         const toggleBtn  = document.getElementById('sidebarToggleBtn');
         const SIDEBAR_KEY = 'admin_sidebar_collapsed';
 
         function setSidebarState(collapsed) {
+            if (!sidebar) return;
             sidebar.classList.toggle('collapsed', collapsed);
-            toggleBtn.classList.toggle('collapsed', collapsed);
+            if (toggleBtn) toggleBtn.classList.toggle('collapsed', collapsed);
             localStorage.setItem(SIDEBAR_KEY, collapsed ? 'true' : 'false');
         }
 
         const stored = localStorage.getItem(SIDEBAR_KEY);
         if (stored === 'true') setSidebarState(true);
 
-        toggleBtn && toggleBtn.addEventListener('click', () => {
-            setSidebarState(!sidebar.classList.contains('collapsed'));
-        });
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                setSidebarState(!sidebar.classList.contains('collapsed'));
+            });
+        }
     })();
 
     // ── Page Loader ──────────────────────────────────────────────────────────
@@ -964,13 +906,13 @@
             activeRequests++;
             if (loaderText && msg) loaderText.innerText = msg;
             if (loaderSubtext && sub) loaderSubtext.innerText = sub;
-            loader.classList.add('visible');
+            if (loader) loader.classList.add('visible');
         }
         function hideLoader() {
             activeRequests--;
             if (activeRequests <= 0) {
                 hideTimeout = setTimeout(() => {
-                    loader.classList.remove('visible');
+                    if (loader) loader.classList.remove('visible');
                     if (loaderText) loaderText.innerText = 'Non-UniPay';
                     if (loaderSubtext) loaderSubtext.innerText = 'Loading your dashboard';
                 }, 150);
@@ -1002,7 +944,7 @@
         window.addEventListener('load', hideLoader);
         window.addEventListener('pageshow', e => { if (e.persisted) hideLoader(); });
         setInterval(() => {
-            if (loader.classList.contains('visible') && activeRequests === 0)
+            if (loader && loader.classList.contains('visible') && activeRequests === 0)
                 loader.classList.remove('visible');
         }, 8000);
     })();
@@ -1089,15 +1031,17 @@
             const notifs = getStored();
             const html   = buildDropdownHTML(notifs);
             document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
-                el.innerHTML = html;
+                if (el) el.innerHTML = html;
             });
             const unread = notifs.filter(n => !n.read).length;
             document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
-                badge.textContent = unread > 9 ? '9+' : unread;
-                badge.classList.toggle('show', unread > 0);
+                if (badge) {
+                    badge.textContent = unread > 9 ? '9+' : unread;
+                    badge.classList.toggle('show', unread > 0);
+                }
             });
             document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
-                btn.classList.toggle('has-notifs', unread > 0);
+                if (btn) btn.classList.toggle('has-notifs', unread > 0);
             });
         }
 
@@ -1125,7 +1069,6 @@
             if (!btn || !drop) return;
             btn.addEventListener('click', e => {
                 e.stopPropagation();
-                // Close any other open dropdowns first
                 document.querySelectorAll('.notif-dropdown').forEach(d => {
                     if (d !== drop) d.classList.remove('open');
                 });
@@ -1135,7 +1078,6 @@
         toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
         toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
 
-        // Close dropdowns when clicking outside — check both wrapper and dropdown itself
         document.addEventListener('click', e => {
             if (!e.target.closest('.notif-wrapper') && !e.target.closest('.notif-dropdown')) {
                 document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));

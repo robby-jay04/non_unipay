@@ -61,6 +61,12 @@
             transition: background-color 0.3s ease, color 0.2s ease;
         }
 
+        /* ── Z-index layering fix ── */
+        .offcanvas { z-index: 1045 !important; }
+        .offcanvas-backdrop { z-index: 1040 !important; }
+        .modal { z-index: 1060 !important; }
+        .modal-backdrop { z-index: 1055 !important; }
+
         /* ── Page Loader ── */
         #page-loader {
             position: fixed; inset: 0; z-index: 99999;
@@ -464,23 +470,32 @@
             background: var(--input-bg); border: 1px solid var(--input-border);
             border-radius: 30px; padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--text-primary);
         }
+
+        /* ── Offcanvas sidebar ── */
         .offcanvas.sidebar {
-  width: 280px;
-  background: var(--bg-sidebar);
-}
-.offcanvas.sidebar .offcanvas-header {
-  align-items: flex-start;
-  padding: 0;
-}
-.offcanvas.sidebar .offcanvas-header .btn-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  margin: 0;
-  z-index: 10;
-}
+            width: 280px;
+            background: var(--bg-sidebar);
+        }
+        .offcanvas.sidebar .offcanvas-header {
+            position: relative;
+            align-items: flex-start;
+            padding: 0;
+        }
+        .offcanvas.sidebar .offcanvas-header .btn-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            margin: 0;
+            z-index: 10;
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+        .offcanvas.sidebar .offcanvas-header .btn-close:hover {
+            opacity: 1;
+        }
         .offcanvas .sidebar-header {
             padding: 1.25rem;
+            width: 100%;
         }
         .offcanvas .sidebar-header img {
             width: 52px; height: 52px; object-fit: contain;
@@ -529,9 +544,6 @@
             .modal-body {
                 padding: 1rem !important;
             }
-            .modal-header {
-                padding: 1rem !important;
-            }
             .modal-footer {
                 padding: 0.75rem 1rem !important;
                 flex-direction: column;
@@ -554,18 +566,20 @@
                 justify-content: center;
             }
 
-            /* Notification dropdown */
-          .notif-dropdown {
-  width: calc(100vw - 2rem);
-  position: fixed;
-  top: 64px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-}
-.notif-dropdown.open {
-  transform: translateX(-50%) translateY(0) scale(1);
-}
+            /* Notification dropdown — centered on mobile */
+            .notif-dropdown {
+                width: calc(100vw - 2rem);
+                position: fixed;
+                top: 64px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%) translateY(-8px) scale(0.97);
+            }
+            .notif-dropdown.open {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+                pointer-events: all;
+            }
 
             /* Filter form buttons */
             .col-md-3.d-flex.gap-2 {
@@ -689,8 +703,8 @@
 
     {{-- ── Mobile Offcanvas Sidebar ── --}}
     <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebarOffcanvas">
-        <div class="offcanvas-header" style="position: relative;">
-            <div class="sidebar-header w-100">
+        <div class="offcanvas-header">
+            <div class="sidebar-header">
                 <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
                 <h4>Non-UniPay</h4>
                 <small>Admin Panel</small><br>
@@ -940,8 +954,8 @@
 
     // ── Page Loader ──────────────────────────────────────────────────────────
     (function () {
-        const loader      = document.getElementById('page-loader');
-        const loaderText  = loader?.querySelector('.loader-text');
+        const loader        = document.getElementById('page-loader');
+        const loaderText    = loader?.querySelector('.loader-text');
         const loaderSubtext = loader?.querySelector('.loader-subtext');
         let activeRequests = 0, hideTimeout = null;
 
@@ -1111,13 +1125,19 @@
             if (!btn || !drop) return;
             btn.addEventListener('click', e => {
                 e.stopPropagation();
+                // Close any other open dropdowns first
+                document.querySelectorAll('.notif-dropdown').forEach(d => {
+                    if (d !== drop) d.classList.remove('open');
+                });
                 drop.classList.toggle('open');
             });
         }
         toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
         toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
+
+        // Close dropdowns when clicking outside — check both wrapper and dropdown itself
         document.addEventListener('click', e => {
-            if (!e.target.closest('.notif-wrapper')) {
+            if (!e.target.closest('.notif-wrapper') && !e.target.closest('.notif-dropdown')) {
                 document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
             }
         });

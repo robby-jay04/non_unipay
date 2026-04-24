@@ -57,43 +57,66 @@ class AdminController extends Controller
         return view('admin.payments', compact('payments'));
     }
 
-    public function students(Request $request)
-    {
-        $query = Student::with(['user', 'payments']);
+   public function students(Request $request)
+{
+    $query = Student::with(['user', 'payments']);
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%{$search}%")
-                       ->orWhere('email', 'like', "%{$search}%");
-                })
-                ->orWhere('student_no', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('course')) {
-            $query->where('course', $request->course);
-        }
-
-        if ($request->filled('year_level')) {
-            $query->where('year_level', $request->year_level);
-        }
-
-        if ($request->filled('clearance_status')) {
-            $query->where('clearance_status', $request->clearance_status);
-        }
-
-        $students = $query->orderBy('created_at', 'desc')
-                          ->paginate(10)
-                          ->appends($request->only(['search', 'course', 'year_level', 'clearance_status']));
-
-        $courses          = Student::distinct()->pluck('course')->filter()->values();
-        $yearLevels       = Student::distinct()->pluck('year_level')->filter()->sort()->values();
-        $clearanceStatuses = ['cleared', 'not_cleared'];
-
-        return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($q2) use ($search) {
+                $q2->where('name', 'like', "%{$search}%")
+                   ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->orWhere('student_no', 'like', "%{$search}%");
+        });
     }
+
+    if ($request->filled('course')) {
+        $query->where('course', $request->course);
+    }
+
+    if ($request->filled('year_level')) {
+        $query->where('year_level', $request->year_level);
+    }
+
+    if ($request->filled('clearance_status')) {
+        $query->where('clearance_status', $request->clearance_status);
+    }
+
+    // Apply sort
+    $sort = $request->get('sort', 'name_asc');
+
+    if (in_array($sort, ['name_asc', 'name_desc'])) {
+        $query->join('users', 'students.user_id', '=', 'users.id')
+              ->orderBy('users.name', $sort === 'name_desc' ? 'desc' : 'asc')
+              ->select('students.*');
+    } else {
+        match($sort) {
+            'newest'     => $query->orderBy('students.created_at', 'desc'),
+            'oldest'     => $query->orderBy('students.created_at', 'asc'),
+            'student_no' => $query->orderBy('students.student_no', 'asc'),
+            'course'     => $query->orderBy('students.course', 'asc'),
+            'year_level' => $query->orderBy('students.year_level', 'asc'),
+            default      => $query->orderBy('students.created_at', 'desc'),
+        };
+    }
+
+    $students = $query->paginate(10)
+                      ->appends($request->only([
+                          'search',
+                          'course',
+                          'year_level',
+                          'clearance_status',
+                          'sort',
+                      ]));
+
+    $courses           = Student::distinct()->pluck('course')->filter()->values();
+    $yearLevels        = Student::distinct()->pluck('year_level')->filter()->sort()->values();
+    $clearanceStatuses = ['cleared', 'not_cleared'];
+
+    return view('admin.students', compact('students', 'courses', 'yearLevels', 'clearanceStatuses'));
+}
 
     public function studentJson(Student $student)
     {

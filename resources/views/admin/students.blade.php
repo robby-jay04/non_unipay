@@ -16,8 +16,22 @@
         <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">All Students</h5>
 
         <form method="GET" class="d-flex gap-2 flex-wrap w-100 justify-content-end" action="{{ route('admin.students') }}" id="searchForm">
+
+            <!-- Sort By -->
+            <select name="sort" class="form-select rounded-pill border-0 px-4 py-2 filter-select"
+                    style="min-width: 150px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+                <option value="name_asc"   {{ request('sort', 'name_asc') == 'name_asc'   ? 'selected' : '' }}>Name A → Z</option>
+                <option value="name_desc"  {{ request('sort') == 'name_desc'               ? 'selected' : '' }}>Name Z → A</option>
+                <option value="newest"     {{ request('sort') == 'newest'                  ? 'selected' : '' }}>Newest First</option>
+                <option value="oldest"     {{ request('sort') == 'oldest'                  ? 'selected' : '' }}>Oldest First</option>
+                <option value="student_no" {{ request('sort') == 'student_no'              ? 'selected' : '' }}>Student No.</option>
+                <option value="course"     {{ request('sort') == 'course'                  ? 'selected' : '' }}>Course</option>
+                <option value="year_level" {{ request('sort') == 'year_level'              ? 'selected' : '' }}>Year Level</option>
+            </select>
+
             <!-- Course filter -->
-            <select name="course" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="course" class="form-select rounded-pill border-0 px-4 py-2 filter-select"
+                    style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Courses</option>
                 @foreach($courses as $course)
                     <option value="{{ $course }}" {{ request('course') == $course ? 'selected' : '' }}>
@@ -27,7 +41,8 @@
             </select>
 
             <!-- Year Level filter -->
-            <select name="year_level" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 150px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="year_level" class="form-select rounded-pill border-0 px-4 py-2 filter-select"
+                    style="min-width: 150px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Year Level</option>
                 @foreach($yearLevels as $level)
                     <option value="{{ $level }}" {{ request('year_level') == $level ? 'selected' : '' }}>
@@ -37,7 +52,8 @@
             </select>
 
             <!-- Clearance Status filter -->
-            <select name="clearance_status" class="form-select rounded-pill border-0 px-4 py-2 filter-select" style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
+            <select name="clearance_status" class="form-select rounded-pill border-0 px-4 py-2 filter-select"
+                    style="min-width: 130px; width: auto; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
                 <option value="">All Status</option>
                 @foreach($clearanceStatuses as $status)
                     <option value="{{ $status }}" {{ request('clearance_status') == $status ? 'selected' : '' }}>
@@ -46,10 +62,12 @@
                 @endforeach
             </select>
 
-           <input type="search" name="search" id="searchInput" class="form-control rounded-pill border-0 px-4 py-2"
-       placeholder="Search students..." value="{{ request('search') }}"
-       style="width: 280px; max-width: 100%; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
-       autocomplete="off">
+            <!-- Search -->
+            <input type="search" name="search" id="searchInput"
+                   class="form-control rounded-pill border-0 px-4 py-2"
+                   placeholder="Search students..." value="{{ request('search') }}"
+                   style="width: 280px; max-width: 100%; background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
+                   autocomplete="off">
         </form>
     </div>
 
@@ -96,44 +114,45 @@
                                         data-id="{{ $student->id }}">
                                     <i class="fas fa-eye"></i>
                                 </button>
-@if(!$student->is_confirmed)
-    <!-- Confirm Button -->
-    <button type="button"
-            class="btn-action confirm-student trigger-confirm"
-            title="Confirm account"
-            data-action="{{ route('admin.students.confirm', $student) }}"
-            data-method="POST"
-            data-type="confirm"
-            data-title="Confirm Student Account"
-            data-message="Are you sure you want to confirm this student account?"
-            data-confirm-text="Yes, Confirm"
-            data-icon-bg="rgba(15,60,145,0.12)"
-            data-icon="fas fa-check-circle"
-            data-icon-color="#0f3c91"
-            data-btn-bg="#0f3c91">
-        <i class="fas fa-check-circle"></i>
-    </button>
 
-    <!-- Decline Button -->
-    <button type="button"
-            class="btn-action decline-student"
-            title="Decline account"
-            data-action="{{ route('admin.students.decline', $student) }}"
-            data-student-name="{{ $student->user->name }}">
-        <i class="fas fa-times-circle"></i>
-    </button>
-@else
-    <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
+                                @if(!$student->is_confirmed)
+                                    <!-- Confirm Button -->
+                                    <button type="button"
+                                            class="btn-action confirm-student trigger-confirm"
+                                            title="Confirm account"
+                                            data-action="{{ route('admin.students.confirm', $student) }}"
+                                            data-method="POST"
+                                            data-type="confirm"
+                                            data-title="Confirm Student Account"
+                                            data-message="Are you sure you want to confirm this student account?"
+                                            data-confirm-text="Yes, Confirm"
+                                            data-icon-bg="rgba(15,60,145,0.12)"
+                                            data-icon="fas fa-check-circle"
+                                            data-icon-color="#0f3c91"
+                                            data-btn-bg="#0f3c91">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
 
-    <!-- Delete Button -->
-    <button type="button"
-            class="btn-action delete-student"
-            title="Delete student"
-            data-action="{{ route('admin.students.destroy', $student) }}"
-            data-student-name="{{ $student->user->name }}">
-        <i class="fas fa-trash-alt"></i>
-    </button>
-@endif
+                                    <!-- Decline Button -->
+                                    <button type="button"
+                                            class="btn-action decline-student"
+                                            title="Decline account"
+                                            data-action="{{ route('admin.students.decline', $student) }}"
+                                            data-student-name="{{ $student->user->name }}">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                @else
+                                    <span class="badge-confirmed"><i class="fas fa-check-circle me-1"></i> Confirmed</span>
+
+                                    <!-- Delete Button -->
+                                    <button type="button"
+                                            class="btn-action delete-student"
+                                            title="Delete student"
+                                            data-action="{{ route('admin.students.destroy', $student) }}"
+                                            data-student-name="{{ $student->user->name }}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -155,7 +174,7 @@
         <!-- Pagination -->
         @if($students->hasPages())
         <div class="d-flex justify-content-center py-4" id="students-pagination">
-            {{ $students->appends(request()->only(['search', 'course', 'year_level', 'clearance_status']))->links('pagination::no-summary') }}
+            {{ $students->appends(request()->only(['search', 'course', 'year_level', 'clearance_status', 'sort']))->links('pagination::no-summary') }}
         </div>
         @endif
     </div>
@@ -166,7 +185,8 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+                <div id="confirmIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                     style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
                 <h5 class="fw-bold mb-2" id="confirmTitle" style="color: var(--text-primary);"></h5>
@@ -186,7 +206,8 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
         <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bg-main);">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;"></div>
+                <div id="resultIconWrap" class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                     style="width:64px;height:64px;"></div>
             </div>
             <div class="modal-body text-center px-4 pb-2 mt-2">
                 <h5 class="fw-bold mb-2" id="resultTitle" style="color: var(--text-primary);"></h5>
@@ -286,13 +307,15 @@
                     <div class="mb-2">
                         <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
                                style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
-                            <input type="radio" name="declineReason" value="The registered user is not a UniFast beneficiary."
+                            <input type="radio" name="declineReason"
+                                   value="The registered user is not a UniFast beneficiary."
                                    class="mt-1 decline-radio" style="accent-color:#b71c1c;">
                             <span style="color:var(--text-primary);font-size:0.9rem;">Not a UniFast beneficiary</span>
                         </label>
                         <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
                                style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
-                            <input type="radio" name="declineReason" value="The information you provided during registration is incorrect."
+                            <input type="radio" name="declineReason"
+                                   value="The information you provided during registration is incorrect."
                                    class="mt-1 decline-radio" style="accent-color:#b71c1c;">
                             <span style="color:var(--text-primary);font-size:0.9rem;">Incorrect registration information</span>
                         </label>
@@ -339,13 +362,15 @@
                     <div class="mb-2">
                         <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
                                style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
-                            <input type="radio" name="deleteReason" value="The student has violated the portal's rules and policies."
+                            <input type="radio" name="deleteReason"
+                                   value="The student has violated the portal's rules and policies."
                                    class="mt-1 delete-radio" style="accent-color:#a71d2a;">
                             <span style="color:var(--text-primary);font-size:0.9rem;">Student violated rules and policies</span>
                         </label>
                         <label class="reason-option d-flex align-items-start gap-2 p-3 rounded-3 mb-2"
                                style="background:var(--input-bg);cursor:pointer;border:2px solid transparent;transition:border 0.2s;">
-                            <input type="radio" name="deleteReason" value="The student is no longer enrolled or is not a current UniFAST student."
+                            <input type="radio" name="deleteReason"
+                                   value="The student is no longer enrolled or is not a current UniFAST student."
                                    class="mt-1 delete-radio" style="accent-color:#a71d2a;">
                             <span style="color:var(--text-primary);font-size:0.9rem;">No longer a UniFast student</span>
                         </label>
@@ -374,31 +399,31 @@
 </div>
 
 <!-- Page Loader -->
-<div id="pageLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
-    <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
-        <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
-            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width: 70px; height: 70px; border-radius: 50%; background: white; padding: 6px; object-fit: contain;">
-            <div class="loader-spinner" style="position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: #f4b400; border-right-color: rgba(244, 180, 0, 0.3); animation: loader-spin 0.85s linear infinite;"></div>
+<div id="pageLoader" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(5,15,50,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div style="background:linear-gradient(180deg,#0f3c91 0%,#1a4da8 100%);border-radius:28px;padding:2rem 2.5rem;text-align:center;min-width:240px;">
+        <div style="position:relative;width:70px;height:70px;margin:0 auto;">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width:70px;height:70px;border-radius:50%;background:white;padding:6px;object-fit:contain;">
+            <div style="position:absolute;inset:-5px;border-radius:50%;border:3px solid transparent;border-top-color:#f4b400;border-right-color:rgba(244,180,0,0.3);animation:loader-spin 0.85s linear infinite;"></div>
         </div>
-        <p class="loader-text" style="color: white; font-weight: 600; margin-top: 1rem;">Loading Data</p>
-        <p class="loader-subtext" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Please wait...</p>
-        <div class="loader-bar-track" style="width: 140px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; margin: 0.75rem auto 0;">
-            <div class="loader-bar-fill" style="height: 100%; background: #f4b400; border-radius: 99px; animation: loader-bar 1.1s ease-in-out infinite alternate;"></div>
+        <p style="color:white;font-weight:600;margin-top:1rem;">Loading Data</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;">Please wait...</p>
+        <div style="width:140px;height:4px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin:0.75rem auto 0;">
+            <div style="height:100%;background:#f4b400;border-radius:99px;animation:loader-bar 1.1s ease-in-out infinite alternate;"></div>
         </div>
     </div>
 </div>
 
 <!-- Action Loader -->
-<div id="studentActionLoader" style="display: none; position: fixed; inset: 0; z-index: 100000; background: rgba(5, 15, 50, 0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; flex-direction: column; gap: 1rem;">
-    <div class="loader-card" style="background: linear-gradient(180deg, #0f3c91 0%, #1a4da8 100%); border-radius: 28px; padding: 2rem 2.5rem; text-align: center; min-width: 240px;">
-        <div class="loader-logo-ring" style="position: relative; width: 70px; height: 70px; margin: 0 auto;">
-            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width: 70px; height: 70px; border-radius: 50%; background: white; padding: 6px; object-fit: contain;">
-            <div class="loader-spinner" style="position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: #f4b400; border-right-color: rgba(244, 180, 0, 0.3); animation: loader-spin 0.85s linear infinite;"></div>
+<div id="studentActionLoader" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(5,15,50,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div style="background:linear-gradient(180deg,#0f3c91 0%,#1a4da8 100%);border-radius:28px;padding:2rem 2.5rem;text-align:center;min-width:240px;">
+        <div style="position:relative;width:70px;height:70px;margin:0 auto;">
+            <img src="{{ asset('logo.png') }}" alt="Non-UniPay" style="width:70px;height:70px;border-radius:50%;background:white;padding:6px;object-fit:contain;">
+            <div style="position:absolute;inset:-5px;border-radius:50%;border:3px solid transparent;border-top-color:#f4b400;border-right-color:rgba(244,180,0,0.3);animation:loader-spin 0.85s linear infinite;"></div>
         </div>
-        <p class="loader-text" style="color: white; font-weight: 600; margin-top: 1rem;">Processing Request</p>
-        <p class="loader-subtext" style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Please wait...</p>
-        <div class="loader-bar-track" style="width: 140px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; overflow: hidden; margin: 0.75rem auto 0;">
-            <div class="loader-bar-fill" style="height: 100%; background: #f4b400; border-radius: 99px; animation: loader-bar 1.1s ease-in-out infinite alternate;"></div>
+        <p style="color:white;font-weight:600;margin-top:1rem;">Processing Request</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;">Please wait...</p>
+        <div style="width:140px;height:4px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;margin:0.75rem auto 0;">
+            <div style="height:100%;background:#f4b400;border-radius:99px;animation:loader-bar 1.1s ease-in-out infinite alternate;"></div>
         </div>
     </div>
 </div>
@@ -434,8 +459,8 @@
         transition: all 0.2s; cursor: pointer; background: transparent;
         color: var(--text-muted); padding: 0;
     }
-    .btn-action:hover { background: rgba(15,60,145,0.1); color: #0f3c91; transform: scale(1.1); }
-    .btn-action.confirm-student:hover { background: rgba(40,167,69,0.1); color: #28a745; }
+    .btn-action:hover           { background: rgba(15,60,145,0.1);  color: #0f3c91; transform: scale(1.1); }
+    .btn-action.confirm-student:hover { background: rgba(40,167,69,0.1);  color: #28a745; }
     .btn-action.decline-student:hover { background: rgba(183,28,28,0.1); color: #b71c1c; }
     .btn-action.delete-student:hover  { background: rgba(220,53,69,0.1);  color: #dc3545; }
 
@@ -478,11 +503,8 @@
             flex: 1 1 100%;
         }
     }
-
     @media (max-width: 480px) {
-        #searchForm .filter-select {
-            flex: 1 1 100%;
-        }
+        #searchForm .filter-select { flex: 1 1 100%; }
     }
 </style>
 @endsection
@@ -554,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const otherTxt  = document.getElementById(otherTextId);
 
         modalEl.addEventListener('show.bs.modal', function () {
-            modalEl.querySelectorAll(`input[type=radio]`).forEach(r => r.checked = false);
+            modalEl.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
             otherTxt.style.display = 'none';
             otherTxt.value = '';
             submitBtn.disabled = true;
@@ -758,10 +780,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildFilterUrl(page) {
         const formData = new FormData(document.getElementById('searchForm'));
         const url      = new URL(window.location.href);
-        url.searchParams.set('search',          formData.get('search')          || '');
-        url.searchParams.set('course',           formData.get('course')           || '');
-        url.searchParams.set('year_level',       formData.get('year_level')       || '');
-        url.searchParams.set('clearance_status', formData.get('clearance_status') || '');
+        url.searchParams.set('search',           formData.get('search')           || '');
+        url.searchParams.set('course',            formData.get('course')            || '');
+        url.searchParams.set('year_level',        formData.get('year_level')        || '');
+        url.searchParams.set('clearance_status',  formData.get('clearance_status')  || '');
+        url.searchParams.set('sort',              formData.get('sort')              || 'name_asc');
         if (page && page > 1) url.searchParams.set('page', page);
         else                   url.searchParams.delete('page');
         return url.toString();
@@ -813,9 +836,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const sortSelect      = document.querySelector('select[name="sort"]');
     const courseSelect    = document.querySelector('select[name="course"]');
     const yearSelect      = document.querySelector('select[name="year_level"]');
     const clearanceSelect = document.querySelector('select[name="clearance_status"]');
+
+    if (sortSelect)      sortSelect.addEventListener('change',      applyFiltersAndLoad);
     if (courseSelect)    courseSelect.addEventListener('change',    applyFiltersAndLoad);
     if (yearSelect)      yearSelect.addEventListener('change',      applyFiltersAndLoad);
     if (clearanceSelect) clearanceSelect.addEventListener('change', applyFiltersAndLoad);
@@ -838,18 +864,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Polling ───────────────────────────────────────────────────────────────
     let lastUnconfirmedCount = null;
-function pollForNewStudents() {
-    fetch('/admin/api/new-students-count', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-    })
-        .then(r => {
-            if (!r.ok) return null;
-            return r.json();
+
+    function pollForNewStudents() {
+        fetch('/admin/api/new-students-count', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            credentials: 'same-origin'
         })
+        .then(r => { if (!r.ok) return null; return r.json(); })
         .then(data => {
             if (!data) return;
             if (lastUnconfirmedCount !== null && data.count > lastUnconfirmedCount) {
@@ -858,9 +879,10 @@ function pollForNewStudents() {
             lastUnconfirmedCount = data.count;
         })
         .catch(err => console.error('Poll error:', err));
-}
-setInterval(pollForNewStudents, 5000);
-pollForNewStudents();
+    }
+
+    setInterval(pollForNewStudents, 5000);
+    pollForNewStudents();
 
     // ── Initial bindings ──────────────────────────────────────────────────────
     attachViewHandlers();

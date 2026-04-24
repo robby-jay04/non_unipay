@@ -1399,20 +1399,29 @@
                     <div class="about-section-label">Technology</div>
                     <h2>Built with modern, reliable tools</h2>
                     <p>Non-UniPay is engineered using a robust, industry-standard stack chosen for performance, security, and maintainability.</p>
-                    <div class="tech-grid">
-                        <div class="tech-pill"><i class="fab fa-laravel"></i> Laravel 11</div>
-                        <div class="tech-pill"><i class="fab fa-php"></i> PHP 8.3</div>
-                        <div class="tech-pill"><i class="fas fa-database"></i> MySQL 8</div>
-                        <div class="tech-pill"><i class="fab fa-bootstrap"></i> Bootstrap 5</div>
-                        <div class="tech-pill"><i class="fab fa-js"></i> Vanilla JS</div>
-                        <div class="tech-pill"><i class="fas fa-mobile-alt"></i> Flutter (Mobile)</div>
-                        <div class="tech-pill"><i class="fas fa-server"></i> Apache / Nginx</div>
-                        <div class="tech-pill"><i class="fab fa-git-alt"></i> Git / GitHub</div>
-                        <div class="tech-pill"><i class="fas fa-shield-alt"></i> Laravel Sanctum</div>
-                        <div class="tech-pill"><i class="fas fa-file-pdf"></i> DomPDF</div>
-                        <div class="tech-pill"><i class="fas fa-envelope"></i> Laravel Mail</div>
-                        <div class="tech-pill"><i class="fas fa-bell"></i> Firebase FCM</div>
-                    </div>
+                   <!-- Tech Stack -->
+<div class="about-section">
+    <div class="about-section-label">Technology</div>
+    <h2>Built with modern, reliable tools</h2>
+    <p>Non-UniPay is engineered using a robust, industry-standard stack chosen for performance, security, and maintainability.</p>
+    <div class="tech-grid">
+        <div class="tech-pill"><i class="fab fa-laravel"></i> Laravel 10</div>
+        <div class="tech-pill"><i class="fab fa-php"></i> PHP 8.2</div>
+        <div class="tech-pill"><i class="fas fa-database"></i> MySQL</div>
+        <div class="tech-pill"><i class="fab fa-bootstrap"></i> Bootstrap 5.3</div>
+        <div class="tech-pill"><i class="fab fa-js"></i> Vanilla JavaScript</div>
+        <div class="tech-pill"><i class="fas fa-mobile-alt"></i> React Native (Expo)</div>
+        <div class="tech-pill"><i class="fas fa-server"></i> Docker</div>
+        <div class="tech-pill"><i class="fab fa-git-alt"></i> Git / GitHub</div>
+        <div class="tech-pill"><i class="fas fa-shield-alt"></i> Laravel Sanctum</div>
+        <div class="tech-pill"><i class="fas fa-credit-card"></i> PayMongo</div>
+        <div class="tech-pill"><i class="fas fa-robot"></i> Groq AI</div>
+        <div class="tech-pill"><i class="fas fa-image"></i> Cloudinary</div>
+        <div class="tech-pill"><i class="fas fa-envelope"></i> Resend</div>
+        <div class="tech-pill"><i class="fas fa-file-excel"></i> Maatwebsite Excel</div>
+        <div class="tech-pill"><i class="fas fa-queue"></i> Laravel Queue</div>
+    </div>
+</div>
                 </div>
 
                 <div class="about-divider"><hr></div>
@@ -1626,7 +1635,26 @@
             @endif
 
             <div class="form-divider"></div>
-            <p class="footer-note">Non-UniPay &copy; {{ date('Y') }} &nbsp;·&nbsp; Staff &amp; Admin Portal</p>
+           <p class="footer-note">
+    Non-UniPay &copy; {{ date('Y') }} &nbsp;·&nbsp; Staff &amp; Admin Portal
+    <br>
+    <span style="
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 0.4rem;
+        background: #f0f3fa;
+        border: 1px solid #e0e4ef;
+        border-radius: 8px;
+        padding: 0.25rem 0.65rem;
+        font-size: 0.72rem;
+        color: #6b7280;
+        font-weight: 500;
+    ">
+        <i class="fas fa-code-branch" style="color: #0f3c91; font-size: 0.68rem;"></i>
+        Version 1.0.0
+    </span>
+</p>
 
         </div>
     </div>

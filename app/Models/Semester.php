@@ -23,10 +23,10 @@ class Semester extends Model
         return $this->belongsTo(SchoolYear::class);
     }
 
-    public function examPeriods()
-    {
-        return $this->hasMany(ExamPeriod::class);
-    }
+   public function examPeriods()
+{
+    return $this->hasMany(ExamPeriod::class)->orderBy('id');
+}
 
     public function currentExamPeriod()
     {

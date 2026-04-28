@@ -26,30 +26,30 @@ class SchoolYearController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|unique:school_years,name',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|unique:school_years,name',
+    ]);
 
-        $year = SchoolYear::create([
-            'name'       => $request->name,
-            'is_current' => false,
-        ]);
+    $year = SchoolYear::create([
+        'name'       => $request->name,
+        'is_current' => false,
+    ]);
 
-        $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
 
-        $sem1 = $year->semesters()->create(['name' => '1st Semester', 'is_current' => false]);
-        foreach ($examPeriods as $period) {
-            $sem1->examPeriods()->create(['name' => $period]);
-        }
-
-        $sem2 = $year->semesters()->create(['name' => '2nd Semester', 'is_current' => false]);
-        foreach ($examPeriods as $period) {
-            $sem2->examPeriods()->create(['name' => $period]);
-        }
-
-        return back()->with('success', 'School year "' . $year->name . '" added with 1st and 2nd Semester.');
+    $sem1 = $year->semesters()->create(['name' => '1st Semester', 'is_current' => false]);
+    foreach ($examPeriods as $index => $period) {
+        $sem1->examPeriods()->create(['name' => $period, 'order' => $index + 1]);
     }
+
+    $sem2 = $year->semesters()->create(['name' => '2nd Semester', 'is_current' => false]);
+    foreach ($examPeriods as $index => $period) {
+        $sem2->examPeriods()->create(['name' => $period, 'order' => $index + 1]);
+    }
+
+    return back()->with('success', 'School year "' . $year->name . '" added with 1st and 2nd Semester.');
+}
 
     public function setCurrent($id)
     {

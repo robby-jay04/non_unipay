@@ -949,204 +949,203 @@
         }, 8000);
     })();
 
-    // ── Notifications ────────────────────────────────────────────────────────
-    (function () {
-        const NOTIF_KEY = 'admin_notifications';
-        const SEEN_KEY  = 'admin_notifications_seen_ids';
+// ── Notifications ────────────────────────────────────────────────────────
+(function () {
+    const NOTIF_KEY      = 'admin_notifications';
+    const LAST_PAY_KEY   = 'admin_last_payment_count';
+    const LAST_STU_KEY   = 'admin_last_student_count';
 
-        function getStored() {
-            try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; }
-        }
-        function setStored(arr) {
-            localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50)));
-        }
-        function getSeenIds() {
-            try { return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')); } catch { return new Set(); }
-        }
-        function addSeenId(id) {
-            const s = getSeenIds(); s.add(id);
-            localStorage.setItem(SEEN_KEY, JSON.stringify([...s]));
-        }
-        function markAllSeen() {
-            const notifs = getStored();
-            notifs.forEach(n => n.read = true);
-            setStored(notifs);
-            localStorage.setItem(SEEN_KEY, JSON.stringify(notifs.map(n => n.uid)));
-        }
+    function getStored() {
+        try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; }
+    }
+    function setStored(arr) {
+        localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50)));
+    }
 
-        function timeAgo(ts) {
-            const diff = Math.floor((Date.now() - ts) / 1000);
-            if (diff < 60) return 'just now';
-            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-            return Math.floor(diff / 86400) + 'd ago';
-        }
+    function timeAgo(ts) {
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        return Math.floor(diff / 86400) + 'd ago';
+    }
 
-        function buildDropdownHTML(notifs) {
-            const unreadCount = notifs.filter(n => !n.read).length;
-            let html = `
-                <div class="notif-dropdown-header">
-                    <h6><i class="fas fa-bell me-2" style="color:#0f3c91;"></i> Notifications
-                        ${unreadCount > 0 ? `<span style="font-size:0.72rem;background:rgba(15,60,145,0.1);color:#0f3c91;padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:600;">${unreadCount} new</span>` : ''}
-                    </h6>
-                    ${unreadCount > 0 ? `<button class="notif-mark-read" onclick="window._markAllNotifRead(event)">Mark all read</button>` : ''}
-                </div>
-                <div class="notif-list">`;
+    function buildDropdownHTML(notifs) {
+        const unreadCount = notifs.filter(n => !n.read).length;
+        let html = `
+            <div class="notif-dropdown-header">
+                <h6><i class="fas fa-bell me-2" style="color:#0f3c91;"></i> Notifications
+                    ${unreadCount > 0 ? `<span style="font-size:0.72rem;background:rgba(15,60,145,0.1);color:#0f3c91;padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:600;">${unreadCount} new</span>` : ''}
+                </h6>
+                ${unreadCount > 0 ? `<button class="notif-mark-read" onclick="window._markAllNotifRead(event)">Mark all read</button>` : ''}
+            </div>
+            <div class="notif-list">`;
 
-            if (notifs.length === 0) {
-                html += `<div class="notif-empty">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>No notifications yet</p>
-                </div>`;
-            } else {
-                notifs.forEach(n => {
-                    const isPayment = n.type === 'payment';
-                    html += `
-                        <a href="${n.url}" class="notif-item ${n.read ? '' : 'unread'}" onclick="window._handleNotifClick(event, '${n.uid}', '${n.url}')">
-                            <div class="notif-icon-wrap ${n.type}">
-                                <i class="fas ${isPayment ? 'fa-money-bill-wave' : 'fa-user-graduate'}"></i>
-                            </div>
-                            <div class="notif-body">
-                                <div class="notif-title">${n.title}</div>
-                                <div class="notif-desc">${n.desc}</div>
-                                <div class="notif-time">${timeAgo(n.ts)}</div>
-                            </div>
-                            ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
-                        </a>`;
-                });
-            }
-
-            html += `</div>`;
-            if (notifs.length > 0) {
-                html += `<div class="notif-footer">
-                    <a href="{{ route('admin.payments') }}">View all payments</a>
-                    &nbsp;·&nbsp;
-                    <a href="{{ route('admin.students') }}">View all students</a>
-                </div>`;
-            }
-            return html;
-        }
-
-        function renderAll() {
-            const notifs = getStored();
-            const html   = buildDropdownHTML(notifs);
-            document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
-                if (el) el.innerHTML = html;
-            });
-            const unread = notifs.filter(n => !n.read).length;
-            document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
-                if (badge) {
-                    badge.textContent = unread > 9 ? '9+' : unread;
-                    badge.classList.toggle('show', unread > 0);
-                }
-            });
-            document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
-                if (btn) btn.classList.toggle('has-notifs', unread > 0);
+        if (notifs.length === 0) {
+            html += `<div class="notif-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>`;
+        } else {
+            notifs.forEach(n => {
+                const isPayment = n.type === 'payment';
+                html += `
+                    <a href="${n.url}" class="notif-item ${n.read ? '' : 'unread'}" onclick="window._handleNotifClick(event, '${n.uid}', '${n.url}')">
+                        <div class="notif-icon-wrap ${n.type}">
+                            <i class="fas ${isPayment ? 'fa-money-bill-wave' : 'fa-user-graduate'}"></i>
+                        </div>
+                        <div class="notif-body">
+                            <div class="notif-title">${n.title}</div>
+                            <div class="notif-desc">${n.desc}</div>
+                            <div class="notif-time">${timeAgo(n.ts)}</div>
+                        </div>
+                        ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+                    </a>`;
             });
         }
 
-        window._markAllNotifRead = function (e) {
-            e.stopPropagation();
-            markAllSeen();
-            const notifs = getStored();
-            notifs.forEach(n => n.read = true);
-            setStored(notifs);
-            renderAll();
-        };
-        window._handleNotifClick = function (e, uid, url) {
-            e.preventDefault();
-            addSeenId(uid);
-            const notifs = getStored();
-            notifs.forEach(n => { if (n.uid === uid) n.read = true; });
-            setStored(notifs);
-            renderAll();
-            window.location.href = url;
-        };
-
-        function toggleDropdown(btnId, dropId) {
-            const btn  = document.getElementById(btnId);
-            const drop = document.getElementById(dropId);
-            if (!btn || !drop) return;
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                document.querySelectorAll('.notif-dropdown').forEach(d => {
-                    if (d !== drop) d.classList.remove('open');
-                });
-                drop.classList.toggle('open');
-            });
+        html += `</div>`;
+        if (notifs.length > 0) {
+            html += `<div class="notif-footer">
+                <a href="{{ route('admin.payments') }}">View all payments</a>
+                &nbsp;·&nbsp;
+                <a href="{{ route('admin.students') }}">View all students</a>
+            </div>`;
         }
-        toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
-        toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
+        return html;
+    }
 
-        document.addEventListener('click', e => {
-            if (!e.target.closest('.notif-wrapper') && !e.target.closest('.notif-dropdown')) {
-                document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
-            }
+    function renderAll() {
+        const notifs = getStored();
+        const html   = buildDropdownHTML(notifs);
+        document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
+            if (el) el.innerHTML = html;
         });
+        const unread = notifs.filter(n => !n.read).length;
+        document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
+            if (!badge) return;
+            badge.textContent = unread > 9 ? '9+' : unread;
+            badge.classList.toggle('show', unread > 0);
+        });
+        document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
+            if (btn) btn.classList.toggle('has-notifs', unread > 0);
+        });
+    }
 
-        let lastPaymentCount = null;
-        let lastStudentCount = null;
-
-        function checkPayments() {
-            fetch('/admin/api/pending-payments-count', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(r => r.json())
-            .then(data => {
-                const count = data.count || 0;
-                if (lastPaymentCount !== null && count > lastPaymentCount) {
-                    const diff   = count - lastPaymentCount;
-                    const notifs = getStored();
-                    const seen   = getSeenIds();
-                    const uid    = `pay_${Date.now()}`;
-                    if (!seen.has(uid)) {
-                        notifs.unshift({
-                            uid, type: 'payment',
-                            title: `${diff} new payment${diff > 1 ? 's' : ''} pending`,
-                            desc: 'New payment submission(s) awaiting your review.',
-                            url: '{{ route("admin.payments") }}',
-                            ts: Date.now(), read: false
-                        });
-                        setStored(notifs);
-                        renderAll();
-                    }
-                }
-                lastPaymentCount = count;
-            })
-            .catch(() => {});
-        }
-
-        function checkStudents() {
-            fetch('/admin/api/new-students-count', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(r => r.json())
-            .then(data => {
-                const count = data.count || 0;
-                if (lastStudentCount !== null && count > lastStudentCount) {
-                    const diff   = count - lastStudentCount;
-                    const notifs = getStored();
-                    const uid    = `stu_${Date.now()}`;
-                    notifs.unshift({
-                        uid, type: 'student',
-                        title: `${diff} new student${diff > 1 ? 's' : ''} registered`,
-                        desc: 'New student registration(s) need confirmation.',
-                        url: '{{ route("admin.students") }}',
-                        ts: Date.now(), read: false
-                    });
-                    setStored(notifs);
-                    renderAll();
-                }
-                lastStudentCount = count;
-            })
-            .catch(() => {});
-        }
-
+    window._markAllNotifRead = function (e) {
+        e.stopPropagation();
+        const notifs = getStored();
+        notifs.forEach(n => n.read = true);
+        setStored(notifs);
         renderAll();
-        checkPayments();
-        checkStudents();
-        setInterval(() => { checkPayments(); checkStudents(); }, 5000);
-    })();
+    };
+    window._handleNotifClick = function (e, uid, url) {
+        e.preventDefault();
+        const notifs = getStored();
+        notifs.forEach(n => { if (n.uid === uid) n.read = true; });
+        setStored(notifs);
+        renderAll();
+        window.location.href = url;
+    };
+
+    function toggleDropdown(btnId, dropId) {
+        const btn  = document.getElementById(btnId);
+        const drop = document.getElementById(dropId);
+        if (!btn || !drop) return;
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            document.querySelectorAll('.notif-dropdown').forEach(d => {
+                if (d !== drop) d.classList.remove('open');
+            });
+            drop.classList.toggle('open');
+        });
+    }
+    toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
+    toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.notif-wrapper')) {
+            document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
+        }
+    });
+
+    function pushNotif(type, title, desc, url) {
+        const notifs = getStored();
+        notifs.unshift({
+            uid:  type + '_' + Date.now(),
+            type, title, desc, url,
+            ts:   Date.now(),
+            read: false,
+        });
+        setStored(notifs);
+        renderAll();
+    }
+
+    // Persist counts across page loads using localStorage so that
+    // navigating away and back doesn't reset the baseline to null.
+    function getLastCount(key) {
+        const v = localStorage.getItem(key);
+        return v === null ? null : parseInt(v, 10);
+    }
+    function setLastCount(key, val) {
+        localStorage.setItem(key, String(val));
+    }
+
+    function checkPayments() {
+        fetch('/admin/api/pending-payments-count', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data) return;
+            const count = data.count || 0;
+            const last  = getLastCount(LAST_PAY_KEY);
+
+            // Only notify on increase; ignore first-load baseline set
+            if (last !== null && count > last) {
+                const diff = count - last;
+                pushNotif(
+                    'payment',
+                    `${diff} new payment${diff > 1 ? 's' : ''} pending`,
+                    'New payment submission(s) awaiting your review.',
+                    '{{ route("admin.payments") }}'
+                );
+            }
+            setLastCount(LAST_PAY_KEY, count);
+        })
+        .catch(() => {});
+    }
+
+    function checkStudents() {
+        fetch('/admin/api/new-students-count', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data) return;
+            const count = data.count || 0;
+            const last  = getLastCount(LAST_STU_KEY);
+
+            // Only notify on increase; ignore first-load baseline set
+            if (last !== null && count > last) {
+                const diff = count - last;
+                pushNotif(
+                    'student',
+                    `${diff} new student${diff > 1 ? 's' : ''} registered`,
+                    'New student registration(s) need confirmation.',
+                    '{{ route("admin.students") }}'
+                );
+            }
+            setLastCount(LAST_STU_KEY, count);
+        })
+        .catch(() => {});
+    }
+
+    renderAll();
+    checkPayments();
+    checkStudents();
+    setInterval(() => { checkPayments(); checkStudents(); }, 5000);
+})();
     </script>
 </body>
 </html>

@@ -481,76 +481,94 @@
         .pw-strength-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.3s, background 0.3s; }
         .pw-strength-text { font-size: 0.72rem; margin-top: 4px; }
 
+        /* NEW: Password toggle button styles */
+        .input-group-position {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            padding: 0;
+            z-index: 10;
+        }
+        .password-toggle:hover {
+            color: var(--btn-primary);
+        }
+        @media (max-width: 767.98px) {
+            .password-toggle { right: 10px; }
+        }
 
         /* Full-screen loading overlay for AJAX requests */
-#ajax-loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
-}
-#ajax-loader.visible {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.2s ease, visibility 0s linear 0s;
-}
-.ajax-loader-content {
-    background: var(--bg-main);
-    padding: 2rem 2.5rem;
-    border-radius: 24px;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-.ajax-loader-content i {
-    font-size: 2.5rem;
-    color: var(--btn-primary);
-    margin-bottom: 1rem;
-    display: inline-block;
-}
-.ajax-loader-content p {
-    margin: 0;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-body.dark .ajax-loader-content {
-    background: var(--bg-main);
-}
-/* Force light text in dark mode for all form controls */
-body.dark .form-control,
-body.dark .form-select,
-body.dark input.form-control,
-body.dark textarea.form-control,
-body.dark select.form-select {
-    color: #f1f5f9 !important;
-    background-color: #334155 !important; /* ensure dark background */
-    border-color: #475569 !important;
-}
-
-/* Also fix placeholder text color */
-body.dark .form-control::placeholder,
-body.dark input::placeholder,
-body.dark textarea::placeholder {
-    color: #94a3b8 !important;
-    opacity: 1;
-}
-
-/* For autofilled inputs (Chrome, etc.) */
-body.dark input:-webkit-autofill,
-body.dark input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #f1f5f9 !important;
-    -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
-    transition: background-color 5000s ease-in-out 0s;
-}
+        #ajax-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+        }
+        #ajax-loader.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s ease, visibility 0s linear 0s;
+        }
+        .ajax-loader-content {
+            background: var(--bg-main);
+            padding: 2rem 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .ajax-loader-content i {
+            font-size: 2.5rem;
+            color: var(--btn-primary);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        .ajax-loader-content p {
+            margin: 0;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        body.dark .ajax-loader-content {
+            background: var(--bg-main);
+        }
+        /* Force light text in dark mode for all form controls */
+        body.dark .form-control,
+        body.dark .form-select,
+        body.dark input.form-control,
+        body.dark textarea.form-control,
+        body.dark select.form-select {
+            color: #f1f5f9 !important;
+            background-color: #334155 !important;
+            border-color: #475569 !important;
+        }
+        body.dark .form-control::placeholder,
+        body.dark input::placeholder,
+        body.dark textarea::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+        body.dark input:-webkit-autofill,
+        body.dark input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #f1f5f9 !important;
+            -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
     </style>
     @stack('styles')
 </head>
@@ -596,11 +614,10 @@ body.dark input:-webkit-autofill:focus {
                 <div class="admin-avatar-wrapper">
                     <button class="admin-avatar-btn" id="mobileAvatarBtn" aria-label="Profile menu">
                         @if(auth()->user()->profile_picture)
-    <img src="{{ auth()->user()->profile_picture }}" alt="Avatar">
-@else
-    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-@endif
-
+                            <img src="{{ auth()->user()->profile_picture }}" alt="Avatar">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        @endif
                     </button>
                     <div class="profile-dropdown" id="mobileProfileDropdown">
                         @include('admin.partials.profile_dropdown')
@@ -672,7 +689,6 @@ body.dark input:-webkit-autofill:focus {
                     @endif
                 </ul>
             </div>
-            {{-- Logout removed from sidebar; accessible via avatar dropdown --}}
         </div>
     </div>
 
@@ -734,7 +750,6 @@ body.dark input:-webkit-autofill:focus {
                 @endif
             </ul>
         </div>
-        {{-- Logout removed from sidebar --}}
     </aside>
 
     {{-- Desktop Top Bar --}}
@@ -757,19 +772,19 @@ body.dark input:-webkit-autofill:focus {
                 <div class="notif-dropdown" id="desktopNotifDropdown"></div>
             </div>
 
-           {{-- Admin Avatar with Profile Dropdown --}}
-<div class="admin-avatar-wrapper">
-    <button class="admin-avatar-btn" id="desktopAvatarBtn" aria-label="Profile menu">
-        @if(auth()->user()->profile_picture)
-            <img src="{{ auth()->user()->profile_picture }}" alt="Avatar" id="topbarAvatarImg">
-        @else
-            <span id="topbarAvatarInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
-        @endif
-    </button>
-    <div class="profile-dropdown" id="desktopProfileDropdown">
-        @include('admin.partials.profile_dropdown')
-    </div>
-</div>
+            {{-- Admin Avatar with Profile Dropdown --}}
+            <div class="admin-avatar-wrapper">
+                <button class="admin-avatar-btn" id="desktopAvatarBtn" aria-label="Profile menu">
+                    @if(auth()->user()->profile_picture)
+                        <img src="{{ auth()->user()->profile_picture }}" alt="Avatar" id="topbarAvatarImg">
+                    @else
+                        <span id="topbarAvatarInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                    @endif
+                </button>
+                <div class="profile-dropdown" id="desktopProfileDropdown">
+                    @include('admin.partials.profile_dropdown')
+                </div>
+            </div>
         </div>
     </header>
 
@@ -779,7 +794,7 @@ body.dark input:-webkit-autofill:focus {
     </main>
 
     {{-- ════════════════════════════════════════════
-         Edit Profile Modal
+         Edit Profile Modal (with password toggles)
          ════════════════════════════════════════════ --}}
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
@@ -790,12 +805,13 @@ body.dark input:-webkit-autofill:focus {
                 </div>
                 <div class="modal-body p-4">
 
-                    {{-- Avatar upload --}}
+                    {{-- Avatar upload area (Cloudinary direct URL) --}}
                     <div class="avatar-upload-area">
                         <label for="profilePicInput" style="cursor:pointer;">
                             <div class="avatar-preview" id="avatarPreview">
                                 @if(auth()->user()->profile_picture)
-                                    <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar" id="avatarPreviewImg">
+                                    <img src="{{ auth()->user()->profile_picture }}" alt="Avatar" id="avatarPreviewImg">
+                                    <span id="avatarPreviewInitial" style="display:none;">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                 @else
                                     <span id="avatarPreviewInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                     <img src="" alt="" id="avatarPreviewImg" style="display:none;">
@@ -817,7 +833,7 @@ body.dark input:-webkit-autofill:focus {
                         </button>
                     </div>
 
-                    {{-- Email Tab --}}
+                    {{-- Email Tab with password toggle --}}
                     <div class="profile-tab-panel active" id="tab-email">
                         <form id="updateEmailForm">
                             @csrf
@@ -829,9 +845,12 @@ body.dark input:-webkit-autofill:focus {
                                 <label class="form-label fw-600" style="font-size:0.85rem; font-weight:600;">Email Address</label>
                                 <input type="email" class="form-control" name="email" value="{{ auth()->user()->email }}" required>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 input-group-position">
                                 <label class="form-label fw-600" style="font-size:0.85rem; font-weight:600;">Confirm Current Password</label>
-                                <input type="password" class="form-control" name="current_password" placeholder="Enter current password to confirm" required>
+                                <input type="password" class="form-control" name="current_password" id="currentPasswordEmail" placeholder="Enter current password to confirm" required>
+                                <button type="button" class="password-toggle" data-target="currentPasswordEmail">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                             <div id="emailFormAlert" class="alert d-none" style="font-size:0.82rem; border-radius:10px;"></div>
                             <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
@@ -840,23 +859,32 @@ body.dark input:-webkit-autofill:focus {
                         </form>
                     </div>
 
-                    {{-- Password Tab --}}
+                    {{-- Password Tab with toggles for all three fields --}}
                     <div class="profile-tab-panel" id="tab-password">
                         <form id="updatePasswordForm">
                             @csrf
-                            <div class="mb-3">
+                            <div class="mb-3 input-group-position">
                                 <label class="form-label" style="font-size:0.85rem; font-weight:600;">Current Password</label>
-                                <input type="password" class="form-control" name="current_password" placeholder="Your current password" required>
+                                <input type="password" class="form-control" name="current_password" id="currentPasswordPass" placeholder="Your current password" required>
+                                <button type="button" class="password-toggle" data-target="currentPasswordPass">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 input-group-position">
                                 <label class="form-label" style="font-size:0.85rem; font-weight:600;">New Password</label>
                                 <input type="password" class="form-control" name="new_password" id="newPasswordInput" placeholder="At least 8 characters" required>
+                                <button type="button" class="password-toggle" data-target="newPasswordInput">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
                                 <div class="pw-strength-text text-muted" id="pwStrengthText"></div>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 input-group-position">
                                 <label class="form-label" style="font-size:0.85rem; font-weight:600;">Confirm New Password</label>
-                                <input type="password" class="form-control" name="new_password_confirmation" placeholder="Repeat new password" required>
+                                <input type="password" class="form-control" name="new_password_confirmation" id="confirmPasswordInput" placeholder="Repeat new password" required>
+                                <button type="button" class="password-toggle" data-target="confirmPasswordInput">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                             <div id="passwordFormAlert" class="alert d-none" style="font-size:0.82rem; border-radius:10px;"></div>
                             <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
@@ -896,17 +924,15 @@ body.dark input:-webkit-autofill:focus {
     @stack('scripts')
 
     <script>
-// ── Dark Mode (label stays "Dark mode" always) ─────────────────────────
+// ── Dark Mode ─────────────────────────────────────────
 (function() {
     const STORAGE_KEY = 'admin_dark_mode';
 
     function syncDarkModeUI() {
         const isDark = document.body.classList.contains('dark');
-        // Update all switches (keep them in sync)
         document.querySelectorAll('.dark-mode-switch').forEach(sw => {
             sw.checked = isDark;
         });
-        // Do NOT change the label text – keep it as "Dark mode"
     }
 
     function setDarkMode(isDark) {
@@ -919,7 +945,6 @@ body.dark input:-webkit-autofill:focus {
         setDarkMode(!document.body.classList.contains('dark'));
     };
 
-    // Initialize theme
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored !== null) {
         setDarkMode(stored === 'true');
@@ -927,14 +952,12 @@ body.dark input:-webkit-autofill:focus {
         setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
 
-    // Listen for system preference changes (only if no stored preference)
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         if (localStorage.getItem(STORAGE_KEY) === null) {
             setDarkMode(e.matches);
         }
     });
 
-    // Attach change event to all switches
     function bindSwitchEvents() {
         document.querySelectorAll('.dark-mode-switch').forEach(sw => {
             sw.removeEventListener('change', window.toggleDarkMode);
@@ -943,7 +966,6 @@ body.dark input:-webkit-autofill:focus {
     }
     bindSwitchEvents();
 
-    // Re-sync UI when profile dropdown opens
     function bindDropdownSync() {
         const dropdownButtons = ['#desktopAvatarBtn', '#mobileAvatarBtn'];
         dropdownButtons.forEach(selector => {
@@ -1157,9 +1179,7 @@ body.dark input:-webkit-autofill:focus {
             if (!btn || !drop) return;
             btn.addEventListener('click', e => {
                 e.stopPropagation();
-                // Close notif dropdowns
                 document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
-                // Close other profile dropdowns
                 document.querySelectorAll('.profile-dropdown').forEach(d => { if (d !== drop) d.classList.remove('open'); });
                 drop.classList.toggle('open');
             });
@@ -1184,7 +1204,7 @@ body.dark input:-webkit-autofill:focus {
         });
     });
 
-    // ── Avatar Preview ────────────────────────────────────────────────────────
+    // ── Avatar Preview & Upload (Cloudinary) ──────────────────────────────────
     document.getElementById('profilePicInput')?.addEventListener('change', function () {
         const file = this.files[0];
         if (!file) return;
@@ -1195,18 +1215,16 @@ body.dark input:-webkit-autofill:focus {
             if (img) { img.src = e.target.result; img.style.display = 'block'; }
             if (initial) initial.style.display = 'none';
 
-            // Also upload immediately
             const formData = new FormData();
             formData.append('profile_picture', file);
             formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
             fetch('{{ route("admin.profile.picture") }}', { method: 'POST', body: formData })
                 .then(r => r.json()).then(data => {
                     if (data.success) {
-                        // Update all avatar spots
-                        document.querySelectorAll('.admin-avatar-btn img, .profile-dropdown-avatar img').forEach(i => {
+                        document.querySelectorAll('.admin-avatar-btn img, .profile-dropdown-avatar img, #avatarPreviewImg').forEach(i => {
                             i.src = data.url; i.style.display = 'block';
                         });
-                        document.querySelectorAll('#topbarAvatarInitial').forEach(s => s.style.display = 'none');
+                        document.querySelectorAll('#topbarAvatarInitial, #avatarPreviewInitial').forEach(s => s.style.display = 'none');
                     }
                 }).catch(() => {});
         };
@@ -1235,87 +1253,110 @@ body.dark input:-webkit-autofill:focus {
         if (text) { text.textContent = lv.label; text.style.color = lv.color; }
     });
 
-  // ── Update Email/Name Form (full-screen loader) ─────────────────────────
-document.getElementById('updateEmailForm')?.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const alertBox = document.getElementById('emailFormAlert');
-    const loader = document.getElementById('ajax-loader');
-    
-    // Show full‑screen loader
-    if (loader) loader.classList.add('visible');
-    
-    alertBox.className = 'alert d-none';
-    const formData = new FormData(this);
-    try {
-        const res = await fetch('{{ route("admin.profile.update") }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: formData,
+    // ── PASSWORD TOGGLE FUNCTIONALITY (NEW) ─────────────────────────────────
+    function initPasswordToggles() {
+        const toggleButtons = document.querySelectorAll('.password-toggle');
+        toggleButtons.forEach(btn => {
+            btn.removeEventListener('click', toggleHandler);
+            btn.addEventListener('click', toggleHandler);
         });
-        const json = await res.json();
-        alertBox.classList.remove('d-none');
-        if (json.success) {
-            alertBox.className = 'alert alert-success';
-            alertBox.textContent = json.message || 'Profile updated successfully.';
-        } else {
-            alertBox.className = 'alert alert-danger';
-            alertBox.textContent = json.message || 'Update failed.';
-        }
-    } catch (error) {
-        alertBox.classList.remove('d-none');
-        alertBox.className = 'alert alert-danger';
-        alertBox.textContent = 'An error occurred. Please try again.';
-    } finally {
-        // Hide full‑screen loader
-        if (loader) loader.classList.remove('visible');
     }
-});
+    function toggleHandler(e) {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (!input) return;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        const icon = this.querySelector('i');
+        if (type === 'text') {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+    initPasswordToggles();
+    document.getElementById('editProfileModal')?.addEventListener('shown.bs.modal', initPasswordToggles);
 
-  // ── Update Password Form (full-screen loader) ───────────────────────────
-document.getElementById('updatePasswordForm')?.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const alertBox = document.getElementById('passwordFormAlert');
-    const loader = document.getElementById('ajax-loader');
-    
-    // Show full‑screen loader
-    if (loader) loader.classList.add('visible');
-    
-    alertBox.className = 'alert d-none';
-    const formData = new FormData(this);
-    try {
-        const res = await fetch('{{ route("admin.profile.password") }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: formData,
-        });
-        const json = await res.json();
-        alertBox.classList.remove('d-none');
-        if (json.success) {
-            alertBox.className = 'alert alert-success';
-            alertBox.textContent = json.message || 'Password changed successfully.';
-            this.reset();
-            document.getElementById('pwStrengthFill').style.width = '0%';
-            document.getElementById('pwStrengthText').textContent = '';
-        } else {
+    // ── Update Email/Name Form (full-screen loader) ─────────────────────────
+    document.getElementById('updateEmailForm')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const alertBox = document.getElementById('emailFormAlert');
+        const loader = document.getElementById('ajax-loader');
+        
+        if (loader) loader.classList.add('visible');
+        
+        alertBox.className = 'alert d-none';
+        const formData = new FormData(this);
+        try {
+            const res = await fetch('{{ route("admin.profile.update") }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: formData,
+            });
+            const json = await res.json();
+            alertBox.classList.remove('d-none');
+            if (json.success) {
+                alertBox.className = 'alert alert-success';
+                alertBox.textContent = json.message || 'Profile updated successfully.';
+            } else {
+                alertBox.className = 'alert alert-danger';
+                alertBox.textContent = json.message || 'Update failed.';
+            }
+        } catch (error) {
+            alertBox.classList.remove('d-none');
             alertBox.className = 'alert alert-danger';
-            alertBox.textContent = json.message || 'Update failed.';
+            alertBox.textContent = 'An error occurred. Please try again.';
+        } finally {
+            if (loader) loader.classList.remove('visible');
         }
-    } catch (error) {
-        alertBox.classList.remove('d-none');
-        alertBox.className = 'alert alert-danger';
-        alertBox.textContent = 'An error occurred. Please try again.';
-    } finally {
-        // Hide full‑screen loader
-        if (loader) loader.classList.remove('visible');
-    }
-});
+    });
+
+    // ── Update Password Form (full-screen loader) ───────────────────────────
+    document.getElementById('updatePasswordForm')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const alertBox = document.getElementById('passwordFormAlert');
+        const loader = document.getElementById('ajax-loader');
+        
+        if (loader) loader.classList.add('visible');
+        
+        alertBox.className = 'alert d-none';
+        const formData = new FormData(this);
+        try {
+            const res = await fetch('{{ route("admin.profile.password") }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: formData,
+            });
+            const json = await res.json();
+            alertBox.classList.remove('d-none');
+            if (json.success) {
+                alertBox.className = 'alert alert-success';
+                alertBox.textContent = json.message || 'Password changed successfully.';
+                this.reset();
+                document.getElementById('pwStrengthFill').style.width = '0%';
+                document.getElementById('pwStrengthText').textContent = '';
+            } else {
+                alertBox.className = 'alert alert-danger';
+                alertBox.textContent = json.message || 'Update failed.';
+            }
+        } catch (error) {
+            alertBox.classList.remove('d-none');
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = 'An error occurred. Please try again.';
+        } finally {
+            if (loader) loader.classList.remove('visible');
+        }
+    });
     </script>
+
     {{-- Global AJAX loading overlay --}}
-<div id="ajax-loader">
-    <div class="ajax-loader-content">
-        <i class="fas fa-spinner fa-pulse"></i>
-        <p>Updating profile...</p>
+    <div id="ajax-loader">
+        <div class="ajax-loader-content">
+            <i class="fas fa-spinner fa-pulse"></i>
+            <p>Updating profile...</p>
+        </div>
     </div>
-</div>
 </body>
 </html>

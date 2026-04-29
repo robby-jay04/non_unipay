@@ -322,7 +322,13 @@
             position: relative;
         }
         .admin-avatar-btn:hover { border-color: var(--btn-primary); box-shadow: 0 0 0 3px rgba(15,60,145,0.15); transform: scale(1.05); }
-        .admin-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-avatar-btn img,
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
         .admin-avatar-wrapper { position: relative; }
 
         /* Profile Dropdown */
@@ -481,28 +487,40 @@
         .pw-strength-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.3s, background 0.3s; }
         .pw-strength-text { font-size: 0.72rem; margin-top: 4px; }
 
-        /* NEW: Password toggle button styles */
-        .input-group-position {
-            position: relative;
-        }
-        .password-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: var(--text-muted);
-            background: none;
-            border: none;
-            padding: 0;
-            z-index: 10;
-        }
-        .password-toggle:hover {
-            color: var(--btn-primary);
-        }
-        @media (max-width: 767.98px) {
-            .password-toggle { right: 10px; }
-        }
+        /* Password toggle – visible only on mobile */
+.input-group-position {
+    position: relative;
+}
+
+/* Hide toggle on desktop (screen > 768px) */
+@media (min-width: 768px) {
+    .password-toggle {
+        display: none !important;
+    }
+}
+
+/* Show toggle only on mobile */
+@media (max-width: 767.98px) {
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        background: none;
+        border: none;
+        padding: 0;
+        z-index: 10;
+        display: block;
+    }
+    .password-toggle:hover {
+        color: var(--btn-primary);
+    }
+    .password-toggle i {
+        font-size: 1rem;
+    }
+}
 
         /* Full-screen loading overlay for AJAX requests */
         #ajax-loader {

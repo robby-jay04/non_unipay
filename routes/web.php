@@ -53,11 +53,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // PROFILE
-    Route::post('/profile/picture',  [ProfileController::class, 'updatePicture'])->name('profile.picture');
-    Route::post('/profile/update',   [ProfileController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
-
-
+Route::post('/profile/picture',  [ProfileController::class, 'updatePicture'])->name('profile.picture');
+Route::post('/profile/update',   [ProfileController::class, 'updateProfile'])->name('profile.update');
+Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         // PAYMENTS
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
         Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');

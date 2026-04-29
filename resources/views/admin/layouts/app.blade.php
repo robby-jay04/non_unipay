@@ -596,10 +596,11 @@ body.dark input:-webkit-autofill:focus {
                 <div class="admin-avatar-wrapper">
                     <button class="admin-avatar-btn" id="mobileAvatarBtn" aria-label="Profile menu">
                         @if(auth()->user()->profile_picture)
-                            <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar">
-                        @else
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        @endif
+    <img src="{{ auth()->user()->profile_picture }}" alt="Avatar">
+@else
+    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+@endif
+
                     </button>
                     <div class="profile-dropdown" id="mobileProfileDropdown">
                         @include('admin.partials.profile_dropdown')
@@ -756,19 +757,19 @@ body.dark input:-webkit-autofill:focus {
                 <div class="notif-dropdown" id="desktopNotifDropdown"></div>
             </div>
 
-            {{-- Admin Avatar with Profile Dropdown --}}
-            <div class="admin-avatar-wrapper">
-                <button class="admin-avatar-btn" id="desktopAvatarBtn" aria-label="Profile menu">
-                    @if(auth()->user()->profile_picture)
-                        <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar" id="topbarAvatarImg">
-                    @else
-                        <span id="topbarAvatarInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
-                    @endif
-                </button>
-                <div class="profile-dropdown" id="desktopProfileDropdown">
-                    @include('admin.partials.profile_dropdown')
-                </div>
-            </div>
+           {{-- Admin Avatar with Profile Dropdown --}}
+<div class="admin-avatar-wrapper">
+    <button class="admin-avatar-btn" id="desktopAvatarBtn" aria-label="Profile menu">
+        @if(auth()->user()->profile_picture)
+            <img src="{{ auth()->user()->profile_picture }}" alt="Avatar" id="topbarAvatarImg">
+        @else
+            <span id="topbarAvatarInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+        @endif
+    </button>
+    <div class="profile-dropdown" id="desktopProfileDropdown">
+        @include('admin.partials.profile_dropdown')
+    </div>
+</div>
         </div>
     </header>
 

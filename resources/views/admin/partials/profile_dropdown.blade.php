@@ -1,7 +1,7 @@
 <div class="profile-dropdown-header">
     <div class="profile-dropdown-avatar">
         @if(auth()->user()->profile_picture)
-            <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar">
+            <img src="{{ auth()->user()->profile_picture }}" alt="Avatar">
         @else
             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
         @endif

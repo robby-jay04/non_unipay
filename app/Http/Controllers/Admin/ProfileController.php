@@ -8,6 +8,7 @@ use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProfileController extends Controller
 {
@@ -20,35 +21,42 @@ class ProfileController extends Controller
 
     /** Upload profile picture */
     public function updatePicture(Request $request)
-    {
-        $request->validate(['profile_picture' => 'required|image|max:2048']);
+{
+    $request->validate(['profile_picture' => 'required|image|max:2048']);
 
-        /** @var User $user */
-        $user = User::findOrFail(auth()->id());
+    $user = User::findOrFail(auth()->id());
 
-        if ($user->profile_picture) {
-            Storage::disk('public')->delete($user->profile_picture);
-        }
-
-        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-
-        $user->profile_picture = $path;
-        $user->save();
-
-        $this->auditLogger->log(
-            actionType: 'admin.profile.picture',
-            module: 'Profile',
-            description: "Admin {$user->email} updated their profile picture",
-            entity: $user,
-            severity: 'low'
-        );
-
-        return response()->json([
-            'success' => true,
-            'url'     => Storage::url($path),
-        ]);
+    // Delete old Cloudinary image if exists
+    if ($user->profile_picture_public_id) {
+        Cloudinary::destroy($user->profile_picture_public_id);
     }
 
+    $uploadedFile = $request->file('profile_picture');
+
+    $result = Cloudinary::upload($uploadedFile->getRealPath(), [
+        'folder'    => 'admin_profiles',
+        'public_id' => 'admin_' . $user->id . '_' . time(),
+        'overwrite' => true,
+    ]);
+
+    $user->profile_picture = $result->getSecurePath();
+    $user->profile_picture_public_id = $result->getPublicId();
+    $user->save();
+
+    // Your existing audit log
+    $this->auditLogger->log(
+        actionType: 'admin.profile.picture',
+        module: 'Profile',
+        description: "Admin {$user->email} updated their profile picture with Cloudinary",
+        entity: $user,
+        severity: 'low'
+    );
+
+    return response()->json([
+        'success' => true,
+        'url'     => $user->profile_picture,
+    ]);
+}
     /** Update name and/or email */
     public function updateProfile(Request $request)
     {

@@ -4,262 +4,329 @@
     <meta charset="UTF-8">
     <title>Payment Successful · Non-UniPay</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f3c91 0%, #1a56c4 60%, #0a2e6f 100%);
+            background: #0A63F3;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* Decorative blobs */
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 0;
-            pointer-events: none;
-        }
-        .blob-1 {
-            width: 400px; height: 400px;
-            background: rgba(244, 180, 20, 0.18);
-            top: -120px; right: -80px;
-        }
-        .blob-2 {
-            width: 350px; height: 350px;
-            background: rgba(255, 255, 255, 0.07);
-            bottom: -100px; left: -60px;
-        }
-        .blob-3 {
-            width: 200px; height: 200px;
-            background: rgba(244, 180, 20, 0.1);
-            bottom: 60px; right: 40px;
-        }
-
-        .wrapper {
+        .screen {
             width: 100%;
-            max-width: 460px;
-            position: relative;
-            z-index: 10;
-            animation: fadeInUp 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 360px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 28px;
-            padding: 44px 36px 36px;
-            box-shadow:
-                0 40px 80px rgba(0, 0, 0, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-            text-align: center;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px 14px;
         }
 
-        /* Animated success icon */
-        .icon-wrap {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 28px;
+        .header h1 {
+            color: white;
+            font-size: 20px;
+            font-weight: 500;
         }
 
-        .icon-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 3px solid rgba(15, 60, 145, 0.15);
-            animation: ringPulse 2s ease-out infinite;
+        .header .done {
+            color: white;
+            font-size: 15px;
+            font-weight: 400;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
         }
 
-        .icon-circle {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0f3c91, #1a56c4);
+        .zigzag-top {
+            width: 100%;
+            height: 18px;
+            background: white;
+            clip-path: polygon(
+                0% 100%, 3.33% 0%, 6.66% 100%, 9.99% 0%, 13.32% 100%,
+                16.65% 0%, 19.98% 100%, 23.31% 0%, 26.64% 100%, 29.97% 0%,
+                33.3% 100%, 36.63% 0%, 39.96% 100%, 43.29% 0%, 46.62% 100%,
+                49.95% 0%, 53.28% 100%, 56.61% 0%, 59.94% 100%, 63.27% 0%,
+                66.6% 100%, 69.93% 0%, 73.26% 100%, 76.59% 0%, 79.92% 100%,
+                83.25% 0%, 86.58% 100%, 89.91% 0%, 93.24% 100%, 96.57% 0%,
+                100% 100%, 100% 100%, 0% 100%
+            );
+        }
+
+        .receipt-body {
+            background: white;
+            padding: 8px 24px 0;
+        }
+
+        .paid-to-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 16px 32px -8px rgba(15, 60, 145, 0.5);
-            position: relative;
-        }
-
-        .icon-circle i {
-            font-size: 44px;
-            color: white;
-        }
-
-        /* Badge */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(25, 135, 84, 0.1);
-            color: #198754;
-            border: 1px solid rgba(25, 135, 84, 0.25);
-            border-radius: 99px;
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
             margin-bottom: 16px;
         }
 
-        .badge i { font-size: 10px; }
+        .paid-to-row svg {
+            width: 15px;
+            height: 15px;
+            stroke: #aaa;
+            fill: none;
+            stroke-width: 1.8;
+        }
 
-        h1 {
+        .merchant-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #555;
+            margin: 0 auto 10px;
+        }
+
+        .merchant-name {
+            text-align: center;
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .amount {
+            text-align: center;
             font-size: 28px;
-            font-weight: 800;
-            color: #0f3c91;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 20px;
             letter-spacing: -0.5px;
         }
 
-        .message {
-            font-size: 15px;
-            color: #4b5563;
-            line-height: 1.7;
-            margin-bottom: 32px;
-        }
-
-        /* Divider */
         .divider {
             height: 1px;
-            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
-            margin-bottom: 28px;
+            background: #f0f0f0;
+            margin: 0 -24px 14px;
         }
 
-        /* Back to app button */
-        .btn-app {
-            display: inline-flex;
+        .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .row .label { color: #999; }
+        .row .value { color: #333; }
+
+        .ref-section {
+            text-align: center;
+            padding: 10px 0 8px;
+        }
+
+        .ref-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 3px;
+        }
+
+        .ref-number {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 0.3px;
+        }
+
+        .ref-date {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 3px;
+        }
+
+        .note-section {
+            text-align: center;
+            padding: 14px 8px 16px;
+        }
+
+        .note-text {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .gcash-scan {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .gcash-scan span { color: #0A63F3; }
+
+        .zigzag-bottom {
+            width: 100%;
+            height: 18px;
+            background: white;
+            clip-path: polygon(
+                0% 0%, 3.33% 100%, 6.66% 0%, 9.99% 100%, 13.32% 0%,
+                16.65% 100%, 19.98% 0%, 23.31% 100%, 26.64% 0%, 29.97% 100%,
+                33.3% 0%, 36.63% 100%, 39.96% 0%, 43.29% 100%, 46.62% 0%,
+                49.95% 100%, 53.28% 0%, 56.61% 100%, 59.94% 0%, 63.27% 100%,
+                66.6% 0%, 69.93% 100%, 73.26% 0%, 76.59% 100%, 79.92% 0%,
+                83.25% 100%, 86.58% 0%, 89.91% 100%, 93.24% 0%, 96.57% 100%,
+                100% 0%, 100% 0%, 0% 0%
+            );
+        }
+
+        .btn-area {
+            padding: 20px 0 8px;
+        }
+
+        .btn-back {
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             width: 100%;
-            padding: 15px 24px;
-            background: linear-gradient(135deg, #f4b414, #f5c842);
-            color: #0f3c91;
-            font-size: 16px;
-            font-weight: 800;
+            padding: 15px 20px;
+            background: white;
+            color: #0A63F3;
+            font-size: 15px;
+            font-weight: 600;
             border: none;
             border-radius: 14px;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 24px -6px rgba(244, 180, 20, 0.55);
-            letter-spacing: 0.2px;
-            margin-bottom: 14px;
+            letter-spacing: 0.1px;
+            transition: opacity 0.2s;
         }
 
-        .btn-app:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 32px -6px rgba(244, 180, 20, 0.65);
-            background: linear-gradient(135deg, #f5c842, #f4b414);
-        }
+        .btn-back:active { opacity: 0.85; }
 
-        .btn-app:active { transform: translateY(0); }
-
-        .btn-app .btn-icon {
-            width: 32px;
-            height: 32px;
-            background: rgba(15, 60, 145, 0.12);
+        .btn-back .icon {
+            width: 30px;
+            height: 30px;
+            background: #E6F1FB;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
             flex-shrink: 0;
         }
 
-        .btn-app .arrow {
-            margin-left: auto;
-            font-size: 14px;
-            transition: transform 0.2s;
+        .btn-back .icon svg {
+            width: 16px;
+            height: 16px;
+            stroke: #0A63F3;
+            fill: none;
+            stroke-width: 2;
         }
 
-        .btn-app:hover .arrow { transform: translateX(4px); }
+        .btn-back .arrow {
+            margin-left: auto;
+            font-size: 20px;
+            line-height: 1;
+        }
 
-        /* Footer note */
-        .note {
+        .close-note {
+            text-align: center;
             font-size: 12px;
-            color: #9ca3af;
+            color: rgba(255,255,255,0.6);
+            margin-top: 12px;
+            padding-bottom: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
         }
 
-        .note i { color: #d1d5db; }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(28px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes ringPulse {
-            0%   { transform: scale(1);   opacity: 0.6; }
-            70%  { transform: scale(1.35); opacity: 0; }
-            100% { transform: scale(1.35); opacity: 0; }
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 32px 22px 28px; }
-            h1 { font-size: 24px; }
+        .close-note svg {
+            width: 12px;
+            height: 12px;
+            stroke: rgba(255,255,255,0.5);
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
         }
     </style>
 </head>
 <body>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
+    <div class="screen">
 
-    <div class="wrapper">
-        <div class="card">
+        <div class="header">
+            <h1>Payment</h1>
+            <a href="#" class="done">Done</a>
+        </div>
 
-            <div class="icon-wrap">
-                <div class="icon-ring"></div>
-                <div class="icon-circle">
-                    <i class="fas fa-check"></i>
-                </div>
+        <div class="zigzag-top"></div>
+
+        <div class="receipt-body">
+
+            <div class="paid-to-row">
+                Successfully Paid To
+                <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0 0l-3-3m3 3l3-3"/></svg>
             </div>
 
-            <div class="badge">
-                <i class="fas fa-circle"></i>
-                Confirmed
-            </div>
-
-            <h1>Payment Successful!</h1>
-            <p class="message">
-                {{ $message ?? 'Your payment has been processed and confirmed. You\'re all set!' }}
-            </p>
+            <div class="merchant-avatar">N</div>
+            <p class="merchant-name">Non-UniPay</p>
+            <p class="amount">{{ $amount }}</p>
 
             <div class="divider"></div>
 
-            <!-- Back to App Button -->
-            <a href="nonunipay://payment-success" class="btn-app">
-                <span class="btn-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </span>
-                Back to Non-UniPay App
-                <i class="fas fa-arrow-right arrow"></i>
-            </a>
+            <div class="row">
+    <span class="label">Amount Due</span>
+    <span class="value">{{ $amount }}</span>
+</div>
+            <div class="row">
+                <span class="label">Payment Method</span>
+                <span class="value">GCash</span>
+            </div>
 
-            <p class="note">
-                <i class="fas fa-lock"></i>
-                If the app doesn't open, you may safely close this tab.
-            </p>
+            <div class="divider"></div>
+
+            <div class="ref-section">
+    <p class="ref-label">Ref. No.</p>
+    <p class="ref-number">{{ $reference }}</p>
+    <p class="ref-date">{{ $date }}</p>
+</div>
+
+            <div class="divider"></div>
+
+            <div class="note-section">
+                <p class="note-text">
+                    {{ $message ?? 'Please show this screen for verification.' }}
+               
+            </div>
 
         </div>
+
+        <div class="zigzag-bottom"></div>
+
+        <div class="btn-area">
+            <a href="nonunipay://payment-success" class="btn-back">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="0.5" fill="#0A63F3"/></svg>
+                </span>
+                Back to Non-UniPay App
+                <span class="arrow">›</span>
+            </a>
+        </div>
+
+        <p class="close-note">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            If the app doesn't open, you may safely close this tab.
+        </p>
+
     </div>
 </body>
 </html>

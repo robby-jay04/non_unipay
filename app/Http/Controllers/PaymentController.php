@@ -311,12 +311,38 @@ public function status($id)
         return response()->json(['success' => true]);
     }
 
-    public function success()
-    {
-        return view('payments.success', [
-            'message' => 'Payment completed successfully!',
-        ]);
+    public function success(Request $request)
+{
+    // PayMongo redirects back with the source ID in the URL
+    $sourceId = $request->query('source_id') 
+             ?? $request->query('id'); // fallback
+
+    $payment = null;
+
+    if ($sourceId) {
+        $payment = Payment::with(['student.user'])
+            ->where('paymongo_source_id', $sourceId)
+            ->latest()
+            ->first();
     }
+
+    // Fallback: get latest pending/paid payment for this student
+    if (!$payment && auth()->check() && auth()->user()->student) {
+        $payment = Payment::where('student_id', auth()->user()->student->id)
+            ->whereIn('status', ['paid', 'pending'])
+            ->latest()
+            ->first();
+    }
+
+    return view('payments.success', [
+        'message'   => 'Payment completed successfully!',
+        'reference' => $payment?->reference_no ?? 'N/A',
+        'amount'    => $payment ? 'PHP ' . number_format($payment->total_amount, 2) : 'PHP 0.00',
+        'date'      => $payment?->payment_date 
+                        ? $payment->payment_date->format('d F Y h:i A')
+                        : now()->format('d F Y h:i A'),
+    ]);
+}
 
     public function failed()
     {

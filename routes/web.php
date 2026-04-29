@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
 use App\Http\Controllers\Admin\AuditLogController;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Admin\ProfileController;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -50,6 +51,12 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         // DASHBOARD
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // PROFILE
+    Route::post('/profile/picture',  [ProfileController::class, 'updatePicture'])->name('profile.picture');
+    Route::post('/profile/update',   [ProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
 
         // PAYMENTS
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments');

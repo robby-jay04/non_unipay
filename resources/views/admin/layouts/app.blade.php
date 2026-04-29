@@ -120,11 +120,10 @@
         }
         @keyframes loader-bar { 0% { width: 5%; } 100% { width: 95%; } }
 
-        /* ── Desktop Sidebar (fixed, visible only on md+) ── */
+        /* ── Desktop Sidebar ── */
         .desktop-sidebar {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: var(--sidebar-width);
             height: 100vh;
             background: var(--bg-sidebar);
@@ -140,12 +139,10 @@
             transform: translateX(calc(-1 * var(--sidebar-width)));
         }
 
-        /* ── Desktop Top Bar (fixed, visible only on md+) ── */
+        /* ── Desktop Top Bar ── */
         .desktop-topbar {
             position: fixed;
-            top: 0;
-            right: 0;
-            left: var(--sidebar-width);
+            top: 0; right: 0; left: var(--sidebar-width);
             height: 64px;
             background: var(--topbar-bg);
             border-bottom: 1px solid var(--border-color);
@@ -156,36 +153,25 @@
             transition: left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.3s ease;
             z-index: 150;
         }
-        .desktop-sidebar.collapsed ~ .desktop-topbar {
-            left: 0;
-        }
+        .desktop-sidebar.collapsed ~ .desktop-topbar { left: 0; }
 
-        /* ── Main Content (always visible) ── */
+        /* ── Main Content ── */
         .main-content {
             background: var(--bg-body);
             transition: background 0.3s ease;
             min-height: 100vh;
         }
-        /* Desktop: add margin for fixed sidebar + topbar */
         @media (min-width: 768px) {
             .main-content {
                 margin-left: var(--sidebar-width);
                 padding-top: 64px;
                 transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
             }
-            .desktop-sidebar.collapsed ~ .main-content {
-                margin-left: 0;
-            }
+            .desktop-sidebar.collapsed ~ .main-content { margin-left: 0; }
         }
-        /* Mobile: no extra margin, desktop elements hidden */
         @media (max-width: 767.98px) {
-            .desktop-sidebar, .desktop-topbar {
-                display: none;
-            }
-            .main-content {
-                padding: 1rem;
-                min-height: calc(100vh - 64px);
-            }
+            .desktop-sidebar, .desktop-topbar { display: none; }
+            .main-content { padding: 1rem; min-height: calc(100vh - 64px); }
         }
 
         /* Sidebar internal styles */
@@ -211,14 +197,12 @@
 
         .sidebar-nav {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow-y: auto; overflow-x: hidden;
             padding: 0 0.5rem;
         }
         .sidebar-nav::-webkit-scrollbar { width: 4px; }
         .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
         .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
-
         .sidebar-nav .nav-link {
             color: rgba(255,255,255,0.85); padding: 0.75rem 1rem;
             border-radius: 12px; transition: all 0.2s ease;
@@ -226,12 +210,8 @@
             white-space: nowrap; overflow: hidden;
         }
         .sidebar-nav .nav-link i { font-size: 1.1rem; width: 22px; text-align: center; flex-shrink: 0; }
-        .sidebar-nav .nav-link:hover {
-            color: white; background: rgba(255,255,255,0.15); transform: translateX(4px);
-        }
-        .sidebar-nav .nav-item.active .nav-link {
-            background: white; color: #0f3c91; font-weight: 600;
-        }
+        .sidebar-nav .nav-link:hover { color: white; background: rgba(255,255,255,0.15); transform: translateX(4px); }
+        .sidebar-nav .nav-item.active .nav-link { background: white; color: #0f3c91; font-weight: 600; }
         body.dark .sidebar-nav .nav-item.active .nav-link { background: #3b82f6; color: white; }
         .nav-section-title {
             color: rgba(255,255,255,0.45); font-size: 0.7rem;
@@ -241,198 +221,155 @@
         .superadmin-link { color: rgba(246,201,14,0.9) !important; }
         .superadmin-link:hover { background: rgba(246,201,14,0.15) !important; color: #f6c90e !important; }
 
-        .logout-btn {
-            background: transparent; border: none; color: rgba(255,255,255,0.85);
-            padding: 0.85rem 1rem; margin: 0.5rem;
-            width: calc(100% - 1rem); text-align: left;
-            display: flex; align-items: center; gap: 12px;
-            transition: all 0.2s; border-radius: 12px;
-            white-space: nowrap; overflow: hidden; cursor: pointer;
-        }
-        .logout-btn:hover { background: rgba(255,255,255,0.15); color: white; }
-        .logout-btn i { flex-shrink: 0; }
-
-        /* Topbar internal */
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        /* Topbar */
+        .topbar-left { display: flex; align-items: center; gap: 0.75rem; }
         .sidebar-toggle-btn {
-            width: 38px; height: 38px;
-            border-radius: 10px;
+            width: 38px; height: 38px; border-radius: 10px;
             border: 1px solid var(--border-color);
-            background: var(--input-bg);
-            color: var(--text-primary);
+            background: var(--input-bg); color: var(--text-primary);
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s;
-            flex-shrink: 0;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
         }
-        .sidebar-toggle-btn:hover {
-            background: var(--btn-primary);
-            color: white;
-            border-color: var(--btn-primary);
-            transform: scale(1.05);
-        }
+        .sidebar-toggle-btn:hover { background: var(--btn-primary); color: white; border-color: var(--btn-primary); transform: scale(1.05); }
         .sidebar-toggle-btn i { font-size: 0.9rem; transition: transform 0.3s ease; }
         .sidebar-toggle-btn.collapsed i { transform: rotate(180deg); }
-        .topbar-title {
-            font-weight: 700; font-size: 1rem; color: var(--text-primary);
-            white-space: nowrap;
-        }
-        .topbar-subtitle {
-            font-size: 0.72rem; color: var(--text-muted);
-        }
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .desktop-theme-toggle {
-            height: 38px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--input-bg);
-            color: var(--text-primary);
-            padding: 0 1rem;
-            font-size: 0.82rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .desktop-theme-toggle:hover { background: var(--hover-bg); transform: translateY(-1px); }
+        .topbar-title { font-weight: 700; font-size: 1rem; color: var(--text-primary); white-space: nowrap; }
+        .topbar-subtitle { font-size: 0.72rem; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 0.5rem; }
 
-        /* Notification Bell */
+        /* ── Notification Bell ── */
         .notif-btn {
             position: relative;
-            width: 42px; height: 42px;
-            border-radius: 12px;
+            width: 42px; height: 42px; border-radius: 12px;
             border: 1px solid var(--border-color);
-            background: var(--input-bg);
-            color: var(--text-primary);
+            background: var(--input-bg); color: var(--text-primary);
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s;
-            flex-shrink: 0;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
         }
-        .notif-btn:hover {
-            background: var(--btn-primary);
-            color: white;
-            border-color: var(--btn-primary);
-        }
+        .notif-btn:hover { background: var(--btn-primary); color: white; border-color: var(--btn-primary); }
         .notif-btn i { font-size: 1rem; }
-        .notif-btn.has-notifs i {
-            animation: bell-shake 2s ease infinite;
-            transform-origin: top center;
-        }
+        .notif-btn.has-notifs i { animation: bell-shake 2s ease infinite; transform-origin: top center; }
         @keyframes bell-shake {
             0%,90%,100% { transform: rotate(0deg); }
-            92%  { transform: rotate(12deg); }
-            94%  { transform: rotate(-10deg); }
-            96%  { transform: rotate(8deg); }
-            98%  { transform: rotate(-6deg); }
+            92% { transform: rotate(12deg); } 94% { transform: rotate(-10deg); }
+            96% { transform: rotate(8deg); }  98% { transform: rotate(-6deg); }
         }
         .notif-count-badge {
-            position: absolute;
-            top: 6px; right: 6px;
-            width: 18px; height: 18px;
-            background: #ef4444;
-            color: white;
-            font-size: 0.62rem;
-            font-weight: 700;
-            border-radius: 50%;
+            position: absolute; top: 6px; right: 6px;
+            width: 18px; height: 18px; background: #ef4444; color: white;
+            font-size: 0.62rem; font-weight: 700; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             border: 2px solid var(--topbar-bg);
-            transform: scale(0);
-            transition: transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
+            transform: scale(0); transition: transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
         }
         .notif-count-badge.show { transform: scale(1); }
 
         /* Notification Dropdown */
         .notif-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 360px;
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            z-index: 9999;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-8px) scale(0.97);
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            transform-origin: top right;
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 360px; background: var(--bg-main);
+            border: 1px solid var(--border-color); border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 9999;
+            overflow: hidden; opacity: 0;
+            transform: translateY(-8px) scale(0.97); pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease; transform-origin: top right;
         }
-        .notif-dropdown.open {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
+        .notif-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
         .notif-dropdown-header {
-            padding: 1rem 1.25rem 0.75rem;
-            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.25rem 0.75rem; border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
         }
-        .notif-dropdown-header h6 {
-            margin: 0; font-weight: 700; font-size: 0.9rem; color: var(--text-primary);
-        }
-        .notif-mark-read {
-            font-size: 0.75rem; color: var(--btn-primary);
-            cursor: pointer; font-weight: 600; background: none; border: none; padding: 0;
-            transition: opacity 0.2s;
-        }
+        .notif-dropdown-header h6 { margin: 0; font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+        .notif-mark-read { font-size: 0.75rem; color: var(--btn-primary); cursor: pointer; font-weight: 600; background: none; border: none; padding: 0; transition: opacity 0.2s; }
         .notif-mark-read:hover { opacity: 0.7; }
-        .notif-list {
-            max-height: 380px;
-            overflow-y: auto;
-        }
+        .notif-list { max-height: 380px; overflow-y: auto; }
         .notif-list::-webkit-scrollbar { width: 4px; }
         .notif-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 99px; }
         .notif-item {
             display: flex; align-items: flex-start; gap: 12px;
-            padding: 0.9rem 1.25rem;
-            cursor: pointer;
-            transition: background 0.15s;
-            border-bottom: 1px solid var(--border-color);
-            text-decoration: none;
+            padding: 0.9rem 1.25rem; cursor: pointer; transition: background 0.15s;
+            border-bottom: 1px solid var(--border-color); text-decoration: none;
         }
         .notif-item:last-child { border-bottom: none; }
         .notif-item:hover { background: var(--hover-bg); }
         .notif-item.unread { background: rgba(15,60,145,0.04); }
         body.dark .notif-item.unread { background: rgba(59,130,246,0.08); }
-        .notif-icon-wrap {
-            width: 40px; height: 40px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
+        .notif-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .notif-icon-wrap.payment { background: rgba(34,197,94,0.12); color: #16a34a; }
         .notif-icon-wrap.student { background: rgba(59,130,246,0.12); color: #2563eb; }
         .notif-body { flex: 1; min-width: 0; }
         .notif-title { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
         .notif-desc { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .notif-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
-        .notif-unread-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--btn-primary); flex-shrink: 0; margin-top: 6px;
-        }
-        .notif-empty {
-            padding: 2.5rem 1.25rem;
-            text-align: center; color: var(--text-muted);
-        }
+        .notif-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--btn-primary); flex-shrink: 0; margin-top: 6px; }
+        .notif-empty { padding: 2.5rem 1.25rem; text-align: center; color: var(--text-muted); }
         .notif-empty i { font-size: 2rem; opacity: 0.4; display: block; margin-bottom: 0.5rem; }
         .notif-empty p { font-size: 0.82rem; margin: 0; }
-        .notif-footer {
-            padding: 0.75rem 1.25rem;
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-        }
+        .notif-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); text-align: center; }
         .notif-footer a { font-size: 0.78rem; color: var(--btn-primary); font-weight: 600; text-decoration: none; }
         .notif-footer a:hover { text-decoration: underline; }
         .notif-wrapper { position: relative; }
+
+        /* ── Admin Profile Avatar ── */
+        .admin-avatar-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background: var(--btn-primary);
+            color: white; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            overflow: hidden; flex-shrink: 0;
+            position: relative;
+        }
+        .admin-avatar-btn:hover { border-color: var(--btn-primary); box-shadow: 0 0 0 3px rgba(15,60,145,0.15); transform: scale(1.05); }
+        .admin-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-avatar-wrapper { position: relative; }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 260px; background: var(--bg-main);
+            border: 1px solid var(--border-color); border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15); z-index: 9999;
+            overflow: hidden; opacity: 0;
+            transform: translateY(-8px) scale(0.97); pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease; transform-origin: top right;
+        }
+        .profile-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+
+        .profile-dropdown-header {
+            background: var(--modal-header-bg);
+            padding: 1.1rem 1.25rem;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .profile-dropdown-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1rem; color: white;
+            overflow: hidden; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.4);
+        }
+        .profile-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-dropdown-info { flex: 1; min-width: 0; }
+        .profile-dropdown-name { font-weight: 700; font-size: 0.9rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-dropdown-role { font-size: 0.72rem; color: rgba(255,255,255,0.75); margin-top: 2px; }
+
+        .profile-dropdown-body { padding: 0.5rem; }
+        .profile-dropdown-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.65rem 0.85rem; border-radius: 12px;
+            cursor: pointer; transition: background 0.15s;
+            color: var(--text-primary); font-size: 0.85rem; font-weight: 500;
+            border: none; background: none; width: 100%; text-align: left;
+            text-decoration: none;
+        }
+        .profile-dropdown-item:hover { background: var(--hover-bg); color: var(--btn-primary); }
+        .profile-dropdown-item i { width: 18px; text-align: center; font-size: 0.9rem; color: var(--text-muted); flex-shrink: 0; }
+        .profile-dropdown-item:hover i { color: var(--btn-primary); }
+        .profile-dropdown-item.danger { color: #ef4444; }
+        .profile-dropdown-item.danger i { color: #ef4444; }
+        .profile-dropdown-item.danger:hover { background: rgba(239,68,68,0.08); color: #dc2626; }
+        .profile-dropdown-divider { height: 1px; background: var(--border-color); margin: 0.4rem 0; }
 
         /* Mobile Navbar */
         .mobile-navbar {
@@ -448,157 +385,52 @@
         }
         .mobile-navbar-title { font-weight: 700; color: var(--text-primary); font-size: 1rem; line-height: 1.2; }
         .mobile-navbar-subtitle { font-size: 0.7rem; color: var(--text-muted); line-height: 1; }
-        .navbar-toggle {
-            background: #0f3c91; border: none; color: white;
-            font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px;
-        }
+        .navbar-toggle { background: #0f3c91; border: none; color: white; font-size: 1.1rem; padding: 0.45rem 0.75rem; border-radius: 10px; }
         body.dark .navbar-toggle { background: #3b82f6; }
-        .theme-toggle-mobile {
-            background: var(--input-bg); border: 1px solid var(--input-border);
-            border-radius: 30px; padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--text-primary);
-        }
 
         /* Offcanvas Sidebar */
-        .offcanvas.sidebar {
-            width: 280px;
-            background: var(--bg-sidebar);
-        }
-        .offcanvas.sidebar .offcanvas-header {
-            position: relative;
-            align-items: flex-start;
-            padding: 0;
-        }
-        .offcanvas.sidebar .offcanvas-header .btn-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            margin: 0;
-            z-index: 10;
-            filter: brightness(0) invert(1);
-            opacity: 0.8;
-        }
-        .offcanvas.sidebar .offcanvas-header .btn-close:hover {
-            opacity: 1;
-        }
-        .offcanvas .sidebar-header {
-            padding: 1.25rem;
-            width: 100%;
-        }
-        .offcanvas .sidebar-header img {
-            width: 52px; height: 52px; object-fit: contain;
-            border-radius: 26px; background: white; padding: 5px; display: block; margin-bottom: 0.75rem;
-        }
+        .offcanvas.sidebar { width: 280px; background: var(--bg-sidebar); }
+        .offcanvas.sidebar .offcanvas-header { position: relative; align-items: flex-start; padding: 0; }
+        .offcanvas.sidebar .offcanvas-header .btn-close { position: absolute; top: 1rem; right: 1rem; margin: 0; z-index: 10; filter: brightness(0) invert(1); opacity: 0.8; }
+        .offcanvas.sidebar .offcanvas-header .btn-close:hover { opacity: 1; }
+        .offcanvas .sidebar-header { padding: 1.25rem; width: 100%; }
+        .offcanvas .sidebar-header img { width: 52px; height: 52px; object-fit: contain; border-radius: 26px; background: white; padding: 5px; display: block; margin-bottom: 0.75rem; }
         .offcanvas .sidebar-header h4 { font-weight: 700; color: white; font-size: 1.3rem; margin-bottom: 2px; }
         .offcanvas .sidebar-header small { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
 
         /* Mobile responsive overrides */
         @media (max-width: 767.98px) {
-            .card {
-                border-radius: 16px !important;
-                margin-bottom: 1rem;
-            }
-            .table-responsive {
-                border-radius: 12px;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            .row.g-3 > [class*="col-md"],
-            .row.g-2 > [class*="col-md"] {
-                width: 100% !important;
-                flex: 0 0 100% !important;
-                max-width: 100% !important;
-            }
-            .modal-dialog {
-                margin: 0.5rem auto;
-                max-width: calc(100vw - 1rem) !important;
-            }
-            .modal-lg, .modal-xl {
-                max-width: calc(100vw - 1rem) !important;
-            }
-            .modal-body {
-                padding: 1rem !important;
-            }
-            .modal-footer {
-                padding: 0.75rem 1rem !important;
-                flex-direction: column;
-            }
-            .modal-footer .btn,
-            .modal-footer button {
-                width: 100% !important;
-            }
-            .d-flex.justify-content-between.flex-wrap {
-                flex-direction: column;
-                align-items: flex-start !important;
-                gap: 0.75rem;
-            }
-            .btn-add-fee {
-                width: 100%;
-                justify-content: center;
-            }
-            .notif-dropdown {
-                width: calc(100vw - 2rem);
-                position: fixed;
-                top: 64px;
-                left: 50%;
-                right: auto;
-                transform: translateX(-50%) translateY(-8px) scale(0.97);
-            }
-            .notif-dropdown.open {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0) scale(1);
-                pointer-events: all;
-            }
-            .col-md-3.d-flex.gap-2 {
-                width: 100% !important;
-                flex: 0 0 100% !important;
-            }
-            .col-md-3.d-flex.gap-2 .btn {
-                flex: 1;
-            }
-            .detail-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .diff-wrap {
-                grid-template-columns: 1fr !important;
-            }
-            .stat-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .btn-action {
-                width: 32px !important;
-                height: 32px !important;
-            }
-            .input-group {
-                flex-wrap: nowrap;
-            }
-            h2.fw-bold {
-                font-size: 1.2rem !important;
-            }
-            .row.g-4 > [class*="col-"] {
-                width: 100% !important;
-                flex: 0 0 100% !important;
-                max-width: 100% !important;
-            }
+            .card { border-radius: 16px !important; margin-bottom: 1rem; }
+            .table-responsive { border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .row.g-3 > [class*="col-md"], .row.g-2 > [class*="col-md"] { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
+            .modal-dialog { margin: 0.5rem auto; max-width: calc(100vw - 1rem) !important; }
+            .modal-lg, .modal-xl { max-width: calc(100vw - 1rem) !important; }
+            .modal-body { padding: 1rem !important; }
+            .modal-footer { padding: 0.75rem 1rem !important; flex-direction: column; }
+            .modal-footer .btn, .modal-footer button { width: 100% !important; }
+            .d-flex.justify-content-between.flex-wrap { flex-direction: column; align-items: flex-start !important; gap: 0.75rem; }
+            .btn-add-fee { width: 100%; justify-content: center; }
+            .notif-dropdown { width: calc(100vw - 2rem); position: fixed; top: 64px; left: 50%; right: auto; transform: translateX(-50%) translateY(-8px) scale(0.97); }
+            .notif-dropdown.open { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: all; }
+            .profile-dropdown { width: calc(100vw - 2rem); position: fixed; top: 64px; right: 1rem; }
+            .detail-grid { grid-template-columns: 1fr !important; }
+            .diff-wrap { grid-template-columns: 1fr !important; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .btn-action { width: 32px !important; height: 32px !important; }
+            h2.fw-bold { font-size: 1.2rem !important; }
+            .row.g-4 > [class*="col-"] { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
         }
 
         /* Shared components */
-        .card, .modal-content {
-            background: var(--bg-main); border: none;
-            box-shadow: var(--card-shadow); transition: background 0.3s ease;
-        }
+        .card, .modal-content { background: var(--bg-main); border: none; box-shadow: var(--card-shadow); transition: background 0.3s ease; }
         .modal-header { background: var(--modal-header-bg); color: white; border-radius: 20px 20px 0 0; }
         .modal-header .btn-close { filter: brightness(0) invert(1); }
         .modal-footer { border-top-color: var(--border-color); }
         .table { color: var(--text-primary); }
         .table td { border-bottom-color: var(--table-row-border); color: var(--text-secondary); }
         .table th { background-color: var(--table-header-bg); color: var(--text-primary); border-bottom-color: var(--border-color); }
-        .form-control, .form-select {
-            background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1);
-            background-color: var(--input-bg);
-        }
+        .form-control, .form-select { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary); }
+        .form-control:focus, .form-select:focus { border-color: #0f3c91; box-shadow: 0 0 0 3px rgba(15,60,145,0.1); background-color: var(--input-bg); }
         .btn-primary { background: var(--btn-primary); border: none; }
         .btn-primary:hover { background: var(--btn-primary-hover); }
         .btn-outline-secondary { border-color: var(--border-color); color: var(--text-secondary); }
@@ -606,6 +438,119 @@
         .alert-light { background: var(--bg-main); color: var(--text-primary); }
         .text-muted { color: var(--text-muted) !important; }
         .bg-light { background-color: var(--input-bg) !important; }
+
+        /* ── Edit Profile Modal ── */
+        .avatar-upload-area {
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+            padding: 1.25rem;
+        }
+        .avatar-preview {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: var(--btn-primary); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700;
+            overflow: hidden; border: 3px solid var(--border-color);
+            position: relative; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-preview-overlay {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s; color: white; font-size: 1.2rem;
+        }
+        .avatar-preview:hover .avatar-preview-overlay { opacity: 1; }
+        .profile-tab-nav {
+            display: flex; gap: 4px;
+            background: var(--input-bg); padding: 4px; border-radius: 12px;
+            margin-bottom: 1.25rem;
+        }
+        .profile-tab-btn {
+            flex: 1; border: none; background: none;
+            padding: 0.5rem 0.75rem; border-radius: 9px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .profile-tab-btn.active { background: var(--bg-main); color: var(--btn-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .profile-tab-panel { display: none; }
+        .profile-tab-panel.active { display: block; }
+
+        /* Password strength */
+        .pw-strength-bar { height: 4px; border-radius: 99px; background: var(--border-color); margin-top: 6px; overflow: hidden; }
+        .pw-strength-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.3s, background 0.3s; }
+        .pw-strength-text { font-size: 0.72rem; margin-top: 4px; }
+
+
+        /* Full-screen loading overlay for AJAX requests */
+#ajax-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+#ajax-loader.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0s linear 0s;
+}
+.ajax-loader-content {
+    background: var(--bg-main);
+    padding: 2rem 2.5rem;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+.ajax-loader-content i {
+    font-size: 2.5rem;
+    color: var(--btn-primary);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+.ajax-loader-content p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+body.dark .ajax-loader-content {
+    background: var(--bg-main);
+}
+/* Force light text in dark mode for all form controls */
+body.dark .form-control,
+body.dark .form-select,
+body.dark input.form-control,
+body.dark textarea.form-control,
+body.dark select.form-select {
+    color: #f1f5f9 !important;
+    background-color: #334155 !important; /* ensure dark background */
+    border-color: #475569 !important;
+}
+
+/* Also fix placeholder text color */
+body.dark .form-control::placeholder,
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+}
+
+/* For autofilled inputs (Chrome, etc.) */
+body.dark input:-webkit-autofill,
+body.dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f1f5f9 !important;
+    -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
     </style>
     @stack('styles')
 </head>
@@ -628,8 +573,7 @@
     <nav class="mobile-navbar d-md-none">
         <div class="d-flex align-items-center justify-content-between">
             <button class="navbar-toggle" type="button"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#sidebarOffcanvas"
+                data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas"
                 aria-controls="sidebarOffcanvas">
                 <i class="fas fa-bars"></i>
             </button>
@@ -648,9 +592,19 @@
                     </button>
                     <div class="notif-dropdown" id="mobileNotifDropdown"></div>
                 </div>
-                <button class="theme-toggle-mobile" id="mobileThemeToggle">
-                    <i class="fas fa-moon"></i>
-                </button>
+                {{-- Mobile Avatar --}}
+                <div class="admin-avatar-wrapper">
+                    <button class="admin-avatar-btn" id="mobileAvatarBtn" aria-label="Profile menu">
+                        @if(auth()->user()->profile_picture)
+                            <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        @endif
+                    </button>
+                    <div class="profile-dropdown" id="mobileProfileDropdown">
+                        @include('admin.partials.profile_dropdown')
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -717,13 +671,11 @@
                     @endif
                 </ul>
             </div>
-            <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+            {{-- Logout removed from sidebar; accessible via avatar dropdown --}}
         </div>
     </div>
 
-    {{-- Desktop Sidebar (fixed, visible on md+) --}}
+    {{-- Desktop Sidebar --}}
     <aside class="desktop-sidebar" id="desktopSidebar">
         <div class="sidebar-header">
             <img src="{{ asset('logo.png') }}" alt="Non-UniPay Logo">
@@ -781,12 +733,10 @@
                 @endif
             </ul>
         </div>
-        <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+        {{-- Logout removed from sidebar --}}
     </aside>
 
-    {{-- Desktop Top Bar (fixed, visible on md+) --}}
+    {{-- Desktop Top Bar --}}
     <header class="desktop-topbar" id="desktopTopbar">
         <div class="topbar-left">
             <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
@@ -805,16 +755,119 @@
                 </button>
                 <div class="notif-dropdown" id="desktopNotifDropdown"></div>
             </div>
-            <button class="desktop-theme-toggle" id="desktopThemeToggle">
-                <i class="fas fa-moon"></i> Dark Mode
-            </button>
+
+            {{-- Admin Avatar with Profile Dropdown --}}
+            <div class="admin-avatar-wrapper">
+                <button class="admin-avatar-btn" id="desktopAvatarBtn" aria-label="Profile menu">
+                    @if(auth()->user()->profile_picture)
+                        <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar" id="topbarAvatarImg">
+                    @else
+                        <span id="topbarAvatarInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                    @endif
+                </button>
+                <div class="profile-dropdown" id="desktopProfileDropdown">
+                    @include('admin.partials.profile_dropdown')
+                </div>
+            </div>
         </div>
     </header>
 
-    {{-- MAIN CONTENT (always visible, on desktop it's pushed by the fixed sidebar) --}}
+    {{-- MAIN CONTENT --}}
     <main class="main-content">
         @yield('content')
     </main>
+
+    {{-- ════════════════════════════════════════════
+         Edit Profile Modal
+         ════════════════════════════════════════════ --}}
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+            <div class="modal-content" style="border-radius:24px; overflow:hidden;">
+                <div class="modal-header" style="border-radius:24px 24px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    {{-- Avatar upload --}}
+                    <div class="avatar-upload-area">
+                        <label for="profilePicInput" style="cursor:pointer;">
+                            <div class="avatar-preview" id="avatarPreview">
+                                @if(auth()->user()->profile_picture)
+                                    <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar" id="avatarPreviewImg">
+                                @else
+                                    <span id="avatarPreviewInitial">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                                    <img src="" alt="" id="avatarPreviewImg" style="display:none;">
+                                @endif
+                                <div class="avatar-preview-overlay"><i class="fas fa-camera"></i></div>
+                            </div>
+                        </label>
+                        <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+                        <span style="font-size:0.78rem; color:var(--text-muted);">Click avatar to upload photo</span>
+                    </div>
+
+                    {{-- Tab navigation --}}
+                    <div class="profile-tab-nav">
+                        <button class="profile-tab-btn active" data-tab="email">
+                            <i class="fas fa-envelope me-1"></i> Email
+                        </button>
+                        <button class="profile-tab-btn" data-tab="password">
+                            <i class="fas fa-lock me-1"></i> Password
+                        </button>
+                    </div>
+
+                    {{-- Email Tab --}}
+                    <div class="profile-tab-panel active" id="tab-email">
+                        <form id="updateEmailForm">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-600" style="font-size:0.85rem; font-weight:600;">Name</label>
+                                <input type="text" class="form-control" name="name" value="{{ auth()->user()->name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-600" style="font-size:0.85rem; font-weight:600;">Email Address</label>
+                                <input type="email" class="form-control" name="email" value="{{ auth()->user()->email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-600" style="font-size:0.85rem; font-weight:600;">Confirm Current Password</label>
+                                <input type="password" class="form-control" name="current_password" placeholder="Enter current password to confirm" required>
+                            </div>
+                            <div id="emailFormAlert" class="alert d-none" style="font-size:0.82rem; border-radius:10px;"></div>
+                            <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    {{-- Password Tab --}}
+                    <div class="profile-tab-panel" id="tab-password">
+                        <form id="updatePasswordForm">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label" style="font-size:0.85rem; font-weight:600;">Current Password</label>
+                                <input type="password" class="form-control" name="current_password" placeholder="Your current password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" style="font-size:0.85rem; font-weight:600;">New Password</label>
+                                <input type="password" class="form-control" name="new_password" id="newPasswordInput" placeholder="At least 8 characters" required>
+                                <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                                <div class="pw-strength-text text-muted" id="pwStrengthText"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" style="font-size:0.85rem; font-weight:600;">Confirm New Password</label>
+                                <input type="password" class="form-control" name="new_password_confirmation" placeholder="Repeat new password" required>
+                            </div>
+                            <div id="passwordFormAlert" class="alert d-none" style="font-size:0.82rem; border-radius:10px;"></div>
+                            <button type="submit" class="btn btn-primary w-100" style="border-radius:12px; font-weight:600;">
+                                <i class="fas fa-key me-2"></i>Update Password
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Logout Modal --}}
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
@@ -842,56 +895,81 @@
     @stack('scripts')
 
     <script>
-    // ── Dark Mode ────────────────────────────────────────────────────────────
-    (function () {
-        const KEY = 'admin_dark_mode';
-        function setDarkMode(isDark) {
-            document.body.classList.toggle('dark', isDark);
-            localStorage.setItem(KEY, isDark ? 'true' : 'false');
-            document.querySelectorAll('#desktopThemeToggle, #mobileThemeToggle').forEach(btn => {
-                if (!btn) return;
-                if (btn.id === 'desktopThemeToggle') {
-                    btn.innerHTML = isDark
-                        ? '<i class="fas fa-sun"></i> Light Mode'
-                        : '<i class="fas fa-moon"></i> Dark Mode';
-                } else {
-                    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-                }
-            });
+// ── Dark Mode (label stays "Dark mode" always) ─────────────────────────
+(function() {
+    const STORAGE_KEY = 'admin_dark_mode';
+
+    function syncDarkModeUI() {
+        const isDark = document.body.classList.contains('dark');
+        // Update all switches (keep them in sync)
+        document.querySelectorAll('.dark-mode-switch').forEach(sw => {
+            sw.checked = isDark;
+        });
+        // Do NOT change the label text – keep it as "Dark mode"
+    }
+
+    function setDarkMode(isDark) {
+        document.body.classList.toggle('dark', isDark);
+        localStorage.setItem(STORAGE_KEY, isDark ? 'true' : 'false');
+        syncDarkModeUI();
+    }
+
+    window.toggleDarkMode = function() {
+        setDarkMode(!document.body.classList.contains('dark'));
+    };
+
+    // Initialize theme
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored !== null) {
+        setDarkMode(stored === 'true');
+    } else {
+        setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+
+    // Listen for system preference changes (only if no stored preference)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (localStorage.getItem(STORAGE_KEY) === null) {
+            setDarkMode(e.matches);
         }
-        const stored = localStorage.getItem(KEY);
-        setDarkMode(stored !== null ? stored === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches);
-        document.addEventListener('click', e => {
-            if (e.target.closest('#desktopThemeToggle') || e.target.closest('#mobileThemeToggle')) {
-                setDarkMode(!document.body.classList.contains('dark'));
+    });
+
+    // Attach change event to all switches
+    function bindSwitchEvents() {
+        document.querySelectorAll('.dark-mode-switch').forEach(sw => {
+            sw.removeEventListener('change', window.toggleDarkMode);
+            sw.addEventListener('change', window.toggleDarkMode);
+        });
+    }
+    bindSwitchEvents();
+
+    // Re-sync UI when profile dropdown opens
+    function bindDropdownSync() {
+        const dropdownButtons = ['#desktopAvatarBtn', '#mobileAvatarBtn'];
+        dropdownButtons.forEach(selector => {
+            const btn = document.querySelector(selector);
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    setTimeout(syncDarkModeUI, 50);
+                });
             }
         });
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (localStorage.getItem(KEY) === null) setDarkMode(e.matches);
-        });
-    })();
+    }
+    bindDropdownSync();
+})();
 
-    // ── Sidebar Toggle (Desktop) ──────────────────────────────────────────────
+    // ── Sidebar Toggle ──────────────────────────────────────────────────────
     (function () {
-        const sidebar    = document.getElementById('desktopSidebar');
-        const toggleBtn  = document.getElementById('sidebarToggleBtn');
-        const SIDEBAR_KEY = 'admin_sidebar_collapsed';
-
+        const sidebar   = document.getElementById('desktopSidebar');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const KEY = 'admin_sidebar_collapsed';
         function setSidebarState(collapsed) {
             if (!sidebar) return;
             sidebar.classList.toggle('collapsed', collapsed);
             if (toggleBtn) toggleBtn.classList.toggle('collapsed', collapsed);
-            localStorage.setItem(SIDEBAR_KEY, collapsed ? 'true' : 'false');
+            localStorage.setItem(KEY, collapsed ? 'true' : 'false');
         }
-
-        const stored = localStorage.getItem(SIDEBAR_KEY);
-        if (stored === 'true') setSidebarState(true);
-
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                setSidebarState(!sidebar.classList.contains('collapsed'));
-            });
-        }
+        if (localStorage.getItem(KEY) === 'true') setSidebarState(true);
+        if (toggleBtn) toggleBtn.addEventListener('click', () => setSidebarState(!sidebar.classList.contains('collapsed')));
     })();
 
     // ── Page Loader ──────────────────────────────────────────────────────────
@@ -900,7 +978,6 @@
         const loaderText    = loader?.querySelector('.loader-text');
         const loaderSubtext = loader?.querySelector('.loader-subtext');
         let activeRequests = 0, hideTimeout = null;
-
         function showLoader(msg, sub) {
             if (hideTimeout) clearTimeout(hideTimeout);
             activeRequests++;
@@ -918,7 +995,6 @@
                 }, 150);
             }
         }
-
         document.addEventListener('click', e => {
             const target = e.target.closest('a');
             if (!target || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
@@ -932,68 +1008,49 @@
             } catch { return; }
             showLoader('Loading...', 'Please wait');
         });
-
         document.addEventListener('submit', e => {
             const form = e.target.closest('form.requires-loader');
             if (!form) return;
-            const msg = form.action && form.action.includes('/logout')
-                ? 'Logging out...' : 'Processing...';
+            const msg = form.action && form.action.includes('/logout') ? 'Logging out...' : 'Processing...';
             showLoader(msg, 'Please wait');
         });
-
         window.addEventListener('load', hideLoader);
         window.addEventListener('pageshow', e => { if (e.persisted) hideLoader(); });
         setInterval(() => {
-            if (loader && loader.classList.contains('visible') && activeRequests === 0)
-                loader.classList.remove('visible');
+            if (loader && loader.classList.contains('visible') && activeRequests === 0) loader.classList.remove('visible');
         }, 8000);
     })();
 
-// ── Notifications ────────────────────────────────────────────────────────
-(function () {
-    const NOTIF_KEY      = 'admin_notifications';
-    const LAST_PAY_KEY   = 'admin_last_payment_count';
-    const LAST_STU_KEY   = 'admin_last_student_count';
+    // ── Notifications ─────────────────────────────────────────────────────────
+    (function () {
+        const NOTIF_KEY    = 'admin_notifications';
+        const LAST_PAY_KEY = 'admin_last_payment_count';
+        const LAST_STU_KEY = 'admin_last_student_count';
 
-    function getStored() {
-        try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; }
-    }
-    function setStored(arr) {
-        localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50)));
-    }
-
-    function timeAgo(ts) {
-        const diff = Math.floor((Date.now() - ts) / 1000);
-        if (diff < 60) return 'just now';
-        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-        return Math.floor(diff / 86400) + 'd ago';
-    }
-
-    function buildDropdownHTML(notifs) {
-        const unreadCount = notifs.filter(n => !n.read).length;
-        let html = `
-            <div class="notif-dropdown-header">
+        function getStored() { try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; } }
+        function setStored(arr) { localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50))); }
+        function timeAgo(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            return Math.floor(diff / 86400) + 'd ago';
+        }
+        function buildDropdownHTML(notifs) {
+            const unreadCount = notifs.filter(n => !n.read).length;
+            let html = `<div class="notif-dropdown-header">
                 <h6><i class="fas fa-bell me-2" style="color:#0f3c91;"></i> Notifications
                     ${unreadCount > 0 ? `<span style="font-size:0.72rem;background:rgba(15,60,145,0.1);color:#0f3c91;padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:600;">${unreadCount} new</span>` : ''}
                 </h6>
                 ${unreadCount > 0 ? `<button class="notif-mark-read" onclick="window._markAllNotifRead(event)">Mark all read</button>` : ''}
-            </div>
-            <div class="notif-list">`;
-
-        if (notifs.length === 0) {
-            html += `<div class="notif-empty">
-                <i class="fas fa-bell-slash"></i>
-                <p>No notifications yet</p>
-            </div>`;
-        } else {
-            notifs.forEach(n => {
-                const isPayment = n.type === 'payment';
-                html += `
-                    <a href="${n.url}" class="notif-item ${n.read ? '' : 'unread'}" onclick="window._handleNotifClick(event, '${n.uid}', '${n.url}')">
-                        <div class="notif-icon-wrap ${n.type}">
-                            <i class="fas ${isPayment ? 'fa-money-bill-wave' : 'fa-user-graduate'}"></i>
-                        </div>
+            </div><div class="notif-list">`;
+            if (notifs.length === 0) {
+                html += `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+            } else {
+                notifs.forEach(n => {
+                    const isPayment = n.type === 'payment';
+                    html += `<a href="${n.url}" class="notif-item ${n.read ? '' : 'unread'}" onclick="window._handleNotifClick(event, '${n.uid}', '${n.url}')">
+                        <div class="notif-icon-wrap ${n.type}"><i class="fas ${isPayment ? 'fa-money-bill-wave' : 'fa-user-graduate'}"></i></div>
                         <div class="notif-body">
                             <div class="notif-title">${n.title}</div>
                             <div class="notif-desc">${n.desc}</div>
@@ -1001,151 +1058,263 @@
                         </div>
                         ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
                     </a>`;
+                });
+            }
+            html += `</div>`;
+            if (notifs.length > 0) {
+                html += `<div class="notif-footer">
+                    <a href="{{ route('admin.payments') }}">View all payments</a> &nbsp;·&nbsp;
+                    <a href="{{ route('admin.students') }}">View all students</a>
+                </div>`;
+            }
+            return html;
+        }
+        function renderAll() {
+            const notifs = getStored();
+            const html   = buildDropdownHTML(notifs);
+            document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => { if (el) el.innerHTML = html; });
+            const unread = notifs.filter(n => !n.read).length;
+            document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
+                if (!badge) return;
+                badge.textContent = unread > 9 ? '9+' : unread;
+                badge.classList.toggle('show', unread > 0);
+            });
+            document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
+                if (btn) btn.classList.toggle('has-notifs', unread > 0);
             });
         }
-
-        html += `</div>`;
-        if (notifs.length > 0) {
-            html += `<div class="notif-footer">
-                <a href="{{ route('admin.payments') }}">View all payments</a>
-                &nbsp;·&nbsp;
-                <a href="{{ route('admin.students') }}">View all students</a>
-            </div>`;
-        }
-        return html;
-    }
-
-    function renderAll() {
-        const notifs = getStored();
-        const html   = buildDropdownHTML(notifs);
-        document.querySelectorAll('#desktopNotifDropdown, #mobileNotifDropdown').forEach(el => {
-            if (el) el.innerHTML = html;
-        });
-        const unread = notifs.filter(n => !n.read).length;
-        document.querySelectorAll('#desktopNotifBadge, #mobileNotifBadge').forEach(badge => {
-            if (!badge) return;
-            badge.textContent = unread > 9 ? '9+' : unread;
-            badge.classList.toggle('show', unread > 0);
-        });
-        document.querySelectorAll('#desktopNotifBtn, #mobileNotifBtn').forEach(btn => {
-            if (btn) btn.classList.toggle('has-notifs', unread > 0);
-        });
-    }
-
-    window._markAllNotifRead = function (e) {
-        e.stopPropagation();
-        const notifs = getStored();
-        notifs.forEach(n => n.read = true);
-        setStored(notifs);
-        renderAll();
-    };
-    window._handleNotifClick = function (e, uid, url) {
-        e.preventDefault();
-        const notifs = getStored();
-        notifs.forEach(n => { if (n.uid === uid) n.read = true; });
-        setStored(notifs);
-        renderAll();
-        window.location.href = url;
-    };
-
-    function toggleDropdown(btnId, dropId) {
-        const btn  = document.getElementById(btnId);
-        const drop = document.getElementById(dropId);
-        if (!btn || !drop) return;
-        btn.addEventListener('click', e => {
+        window._markAllNotifRead = function (e) {
             e.stopPropagation();
-            document.querySelectorAll('.notif-dropdown').forEach(d => {
-                if (d !== drop) d.classList.remove('open');
+            const notifs = getStored();
+            notifs.forEach(n => n.read = true);
+            setStored(notifs); renderAll();
+        };
+        window._handleNotifClick = function (e, uid, url) {
+            e.preventDefault();
+            const notifs = getStored();
+            notifs.forEach(n => { if (n.uid === uid) n.read = true; });
+            setStored(notifs); renderAll();
+            window.location.href = url;
+        };
+        function toggleDropdown(btnId, dropId) {
+            const btn  = document.getElementById(btnId);
+            const drop = document.getElementById(dropId);
+            if (!btn || !drop) return;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                document.querySelectorAll('.notif-dropdown').forEach(d => { if (d !== drop) d.classList.remove('open'); });
+                drop.classList.toggle('open');
             });
-            drop.classList.toggle('open');
-        });
-    }
-    toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
-    toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
-
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.notif-wrapper')) {
-            document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
         }
+        toggleDropdown('desktopNotifBtn', 'desktopNotifDropdown');
+        toggleDropdown('mobileNotifBtn',  'mobileNotifDropdown');
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.notif-wrapper')) {
+                document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
+        function pushNotif(type, title, desc, url) {
+            const notifs = getStored();
+            notifs.unshift({ uid: type + '_' + Date.now(), type, title, desc, url, ts: Date.now(), read: false });
+            setStored(notifs); renderAll();
+        }
+        function getLastCount(key) { const v = localStorage.getItem(key); return v === null ? null : parseInt(v, 10); }
+        function setLastCount(key, val) { localStorage.setItem(key, String(val)); }
+        function checkPayments() {
+            fetch('/admin/api/pending-payments-count', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) return;
+                    const count = data.count || 0, last = getLastCount(LAST_PAY_KEY);
+                    if (last !== null && count > last) {
+                        const diff = count - last;
+                        pushNotif('payment', `${diff} new payment${diff > 1 ? 's' : ''} pending`, 'New payment submission(s) awaiting your review.', '{{ route("admin.payments") }}');
+                    }
+                    setLastCount(LAST_PAY_KEY, count);
+                }).catch(() => {});
+        }
+        function checkStudents() {
+            fetch('/admin/api/new-students-count', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) return;
+                    const count = data.count || 0, last = getLastCount(LAST_STU_KEY);
+                    if (last !== null && count > last) {
+                        const diff = count - last;
+                        pushNotif('student', `${diff} new student${diff > 1 ? 's' : ''} registered`, 'New student registration(s) need confirmation.', '{{ route("admin.students") }}');
+                    }
+                    setLastCount(LAST_STU_KEY, count);
+                }).catch(() => {});
+        }
+        renderAll(); checkPayments(); checkStudents();
+        setInterval(() => { checkPayments(); checkStudents(); }, 5000);
+    })();
+
+    // ── Profile Avatar Dropdown ───────────────────────────────────────────────
+    (function () {
+        function setupAvatarDropdown(btnId, dropId) {
+            const btn  = document.getElementById(btnId);
+            const drop = document.getElementById(dropId);
+            if (!btn || !drop) return;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                // Close notif dropdowns
+                document.querySelectorAll('.notif-dropdown').forEach(d => d.classList.remove('open'));
+                // Close other profile dropdowns
+                document.querySelectorAll('.profile-dropdown').forEach(d => { if (d !== drop) d.classList.remove('open'); });
+                drop.classList.toggle('open');
+            });
+        }
+        setupAvatarDropdown('desktopAvatarBtn', 'desktopProfileDropdown');
+        setupAvatarDropdown('mobileAvatarBtn',  'mobileProfileDropdown');
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.admin-avatar-wrapper')) {
+                document.querySelectorAll('.profile-dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
+    })();
+
+    // ── Profile Edit Modal Tabs ───────────────────────────────────────────────
+    document.querySelectorAll('.profile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.profile-tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + tab)?.classList.add('active');
+        });
     });
 
-    function pushNotif(type, title, desc, url) {
-        const notifs = getStored();
-        notifs.unshift({
-            uid:  type + '_' + Date.now(),
-            type, title, desc, url,
-            ts:   Date.now(),
-            read: false,
+    // ── Avatar Preview ────────────────────────────────────────────────────────
+    document.getElementById('profilePicInput')?.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = document.getElementById('avatarPreviewImg');
+            const initial = document.getElementById('avatarPreviewInitial');
+            if (img) { img.src = e.target.result; img.style.display = 'block'; }
+            if (initial) initial.style.display = 'none';
+
+            // Also upload immediately
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+            fetch('{{ route("admin.profile.picture") }}', { method: 'POST', body: formData })
+                .then(r => r.json()).then(data => {
+                    if (data.success) {
+                        // Update all avatar spots
+                        document.querySelectorAll('.admin-avatar-btn img, .profile-dropdown-avatar img').forEach(i => {
+                            i.src = data.url; i.style.display = 'block';
+                        });
+                        document.querySelectorAll('#topbarAvatarInitial').forEach(s => s.style.display = 'none');
+                    }
+                }).catch(() => {});
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ── Password Strength ─────────────────────────────────────────────────────
+    document.getElementById('newPasswordInput')?.addEventListener('input', function () {
+        const val = this.value;
+        const fill = document.getElementById('pwStrengthFill');
+        const text = document.getElementById('pwStrengthText');
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const levels = [
+            { pct: '0%',  color: '',        label: '' },
+            { pct: '25%', color: '#ef4444', label: 'Weak' },
+            { pct: '50%', color: '#f97316', label: 'Fair' },
+            { pct: '75%', color: '#eab308', label: 'Good' },
+            { pct: '100%',color: '#22c55e', label: 'Strong' },
+        ];
+        const lv = levels[score] || levels[0];
+        if (fill) { fill.style.width = lv.pct; fill.style.background = lv.color; }
+        if (text) { text.textContent = lv.label; text.style.color = lv.color; }
+    });
+
+  // ── Update Email/Name Form (full-screen loader) ─────────────────────────
+document.getElementById('updateEmailForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const alertBox = document.getElementById('emailFormAlert');
+    const loader = document.getElementById('ajax-loader');
+    
+    // Show full‑screen loader
+    if (loader) loader.classList.add('visible');
+    
+    alertBox.className = 'alert d-none';
+    const formData = new FormData(this);
+    try {
+        const res = await fetch('{{ route("admin.profile.update") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: formData,
         });
-        setStored(notifs);
-        renderAll();
+        const json = await res.json();
+        alertBox.classList.remove('d-none');
+        if (json.success) {
+            alertBox.className = 'alert alert-success';
+            alertBox.textContent = json.message || 'Profile updated successfully.';
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = json.message || 'Update failed.';
+        }
+    } catch (error) {
+        alertBox.classList.remove('d-none');
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = 'An error occurred. Please try again.';
+    } finally {
+        // Hide full‑screen loader
+        if (loader) loader.classList.remove('visible');
     }
+});
 
-    // Persist counts across page loads using localStorage so that
-    // navigating away and back doesn't reset the baseline to null.
-    function getLastCount(key) {
-        const v = localStorage.getItem(key);
-        return v === null ? null : parseInt(v, 10);
+  // ── Update Password Form (full-screen loader) ───────────────────────────
+document.getElementById('updatePasswordForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const alertBox = document.getElementById('passwordFormAlert');
+    const loader = document.getElementById('ajax-loader');
+    
+    // Show full‑screen loader
+    if (loader) loader.classList.add('visible');
+    
+    alertBox.className = 'alert d-none';
+    const formData = new FormData(this);
+    try {
+        const res = await fetch('{{ route("admin.profile.password") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: formData,
+        });
+        const json = await res.json();
+        alertBox.classList.remove('d-none');
+        if (json.success) {
+            alertBox.className = 'alert alert-success';
+            alertBox.textContent = json.message || 'Password changed successfully.';
+            this.reset();
+            document.getElementById('pwStrengthFill').style.width = '0%';
+            document.getElementById('pwStrengthText').textContent = '';
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = json.message || 'Update failed.';
+        }
+    } catch (error) {
+        alertBox.classList.remove('d-none');
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = 'An error occurred. Please try again.';
+    } finally {
+        // Hide full‑screen loader
+        if (loader) loader.classList.remove('visible');
     }
-    function setLastCount(key, val) {
-        localStorage.setItem(key, String(val));
-    }
-
-    function checkPayments() {
-        fetch('/admin/api/pending-payments-count', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-            if (!data) return;
-            const count = data.count || 0;
-            const last  = getLastCount(LAST_PAY_KEY);
-
-            // Only notify on increase; ignore first-load baseline set
-            if (last !== null && count > last) {
-                const diff = count - last;
-                pushNotif(
-                    'payment',
-                    `${diff} new payment${diff > 1 ? 's' : ''} pending`,
-                    'New payment submission(s) awaiting your review.',
-                    '{{ route("admin.payments") }}'
-                );
-            }
-            setLastCount(LAST_PAY_KEY, count);
-        })
-        .catch(() => {});
-    }
-
-    function checkStudents() {
-        fetch('/admin/api/new-students-count', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-            if (!data) return;
-            const count = data.count || 0;
-            const last  = getLastCount(LAST_STU_KEY);
-
-            // Only notify on increase; ignore first-load baseline set
-            if (last !== null && count > last) {
-                const diff = count - last;
-                pushNotif(
-                    'student',
-                    `${diff} new student${diff > 1 ? 's' : ''} registered`,
-                    'New student registration(s) need confirmation.',
-                    '{{ route("admin.students") }}'
-                );
-            }
-            setLastCount(LAST_STU_KEY, count);
-        })
-        .catch(() => {});
-    }
-
-    renderAll();
-    checkPayments();
-    checkStudents();
-    setInterval(() => { checkPayments(); checkStudents(); }, 5000);
-})();
+});
     </script>
+    {{-- Global AJAX loading overlay --}}
+<div id="ajax-loader">
+    <div class="ajax-loader-content">
+        <i class="fas fa-spinner fa-pulse"></i>
+        <p>Updating profile...</p>
+    </div>
+</div>
 </body>
 </html>

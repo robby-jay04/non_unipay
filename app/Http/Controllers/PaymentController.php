@@ -181,20 +181,20 @@ public function initiate(Request $request)
     }
 
     try {
-        $source = Paymongo::source()->create([
-            'type'     => 'gcash',
-            'amount'   => $amountPesos,
-            'currency' => 'PHP',
-            'redirect' => [
-                'success' => route('payment.success'),
-                'failed'  => route('payment.failed'),
-            ],
-            'billing' => [
-                'name'  => $student->user->name,
-                'email' => $student->user->email,
-                'phone' => $student->user->phone ?? '09000000000',
-            ],
-        ]);
+      $source = Paymongo::source()->create([
+    'type'     => 'gcash',
+    'amount'   => $amountPesos,
+    'currency' => 'PHP',
+    'redirect' => [
+        'success' => route('payment.success', ['payment_id' => $payment->id]),
+        'failed'  => route('payment.failed',  ['payment_id' => $payment->id]),
+    ],
+    'billing' => [
+        'name'  => $student->user->name,
+        'email' => $student->user->email,
+        'phone' => $student->user->phone ?? '09000000000',
+    ],
+]);
 
         $payment->update(['paymongo_source_id' => $source->id]);
 
@@ -311,36 +311,54 @@ public function status($id)
         return response()->json(['success' => true]);
     }
 
-    public function success(Request $request)
+  public function success(Request $request)
 {
-    // PayMongo redirects back with the source ID in the URL
-    $sourceId = $request->query('source_id') 
-             ?? $request->query('id'); // fallback
+    Log::info('Payment success redirect params', $request->query());
 
     $payment = null;
 
-    if ($sourceId) {
-        $payment = Payment::with(['student.user'])
-            ->where('paymongo_source_id', $sourceId)
-            ->latest()
-            ->first();
+    // Primary: use our own payment_id we embedded in the redirect URL
+    if ($request->filled('payment_id')) {
+        $payment = Payment::find($request->query('payment_id'));
     }
 
-    // Fallback: get latest pending/paid payment for this student
-    if (!$payment && auth()->check() && auth()->user()->student) {
-        $payment = Payment::where('student_id', auth()->user()->student->id)
-            ->whereIn('status', ['paid', 'pending'])
-            ->latest()
-            ->first();
+    // Secondary: try PayMongo's source_id param
+    if (!$payment) {
+        $sourceId = $request->query('source_id')
+                 ?? $request->query('id')
+                 ?? $request->query('source');
+
+        if ($sourceId) {
+            $payment = Payment::where('paymongo_source_id', $sourceId)->latest()->first();
+        }
+    }
+
+    // Last resort: latest payment for this student
+    if (!$payment && auth()->check()) {
+        $student = auth()->user()->student ?? null;
+        if ($student) {
+            $payment = Payment::where('student_id', $student->id)
+                ->whereIn('status', ['paid', 'pending'])
+                ->latest()
+                ->first();
+        }
+    }
+
+    // Use payment_date if paid, otherwise fall back to created_at (webhook may not have fired yet)
+    $displayDate = null;
+    if ($payment) {
+        $displayDate = $payment->payment_date
+            ? \Carbon\Carbon::parse($payment->payment_date)->format('d F Y h:i A')
+            : \Carbon\Carbon::parse($payment->created_at)->format('d F Y h:i A');
+    } else {
+        $displayDate = now()->format('d F Y h:i A');
     }
 
     return view('payments.success', [
         'message'   => 'Payment completed successfully!',
         'reference' => $payment?->reference_no ?? 'N/A',
         'amount'    => $payment ? 'PHP ' . number_format($payment->total_amount, 2) : 'PHP 0.00',
-        'date'      => $payment?->payment_date 
-                        ? $payment->payment_date->format('d F Y h:i A')
-                        : now()->format('d F Y h:i A'),
+        'date'      => $displayDate,
     ]);
 }
 

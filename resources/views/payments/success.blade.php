@@ -277,7 +277,14 @@
                 <svg viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0 0l-3-3m3 3l3-3"/></svg>
             </div>
 
-            <div class="merchant-avatar">N</div>
+           <div class="merchant-avatar" style="background: #e5e7eb; overflow: hidden; padding: 0;">
+    <img
+        src="{{ asset('logo.png') }}"
+        alt="Non-UniPay"
+        style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;"
+        onerror="this.style.display='none'; this.parentElement.innerText='N';"
+    >
+</div>
             <p class="merchant-name">Non-UniPay</p>
             <p class="amount">{{ $amount }}</p>
 

@@ -312,33 +312,46 @@
 
         /* ── Admin Profile Avatar ── */
         .admin-avatar-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 2px solid var(--border-color);
-    background: var(--btn-primary);
-    color: white;
-    font-weight: 700;
-    font-size: 0.85rem;
+    overflow: hidden;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    overflow: hidden;
-    flex-shrink: 0;
-    position: relative;
+    border: 3px solid rgba(255,255,255,0.6); /* white ring */
+    padding: 2px; /* space between border and image */
+
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8); /* blue glow */
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.4); /* outer glow */
 }
         .admin-avatar-btn:hover { border-color: var(--btn-primary); box-shadow: 0 0 0 3px rgba(15,60,145,0.15); transform: scale(1.05); }
         .admin-avatar-btn img,
 .admin-avatar-btn img {
     width: 100%;
     height: 100%;
-    object-fit: cover;   /* para hindi ma-stretch */
+    border-radius: 50%;
+    object-fit: cover;
     object-position: center;
     display: block;
 }
         .admin-avatar-wrapper { position: relative; }
+
+        .admin-avatar-btn span {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+}
 
         /* Profile Dropdown */
         .profile-dropdown {

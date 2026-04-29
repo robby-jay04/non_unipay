@@ -312,22 +312,31 @@
 
         /* ── Admin Profile Avatar ── */
         .admin-avatar-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            border: 2px solid var(--border-color);
-            background: var(--btn-primary);
-            color: white; font-weight: 700; font-size: 0.85rem;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s;
-            overflow: hidden; flex-shrink: 0;
-            position: relative;
-        }
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--btn-primary);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+}
         .admin-avatar-btn:hover { border-color: var(--btn-primary); box-shadow: 0 0 0 3px rgba(15,60,145,0.15); transform: scale(1.05); }
         .admin-avatar-btn img,
-.avatar-preview img {
+.admin-avatar-btn img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover;   /* para hindi ma-stretch */
     object-position: center;
+    display: block;
 }
         .admin-avatar-wrapper { position: relative; }
 
@@ -504,7 +513,7 @@
     .password-toggle {
         position: absolute;
         right: 12px;
-        top: 50%;
+        top: 70%;
         transform: translateY(-50%);
         cursor: pointer;
         color: var(--text-muted);

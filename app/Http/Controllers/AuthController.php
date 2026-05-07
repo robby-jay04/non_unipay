@@ -14,9 +14,6 @@ use App\Services\AuditLogger;
 
 class AuthController extends Controller
 {
-    // -------------------------------
-    // Throttling helpers
-    // -------------------------------
     protected function attemptsKey($email, $ip)
     {
         return 'login_attempts:' . sha1($email . '|' . $ip);
@@ -36,10 +33,10 @@ class AuthController extends Controller
         if ($attempts >= $maxAttempts) {
             $lockoutKey = $this->lockoutKey($email, $ip);
             $previousDuration = Cache::get($lockoutKey . '_duration', 0);
-            $newDuration = $previousDuration + 30; // +30 seconds each lockout
+            $newDuration = $previousDuration + 30;
             Cache::put($lockoutKey, now()->addSeconds($newDuration), $newDuration);
             Cache::put($lockoutKey . '_duration', $newDuration, $newDuration);
-            Cache::forget($key); // reset attempts after lockout triggered
+            Cache::forget($key);
         }
 
         return $attempts;
@@ -61,17 +58,11 @@ class AuthController extends Controller
         Cache::forget($this->lockoutKey($email, $ip) . '_duration');
     }
 
-    // -------------------------------
-    // Show Login Form (Web)
-    // -------------------------------
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // -------------------------------
-    // Web Login for Admin Only (with throttling)
-    // -------------------------------
     public function loginWeb(Request $request)
     {
         $credentials = $request->validate([
@@ -82,7 +73,6 @@ class AuthController extends Controller
         $email = $request->email;
         $ip    = $request->ip();
 
-        // 1. Check if locked out
         $lockoutRemaining = $this->isLocked($email, $ip);
         if ($lockoutRemaining !== false) {
             return back()->withErrors([
@@ -92,7 +82,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        // Case 1: User not found
         if (!$user) {
             $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
@@ -106,7 +95,6 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Case 2: Not an admin or superadmin
         if (!in_array($user->role, ['admin', 'superadmin'])) {
             $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
@@ -120,7 +108,6 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Case 3: Account inactive
         if (!$user->isActive()) {
             $this->incrementAttempts($email, $ip);
             app(AuditLogger::class)->log(
@@ -134,7 +121,6 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // Case 4: Password incorrect
         if (!Auth::attempt($credentials)) {
             $attempts = $this->incrementAttempts($email, $ip);
             $remainingAttempts = max(0, 5 - $attempts);
@@ -154,7 +140,6 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // ✅ Success: clear throttle & log
         $this->clearThrottle($email, $ip);
         app(AuditLogger::class)->log(
             actionType: 'auth.success',
@@ -168,9 +153,6 @@ class AuthController extends Controller
         return redirect()->route('admin.dashboard');
     }
 
-    // -------------------------------
-    // Web Logout
-    // -------------------------------
     public function logoutWeb(Request $request)
     {
         Auth::logout();
@@ -179,9 +161,7 @@ class AuthController extends Controller
         return redirect('/login');
     }
 
-    // -------------------------------
-    // API Login (Sanctum) – for students (unchanged)
-    // -------------------------------
+    // ← THIS IS THE KEY FIX
     public function login(Request $request)
     {
         $request->validate([
@@ -240,6 +220,9 @@ class AuthController extends Controller
             severity: 'low'
         );
 
+        // ✅ DELETE ALL OLD TOKENS BEFORE CREATING NEW ONE
+        $user->tokens()->delete();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -254,18 +237,12 @@ class AuthController extends Controller
         ]);
     }
 
-    // -------------------------------
-    // API Logout (Sanctum token)
-    // -------------------------------
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    // -------------------------------
-    // Student Registration
-    // -------------------------------
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -311,9 +288,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // -------------------------------
-    // Change Password (API)
-    // -------------------------------
     public function changePassword(Request $request)
     {
         $request->validate([
@@ -334,22 +308,14 @@ class AuthController extends Controller
             'password' => Hash::make($request->new_password),
         ]);
 
-        return response()->json([
-            'message' => 'Password changed successfully.',
-        ]);
+        return response()->json(['message' => 'Password changed successfully.']);
     }
 
-    // -------------------------------
-    // Get Authenticated User (API)
-    // -------------------------------
     public function me(Request $request)
     {
         return response()->json($request->user());
     }
 
-    // -------------------------------
-    // Show Password Reset Form (Web)
-    // -------------------------------
     public function showResetForm(Request $request, $token = null)
     {
         $request->validate([

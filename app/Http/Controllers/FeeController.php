@@ -377,6 +377,7 @@ public function storeWeb(Request $request)
 
   public function destroy(Fee $fee)
 {
+        dd('destroy reached');
     try {
 
         DB::beginTransaction();

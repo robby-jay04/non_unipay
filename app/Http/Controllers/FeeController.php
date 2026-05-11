@@ -375,28 +375,31 @@ public function storeWeb(Request $request)
         ]);
     }
 
-   public function destroy(Fee $fee)
+  public function destroy(Fee $fee)
 {
     try {
 
-        // Delete related fee_payment records
+        DB::beginTransaction();
+
+        // delete pivot records
         DB::table('fee_payment')
             ->where('fee_id', $fee->id)
             ->delete();
 
-        // Delete related student fees
+        // delete student fee records
         StudentFee::where('fee_id', $fee->id)
             ->delete();
 
-        // Delete notifications if needed
+        // delete related notifications
         Notification::where('type', 'fee_updated')
-            ->whereJsonContains('data->fee_id', $fee->id)
+            ->where('data', 'LIKE', '%"fee_id":'.$fee->id.'%')
             ->delete();
 
-        // Finally delete fee
+        // delete fee
         $fee->delete();
 
-        // Recompute clearances
+        DB::commit();
+
         $this->clearanceService->bulkUpdateClearances();
 
         return redirect()
@@ -405,12 +408,13 @@ public function storeWeb(Request $request)
 
     } catch (\Exception $e) {
 
+        DB::rollBack();
+
         return redirect()
             ->back()
             ->with('error', $e->getMessage());
     }
 }
-
     
    public function breakdown()
     {

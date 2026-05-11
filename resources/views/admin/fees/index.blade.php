@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Re-open modal on validation error and restore old() values
 if (createSchoolYear.value && oldCreateSemId) {
     loadSemesters(createSchoolYear.value, createSemester, createExamPeriod, oldCreateSemId, oldCreateExPerId);
-    <?php if($errors->any() && old('_modal') === 'create'): ?>
+    <?php if(isset($errors) && $errors->any() && old('_modal') === 'create'): ?>
         new bootstrap.Modal(document.getElementById('createFeeModal')).show();
     <?php endif; ?>
 }

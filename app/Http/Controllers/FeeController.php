@@ -353,17 +353,7 @@ public function storeWeb(Request $request)
     }
 
 
-    public function destroyWeb($fee)
-    {
-        Fee::findOrFail($fee)->delete();
-
-        // ✅ Re-sync all clearances since a fee was deleted
-        $this->clearanceService->bulkUpdateClearances();
-
-        return redirect()->route('admin.fees.index')
-                         ->with('success', 'Fee deleted successfully.');
-    }
-
+    
     public function update(Request $request, $id)
     {
         $fee       = Fee::findOrFail($id);
@@ -385,12 +375,41 @@ public function storeWeb(Request $request)
         ]);
     }
 
-    public function destroy(Fee $fee)
-    {
+   public function destroy(Fee $fee)
+{
+    try {
+
+        // Delete related fee_payment records
+        DB::table('fee_payment')
+            ->where('fee_id', $fee->id)
+            ->delete();
+
+        // Delete related student fees
+        StudentFee::where('fee_id', $fee->id)
+            ->delete();
+
+        // Delete notifications if needed
+        Notification::where('type', 'fee_updated')
+            ->whereJsonContains('data->fee_id', $fee->id)
+            ->delete();
+
+        // Finally delete fee
         $fee->delete();
-        return redirect()->route('admin.fees.index')
-                         ->with('success', 'Fee deleted successfully.');
+
+        // Recompute clearances
+        $this->clearanceService->bulkUpdateClearances();
+
+        return redirect()
+            ->route('admin.fees.index')
+            ->with('success', 'Fee deleted successfully.');
+
+    } catch (\Exception $e) {
+
+        return redirect()
+            ->back()
+            ->with('error', $e->getMessage());
     }
+}
 
     
    public function breakdown()

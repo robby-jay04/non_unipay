@@ -7,9 +7,6 @@ use App\Models\Notification;
 
 class NotificationController extends Controller
 {
-    /**
-     * Get all notifications for the authenticated user.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -18,34 +15,23 @@ class NotificationController extends Controller
             ->get();
 
         return response()->json([
-            'success' => true,
+            'success'       => true,
             'notifications' => $notifications,
         ]);
     }
 
-    /**
-     * Get the count of unread notifications for the authenticated user.
-     */
     public function unreadCount(Request $request)
     {
-        $user = $request->user();
-        $count = Notification::where('user_id', $user->id)
+        $count = Notification::where('user_id', $request->user()->id)
                     ->where('is_read', false)
                     ->count();
 
-        return response()->json([
-            'success' => true,
-            'count' => $count,
-        ]);
+        return response()->json(['success' => true, 'count' => $count]);
     }
 
-    /**
-     * Mark all notifications as read for the authenticated user.
-     */
     public function markAllAsRead(Request $request)
     {
-        $user = $request->user();
-        Notification::where('user_id', $user->id)
+        Notification::where('user_id', $request->user()->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
@@ -55,13 +41,9 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * (Optional) Mark a single notification as read.
-     */
     public function markAsRead(Request $request, $id)
     {
-        $user = $request->user();
-        $notification = Notification::where('user_id', $user->id)
+        $notification = Notification::where('user_id', $request->user()->id)
             ->where('id', $id)
             ->firstOrFail();
 
@@ -73,13 +55,9 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * (Optional) Delete a notification.
-     */
     public function destroy(Request $request, $id)
     {
-        $user = $request->user();
-        $notification = Notification::where('user_id', $user->id)
+        $notification = Notification::where('user_id', $request->user()->id)
             ->where('id', $id)
             ->firstOrFail();
 
@@ -90,11 +68,12 @@ class NotificationController extends Controller
             'message' => 'Notification deleted',
         ]);
     }
-    
-public function clearAll(Request $request)
-{
-    $request->user()->notifications()->delete();
 
-    return response()->json(['success' => true]);
-}
+    public function clearAll(Request $request)
+    {
+        // ── Fixed: scope to the authenticated user, not a relationship ────────
+        Notification::where('user_id', $request->user()->id)->delete();
+
+        return response()->json(['success' => true]);
+    }
 }

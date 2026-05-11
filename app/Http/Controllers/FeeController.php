@@ -13,10 +13,11 @@ use App\Services\ClearanceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Course;
+use App\Models\Notification;
+use App\Models\User;
+
 class FeeController extends Controller
 {
-    
-
     protected $clearanceService;
 
     public function __construct(ClearanceService $clearanceService)
@@ -25,44 +26,40 @@ class FeeController extends Controller
     }
 
     public function index(Request $request)
-{
-    $query = Fee::query();
+    {
+        $query = Fee::query();
 
-    // Apply filters
-    if ($request->filled('school_year')) {
-        $query->where('school_year_id', $request->school_year);
+        if ($request->filled('school_year')) {
+            $query->where('school_year_id', $request->school_year);
+        }
+        if ($request->filled('semester')) {
+            $query->where('semester_id', $request->semester);
+        }
+        if ($request->filled('exam_period')) {
+            $query->where('exam_period', $request->exam_period);
+        }
+
+        $fees = $query->orderBy('school_year_id', 'desc')
+                      ->orderBy('type', 'asc')
+                      ->get();
+
+        $semesters = Semester::when($request->school_year, function ($q) use ($request) {
+                $q->where('school_year_id', $request->school_year);
+            }, function ($q) {
+                $currentSY = SchoolYear::where('is_current', true)->first();
+                if ($currentSY) {
+                    $q->where('school_year_id', $currentSY->id);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
+        $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+
+        return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
     }
 
-    if ($request->filled('semester')) {
-        $query->where('semester_id', $request->semester);
-    }
-
-    if ($request->filled('exam_period')) {
-        $query->where('exam_period', $request->exam_period);
-    }
-
-    $fees = $query->orderBy('school_year_id', 'desc')
-                  ->orderBy('type', 'asc')
-                  ->get();
-
-    // ✅ Correct semesters for the selected school year
-    $semesters = Semester::when($request->school_year, function ($q) use ($request) {
-            $q->where('school_year_id', $request->school_year);
-        }, function ($q) {
-            // Default to current school year's semesters if no filter
-            $currentSY = SchoolYear::where('is_current', true)->first();
-            if ($currentSY) {
-                $q->where('school_year_id', $currentSY->id);
-            }
-        })
-        ->orderBy('name')
-        ->get();
-
-    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
-    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
-
-    return view('admin.fees.index', compact('fees', 'schoolYears', 'semesters', 'examPeriods'));
-}
     public function getTotalFees()
     {
         $total = Fee::currentSchoolYear()->sum('amount');
@@ -109,72 +106,67 @@ class FeeController extends Controller
     }
 
     public function create()
-{
-    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-    $currentSemester   = Semester::where('is_current', true)->first();
-    $courses           = Course::orderBy('code')->get();   // ✅ dynamic from DB
+    {
+        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $currentSemester   = Semester::where('is_current', true)->first();
+        $courses           = Course::orderBy('code')->get();
 
-    return view('admin.fees.index', compact(
-        'schoolYears',
-        'currentSchoolYear',
-        'currentSemester',
-        'courses'
-    ));
-}
-public function adminIndex(Request $request)
-{
-    $query = Fee::with(['schoolYear', 'semester']);
-
-    // Apply filters
-    if ($request->filled('school_year')) {
-        $query->where('school_year_id', $request->school_year);
+        return view('admin.fees.index', compact(
+            'schoolYears',
+            'currentSchoolYear',
+            'currentSemester',
+            'courses'
+        ));
     }
 
-    if ($request->filled('semester')) {
-        $query->where('semester_id', $request->semester);
+    public function adminIndex(Request $request)
+    {
+        $query = Fee::with(['schoolYear', 'semester']);
+
+        if ($request->filled('school_year')) {
+            $query->where('school_year_id', $request->school_year);
+        }
+        if ($request->filled('semester')) {
+            $query->where('semester_id', $request->semester);
+        }
+        if ($request->filled('exam_period')) {
+            $query->where('exam_period', $request->exam_period);
+        }
+
+        $fees = $query->orderBy('school_year_id', 'desc')
+                      ->orderBy('type', 'asc')
+                      ->get();
+
+        $semesters = Semester::when($request->school_year, function ($q) use ($request) {
+                $q->where('school_year_id', $request->school_year);
+            }, function ($q) {
+                $currentSY = SchoolYear::where('is_current', true)->first();
+                if ($currentSY) {
+                    $q->where('school_year_id', $currentSY->id);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+        $examPeriods       = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
+        $courses           = Course::orderBy('code')->get();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $currentSemester   = Semester::where('is_current', true)->first();
+
+        return view('admin.fees.index', compact(
+            'fees',
+            'schoolYears',
+            'semesters',
+            'examPeriods',
+            'courses',
+            'currentSchoolYear',
+            'currentSemester'
+        ));
     }
 
-    if ($request->filled('exam_period')) {
-        $query->where('exam_period', $request->exam_period);
-    }
-
-    $fees = $query->orderBy('school_year_id', 'desc')
-                  ->orderBy('type', 'asc')
-                  ->get();
-
-    // ✅ Correct semesters for the selected school year
-    $semesters = Semester::when($request->school_year, function ($q) use ($request) {
-            $q->where('school_year_id', $request->school_year);
-        }, function ($q) {
-            $currentSY = SchoolYear::where('is_current', true)->first();
-            if ($currentSY) {
-                $q->where('school_year_id', $currentSY->id);
-            }
-        })
-        ->orderBy('name')
-        ->get();
-
-    $schoolYears = SchoolYear::orderBy('name', 'desc')->get();
-    $examPeriods = ['Prelim', 'Midterm', 'Semi-Final', 'Finals'];
-    $courses = Course::orderBy('code')->get();
-
-    // ✅ Add current school year and semester for modal pre-selection
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-    $currentSemester = Semester::where('is_current', true)->first();
-
-    return view('admin.fees.index', compact(
-        'fees', 
-        'schoolYears', 
-        'semesters', 
-        'examPeriods', 
-        'courses', 
-        'currentSchoolYear',
-        'currentSemester'
-    ));
-}
-
-public function storeWeb(Request $request)
+    public function storeWeb(Request $request)
     {
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
@@ -206,7 +198,6 @@ public function storeWeb(Request $request)
             'exam_period_id' => $examPeriod?->id,
         ]);
 
-        // ✅ Re-sync all clearances since a new fee was added
         $this->clearanceService->bulkUpdateClearances();
 
         return redirect()->route('admin.fees.index')
@@ -214,18 +205,18 @@ public function storeWeb(Request $request)
     }
 
     public function edit(Fee $fee)
-{
-    $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-    $courses           = Course::orderBy('code')->get();   // ✅ dynamic from DB
+    {
+        $schoolYears       = SchoolYear::orderBy('name', 'desc')->get();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $courses           = Course::orderBy('code')->get();
 
-    return view('admin.fees.index', compact(
-        'fee',
-        'schoolYears',
-        'currentSchoolYear',
-        'courses'
-    ));
-}
+        return view('admin.fees.index', compact(
+            'fee',
+            'schoolYears',
+            'currentSchoolYear',
+            'courses'
+        ));
+    }
 
     public function updateWeb(Request $request, Fee $fee)
     {
@@ -246,6 +237,10 @@ public function storeWeb(Request $request)
         $schoolYear = SchoolYear::find($validated['school_year_id']);
         $examPeriod = $examPeriodId ? ExamPeriod::find($examPeriodId) : null;
 
+        // ── Capture old amount before update for notification message ─────────
+        $oldAmount = (float) $fee->amount;
+        $oldName   = $fee->name;
+
         $fee->update([
             'name'           => $validated['name'],
             'amount'         => $validated['amount'],
@@ -259,18 +254,97 @@ public function storeWeb(Request $request)
             'course'         => !empty($validated['course']) ? $validated['course'] : null,
         ]);
 
-        // ✅ Re-sync all clearances since a fee was changed
         $this->clearanceService->bulkUpdateClearances();
+
+        // ── Notify affected students only if the amount changed ───────────────
+        $newAmount = (float) $validated['amount'];
+
+        if ($oldAmount !== $newAmount) {
+            $this->notifyStudentsOfFeeChange(
+                fee: $fee,
+                feeName: $validated['name'],
+                oldAmount: $oldAmount,
+                newAmount: $newAmount,
+                schoolYearId: $schoolYear->id,
+                semesterId: $semester?->id,
+                course: !empty($validated['course']) ? $validated['course'] : null,
+            );
+        }
 
         return redirect()->route('admin.fees.index')
                          ->with('success', 'Fee updated successfully.');
+    }
+
+    /**
+     * Notify students enrolled in the same school year / semester / course
+     * that a fee amount has been updated.
+     */
+    private function notifyStudentsOfFeeChange(
+        Fee $fee,
+        string $feeName,
+        float $oldAmount,
+        float $newAmount,
+        int $schoolYearId,
+        ?int $semesterId,
+        ?string $course,
+    ): void {
+        // Build query for students who belong to this fee's scope
+        $studentQuery = Student::whereHas('user') // must have a user account
+            ->when($course, fn($q) => $q->where('course', $course));
+
+        $students = $studentQuery->with('user')->get();
+
+        $direction = $newAmount > $oldAmount ? 'increased' : 'decreased';
+
+        $message = "The fee \"{$feeName}\" has been {$direction} from "
+                 . '₱' . number_format($oldAmount, 2)
+                 . ' to ₱' . number_format($newAmount, 2) . '.';
+
+        // Only notify students who have this fee in a pending/partial state
+        // i.e. students who haven't fully paid it yet
+        $fullyPaidStudentIds = DB::table('fee_payment')
+            ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
+            ->where('payments.status', 'paid')
+            ->where('fee_payment.fee_id', $fee->id)
+            ->groupBy('payments.student_id')
+            ->havingRaw('SUM(fee_payment.amount) >= ?', [$newAmount])
+            ->pluck('payments.student_id')
+            ->toArray();
+
+        $notifications = [];
+        $now = now();
+
+        foreach ($students as $student) {
+            // Skip students who have already fully paid this fee at the new amount
+            if (in_array($student->id, $fullyPaidStudentIds)) {
+                continue;
+            }
+
+            $notifications[] = [
+                'user_id'    => $student->user->id,
+                'type'       => 'fee_updated',
+                'message'    => $message,
+                'data'       => json_encode([
+                    'fee_id'     => $fee->id,
+                    'fee_name'   => $feeName,
+                    'old_amount' => $oldAmount,
+                    'new_amount' => $newAmount,
+                ]),
+                'is_read'    => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (!empty($notifications)) {
+            Notification::insert($notifications); // bulk insert — efficient
+        }
     }
 
     public function destroyWeb($fee)
     {
         Fee::findOrFail($fee)->delete();
 
-        // ✅ Re-sync all clearances since a fee was deleted
         $this->clearanceService->bulkUpdateClearances();
 
         return redirect()->route('admin.fees.index')
@@ -305,8 +379,7 @@ public function storeWeb(Request $request)
                          ->with('success', 'Fee deleted successfully.');
     }
 
-    
-   public function breakdown()
+    public function breakdown()
     {
         $student           = auth()->user()->student;
         $currentSemester   = Semester::where('is_current', true)->first();
@@ -316,14 +389,14 @@ public function storeWeb(Request $request)
                                             ->where('is_current', true)
                                             ->first()
                                 : null;
- 
+
         if (!$currentSemester || !$currentSchoolYear) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active semester or school year set.',
             ], 404);
         }
- 
+
         $fees = Fee::where('school_year_id', $currentSchoolYear->id)
                    ->where('semester_id', $currentSemester->id)
                    ->where(function ($q) use ($currentExamPeriod) {
@@ -339,7 +412,7 @@ public function storeWeb(Request $request)
                          ->orWhereNull('course');
                    })
                    ->get();
- 
+
         if ($fees->isEmpty()) {
             return response()->json([
                 'success'   => true,
@@ -354,11 +427,9 @@ public function storeWeb(Request $request)
                 ],
             ]);
         }
- 
+
         $feeIds = $fees->pluck('id');
- 
-        // ── Per-fee paid amounts from confirmed payments only ─────────────────
-        // Uses fee_payment pivot table's `amount` column (what was paid per fee per payment)
+
         $paidPerFee = DB::table('fee_payment')
             ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
             ->where('payments.student_id', $student->id)
@@ -368,43 +439,41 @@ public function storeWeb(Request $request)
             ->select('fee_payment.fee_id', DB::raw('SUM(fee_payment.amount) as total_paid'))
             ->pluck('total_paid', 'fee_id')
             ->map(fn($v) => (float) $v);
- 
-        // ── Annotate each fee with paid_amount, remaining, payment_status ─────
+
         $annotatedFees = $fees->map(function ($fee) use ($paidPerFee) {
             $currentAmount = (float) $fee->amount;
             $paidAmount    = (float) ($paidPerFee[$fee->id] ?? 0);
             $remaining     = max($currentAmount - $paidAmount, 0);
- 
+
             if ($paidAmount <= 0) {
                 $feeStatus = 'unpaid';
             } elseif ($remaining <= 0) {
                 $feeStatus = 'paid';
             } else {
-                $feeStatus = 'partial'; // fee amount was raised after payment
+                $feeStatus = 'partial';
             }
- 
+
             return array_merge($fee->toArray(), [
                 'paid_amount'    => $paidAmount,
                 'remaining'      => $remaining,
                 'payment_status' => $feeStatus,
             ]);
         });
- 
-        // ── Grand totals ──────────────────────────────────────────────────────
+
         $grandTotal       = (float) $fees->sum('amount');
         $totalPaid        = (float) $paidPerFee->sum();
         $remainingBalance = max($grandTotal - $totalPaid, 0);
- 
+
         if ($totalPaid <= 0) {
-            $status = 'pending';
+            $status = 'cleared';
         } elseif ($remainingBalance <= 0) {
             $status = 'cleared';
         } else {
             $status = 'partial';
         }
- 
+
         $byType = $annotatedFees->groupBy('type');
- 
+
         $breakdown = [
             'tuition' => [
                 'fees'  => $byType->get('tuition', collect())->values(),
@@ -423,7 +492,7 @@ public function storeWeb(Request $request)
             'remaining_balance' => $remainingBalance,
             'status'            => $status,
         ];
- 
+
         return response()->json(['success' => true, 'breakdown' => $breakdown]);
     }
 }

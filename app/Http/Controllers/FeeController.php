@@ -305,7 +305,8 @@ public function storeWeb(Request $request)
                          ->with('success', 'Fee deleted successfully.');
     }
 
-    public function breakdown()
+    
+public function breakdown()
 {
     $student           = auth()->user()->student;
     $currentSemester   = Semester::where('is_current', true)->first();
@@ -315,14 +316,14 @@ public function storeWeb(Request $request)
                                         ->where('is_current', true)
                                         ->first()
                             : null;
-
+ 
     if (!$currentSemester || !$currentSchoolYear) {
         return response()->json([
             'success' => false,
             'message' => 'No active semester or school year set.',
         ], 404);
     }
-
+ 
     $fees = Fee::where('school_year_id', $currentSchoolYear->id)
                ->where('semester_id', $currentSemester->id)
                ->where(function ($q) use ($currentExamPeriod) {
@@ -338,7 +339,7 @@ public function storeWeb(Request $request)
                      ->orWhereNull('course');
                })
                ->get();
-
+ 
     if ($fees->isEmpty()) {
         return response()->json([
             'success'   => true,
@@ -353,23 +354,52 @@ public function storeWeb(Request $request)
             ],
         ]);
     }
-
-    // Always recompute grand_total from current fee amounts
-    $grandTotal = (float) $fees->sum('amount');
-    $feeIds     = $fees->pluck('id');
-
-    // Sum only what was actually paid (confirmed payments)
-    $totalPaid = (float) DB::table('fee_payment')
+ 
+    $feeIds = $fees->pluck('id');
+ 
+    // ── Per-fee paid amounts (only confirmed/paid payments) ───────────────────
+    // This gives us: [ fee_id => total_amount_paid_for_that_fee ]
+    $paidPerFee = DB::table('fee_payment')
         ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
         ->where('payments.student_id', $student->id)
         ->where('payments.status', 'paid')
         ->whereIn('fee_payment.fee_id', $feeIds)
-        ->sum('fee_payment.amount');
-
-    // Always derive remaining balance from current fee amounts vs actual paid
+        ->groupBy('fee_payment.fee_id')
+        ->select('fee_payment.fee_id', DB::raw('SUM(fee_payment.amount) as total_paid'))
+        ->pluck('total_paid', 'fee_id') // [ fee_id => total_paid ]
+        ->map(fn($v) => (float) $v);
+ 
+    // ── Annotate each fee with paid_amount, remaining, and payment_status ─────
+    $annotatedFees = $fees->map(function ($fee) use ($paidPerFee) {
+        $currentAmount = (float) $fee->amount;
+        $paidAmount    = (float) ($paidPerFee[$fee->id] ?? 0);
+        $remaining     = max($currentAmount - $paidAmount, 0);
+ 
+        // payment_status per fee:
+        //   'paid'    — fully covered at the current fee amount
+        //   'partial' — some was paid but fee was edited higher, balance remains
+        //   'unpaid'  — nothing paid yet
+        if ($paidAmount <= 0) {
+            $feeStatus = 'unpaid';
+        } elseif ($remaining <= 0) {
+            $feeStatus = 'paid';
+        } else {
+            $feeStatus = 'partial'; // fee edited higher after payment
+        }
+ 
+        return array_merge($fee->toArray(), [
+            'paid_amount'    => $paidAmount,
+            'remaining'      => $remaining,
+            'payment_status' => $feeStatus,
+        ]);
+    });
+ 
+    // ── Grand totals (always fresh from current fee amounts) ──────────────────
+    $grandTotal       = (float) $fees->sum('amount');
+    $totalPaid        = (float) $paidPerFee->sum();
     $remainingBalance = max($grandTotal - $totalPaid, 0);
-
-    // Recompute status from fresh values — never trust a cached state
+ 
+    // ── Overall status ────────────────────────────────────────────────────────
     if ($totalPaid <= 0) {
         $status = 'pending';
     } elseif ($grandTotal > 0 && $remainingBalance <= 0) {
@@ -379,26 +409,29 @@ public function storeWeb(Request $request)
     } else {
         $status = 'pending';
     }
-
+ 
+    // ── Build typed sections using annotated fees ─────────────────────────────
+    $byType = $annotatedFees->groupBy('type');
+ 
     $breakdown = [
         'tuition' => [
-            'fees'  => $fees->where('type', 'tuition')->values(),
-            'total' => (float) $fees->where('type', 'tuition')->sum('amount'),
+            'fees'  => $byType->get('tuition', collect())->values(),
+            'total' => (float) ($byType->get('tuition', collect())->sum('amount')),
         ],
         'miscellaneous' => [
-            'fees'  => $fees->where('type', 'miscellaneous')->values(),
-            'total' => (float) $fees->where('type', 'miscellaneous')->sum('amount'),
+            'fees'  => $byType->get('miscellaneous', collect())->values(),
+            'total' => (float) ($byType->get('miscellaneous', collect())->sum('amount')),
         ],
         'exam' => [
-            'fees'  => $fees->where('type', 'exam')->values(),
-            'total' => (float) $fees->where('type', 'exam')->sum('amount'),
+            'fees'  => $byType->get('exam', collect())->values(),
+            'total' => (float) ($byType->get('exam', collect())->sum('amount')),
         ],
         'grand_total'       => $grandTotal,
         'total_paid'        => $totalPaid,
         'remaining_balance' => $remainingBalance,
         'status'            => $status,
     ];
-
+ 
     return response()->json(['success' => true, 'breakdown' => $breakdown]);
 }
 }

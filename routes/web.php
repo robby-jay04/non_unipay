@@ -97,7 +97,7 @@ Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->
         Route::get('/fees', [FeeController::class, 'adminIndex'])->name('fees.index');
         Route::post('/fees', [FeeController::class, 'storeWeb'])->name('fees.store');
         Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])->name('fees.update');
-        Route::delete('/fees/{fee}', [FeeController::class, 'destroyWeb'])->name('fees.destroy');
+        Route::delete('/fees/{fee}', [FeeController::class, 'destroy'])->name('fees.destroy');
 
         // Dynamic API loaders (used by fee modals)
         Route::get('/api/semesters/{schoolYearId}', function ($schoolYearId) {

@@ -306,132 +306,124 @@ public function storeWeb(Request $request)
     }
 
     
-public function breakdown()
-{
-    $student           = auth()->user()->student;
-    $currentSemester   = Semester::where('is_current', true)->first();
-    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-    $currentExamPeriod = $currentSemester
-                            ? ExamPeriod::where('semester_id', $currentSemester->id)
-                                        ->where('is_current', true)
-                                        ->first()
-                            : null;
+   public function breakdown()
+    {
+        $student           = auth()->user()->student;
+        $currentSemester   = Semester::where('is_current', true)->first();
+        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+        $currentExamPeriod = $currentSemester
+                                ? ExamPeriod::where('semester_id', $currentSemester->id)
+                                            ->where('is_current', true)
+                                            ->first()
+                                : null;
  
-    if (!$currentSemester || !$currentSchoolYear) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No active semester or school year set.',
-        ], 404);
-    }
- 
-    $fees = Fee::where('school_year_id', $currentSchoolYear->id)
-               ->where('semester_id', $currentSemester->id)
-               ->where(function ($q) use ($currentExamPeriod) {
-                   if ($currentExamPeriod) {
-                       $q->whereNull('exam_period_id')
-                         ->orWhere('exam_period_id', $currentExamPeriod->id);
-                   } else {
-                       $q->whereNull('exam_period_id');
-                   }
-               })
-               ->where(function ($q) use ($student) {
-                   $q->where('course', $student->course)
-                     ->orWhereNull('course');
-               })
-               ->get();
- 
-    if ($fees->isEmpty()) {
-        return response()->json([
-            'success'   => true,
-            'breakdown' => [
-                'tuition'           => ['fees' => [], 'total' => 0],
-                'miscellaneous'     => ['fees' => [], 'total' => 0],
-                'exam'              => ['fees' => [], 'total' => 0],
-                'grand_total'       => 0,
-                'total_paid'        => 0,
-                'remaining_balance' => 0,
-                'status'            => 'no_fees',
-            ],
-        ]);
-    }
- 
-    $feeIds = $fees->pluck('id');
- 
-    // ── Per-fee paid amounts (only confirmed/paid payments) ───────────────────
-    // This gives us: [ fee_id => total_amount_paid_for_that_fee ]
-    $paidPerFee = DB::table('fee_payment')
-        ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
-        ->where('payments.student_id', $student->id)
-        ->where('payments.status', 'paid')
-        ->whereIn('fee_payment.fee_id', $feeIds)
-        ->groupBy('fee_payment.fee_id')
-        ->select('fee_payment.fee_id', DB::raw('SUM(fee_payment.amount) as total_paid'))
-        ->pluck('total_paid', 'fee_id') // [ fee_id => total_paid ]
-        ->map(fn($v) => (float) $v);
- 
-    // ── Annotate each fee with paid_amount, remaining, and payment_status ─────
-    $annotatedFees = $fees->map(function ($fee) use ($paidPerFee) {
-        $currentAmount = (float) $fee->amount;
-        $paidAmount    = (float) ($paidPerFee[$fee->id] ?? 0);
-        $remaining     = max($currentAmount - $paidAmount, 0);
- 
-        // payment_status per fee:
-        //   'paid'    — fully covered at the current fee amount
-        //   'partial' — some was paid but fee was edited higher, balance remains
-        //   'unpaid'  — nothing paid yet
-        if ($paidAmount <= 0) {
-            $feeStatus = 'unpaid';
-        } elseif ($remaining <= 0) {
-            $feeStatus = 'paid';
-        } else {
-            $feeStatus = 'partial'; // fee edited higher after payment
+        if (!$currentSemester || !$currentSchoolYear) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active semester or school year set.',
+            ], 404);
         }
  
-        return array_merge($fee->toArray(), [
-            'paid_amount'    => $paidAmount,
-            'remaining'      => $remaining,
-            'payment_status' => $feeStatus,
-        ]);
-    });
+        $fees = Fee::where('school_year_id', $currentSchoolYear->id)
+                   ->where('semester_id', $currentSemester->id)
+                   ->where(function ($q) use ($currentExamPeriod) {
+                       if ($currentExamPeriod) {
+                           $q->whereNull('exam_period_id')
+                             ->orWhere('exam_period_id', $currentExamPeriod->id);
+                       } else {
+                           $q->whereNull('exam_period_id');
+                       }
+                   })
+                   ->where(function ($q) use ($student) {
+                       $q->where('course', $student->course)
+                         ->orWhereNull('course');
+                   })
+                   ->get();
  
-    // ── Grand totals (always fresh from current fee amounts) ──────────────────
-    $grandTotal       = (float) $fees->sum('amount');
-    $totalPaid        = (float) $paidPerFee->sum();
-    $remainingBalance = max($grandTotal - $totalPaid, 0);
+        if ($fees->isEmpty()) {
+            return response()->json([
+                'success'   => true,
+                'breakdown' => [
+                    'tuition'           => ['fees' => [], 'total' => 0],
+                    'miscellaneous'     => ['fees' => [], 'total' => 0],
+                    'exam'              => ['fees' => [], 'total' => 0],
+                    'grand_total'       => 0,
+                    'total_paid'        => 0,
+                    'remaining_balance' => 0,
+                    'status'            => 'no_fees',
+                ],
+            ]);
+        }
  
-    // ── Overall status ────────────────────────────────────────────────────────
-    if ($totalPaid <= 0) {
-        $status = 'pending';
-    } elseif ($grandTotal > 0 && $remainingBalance <= 0) {
-        $status = 'cleared';
-    } elseif ($remainingBalance > 0 && $totalPaid > 0) {
-        $status = 'partial';
-    } else {
-        $status = 'pending';
+        $feeIds = $fees->pluck('id');
+ 
+        // ── Per-fee paid amounts from confirmed payments only ─────────────────
+        // Uses fee_payment pivot table's `amount` column (what was paid per fee per payment)
+        $paidPerFee = DB::table('fee_payment')
+            ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
+            ->where('payments.student_id', $student->id)
+            ->where('payments.status', 'paid')
+            ->whereIn('fee_payment.fee_id', $feeIds)
+            ->groupBy('fee_payment.fee_id')
+            ->select('fee_payment.fee_id', DB::raw('SUM(fee_payment.amount) as total_paid'))
+            ->pluck('total_paid', 'fee_id')
+            ->map(fn($v) => (float) $v);
+ 
+        // ── Annotate each fee with paid_amount, remaining, payment_status ─────
+        $annotatedFees = $fees->map(function ($fee) use ($paidPerFee) {
+            $currentAmount = (float) $fee->amount;
+            $paidAmount    = (float) ($paidPerFee[$fee->id] ?? 0);
+            $remaining     = max($currentAmount - $paidAmount, 0);
+ 
+            if ($paidAmount <= 0) {
+                $feeStatus = 'unpaid';
+            } elseif ($remaining <= 0) {
+                $feeStatus = 'paid';
+            } else {
+                $feeStatus = 'partial'; // fee amount was raised after payment
+            }
+ 
+            return array_merge($fee->toArray(), [
+                'paid_amount'    => $paidAmount,
+                'remaining'      => $remaining,
+                'payment_status' => $feeStatus,
+            ]);
+        });
+ 
+        // ── Grand totals ──────────────────────────────────────────────────────
+        $grandTotal       = (float) $fees->sum('amount');
+        $totalPaid        = (float) $paidPerFee->sum();
+        $remainingBalance = max($grandTotal - $totalPaid, 0);
+ 
+        if ($totalPaid <= 0) {
+            $status = 'pending';
+        } elseif ($remainingBalance <= 0) {
+            $status = 'cleared';
+        } else {
+            $status = 'partial';
+        }
+ 
+        $byType = $annotatedFees->groupBy('type');
+ 
+        $breakdown = [
+            'tuition' => [
+                'fees'  => $byType->get('tuition', collect())->values(),
+                'total' => (float) ($byType->get('tuition', collect())->sum('amount')),
+            ],
+            'miscellaneous' => [
+                'fees'  => $byType->get('miscellaneous', collect())->values(),
+                'total' => (float) ($byType->get('miscellaneous', collect())->sum('amount')),
+            ],
+            'exam' => [
+                'fees'  => $byType->get('exam', collect())->values(),
+                'total' => (float) ($byType->get('exam', collect())->sum('amount')),
+            ],
+            'grand_total'       => $grandTotal,
+            'total_paid'        => $totalPaid,
+            'remaining_balance' => $remainingBalance,
+            'status'            => $status,
+        ];
+ 
+        return response()->json(['success' => true, 'breakdown' => $breakdown]);
     }
- 
-    // ── Build typed sections using annotated fees ─────────────────────────────
-    $byType = $annotatedFees->groupBy('type');
- 
-    $breakdown = [
-        'tuition' => [
-            'fees'  => $byType->get('tuition', collect())->values(),
-            'total' => (float) ($byType->get('tuition', collect())->sum('amount')),
-        ],
-        'miscellaneous' => [
-            'fees'  => $byType->get('miscellaneous', collect())->values(),
-            'total' => (float) ($byType->get('miscellaneous', collect())->sum('amount')),
-        ],
-        'exam' => [
-            'fees'  => $byType->get('exam', collect())->values(),
-            'total' => (float) ($byType->get('exam', collect())->sum('amount')),
-        ],
-        'grand_total'       => $grandTotal,
-        'total_paid'        => $totalPaid,
-        'remaining_balance' => $remainingBalance,
-        'status'            => $status,
-    ];
- 
-    return response()->json(['success' => true, 'breakdown' => $breakdown]);
-}
 }

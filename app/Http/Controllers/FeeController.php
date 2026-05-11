@@ -306,93 +306,99 @@ public function storeWeb(Request $request)
     }
 
     public function breakdown()
-    {
-        $student           = auth()->user()->student;
-        $currentSemester   = Semester::where('is_current', true)->first();
-        $currentSchoolYear = SchoolYear::where('is_current', true)->first();
-        $currentExamPeriod = $currentSemester
-                                ? ExamPeriod::where('semester_id', $currentSemester->id)
-                                            ->where('is_current', true)
-                                            ->first()
-                                : null;
+{
+    $student           = auth()->user()->student;
+    $currentSemester   = Semester::where('is_current', true)->first();
+    $currentSchoolYear = SchoolYear::where('is_current', true)->first();
+    $currentExamPeriod = $currentSemester
+                            ? ExamPeriod::where('semester_id', $currentSemester->id)
+                                        ->where('is_current', true)
+                                        ->first()
+                            : null;
 
-        if (!$currentSemester || !$currentSchoolYear) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active semester or school year set.',
-            ], 404);
-        }
-
-        $fees = Fee::where('school_year_id', $currentSchoolYear->id)
-                   ->where('semester_id', $currentSemester->id)
-                   ->where(function ($q) use ($currentExamPeriod) {
-                       if ($currentExamPeriod) {
-                           $q->whereNull('exam_period_id')
-                             ->orWhere('exam_period_id', $currentExamPeriod->id);
-                       } else {
-                           $q->whereNull('exam_period_id');
-                       }
-                   })
-                   ->where(function ($q) use ($student) {
-                       $q->where('course', $student->course)
-                         ->orWhereNull('course');
-                   })
-                   ->get();
-
-        if ($fees->isEmpty()) {
-            return response()->json([
-                'success'   => true,
-                'breakdown' => [
-                    'tuition'           => ['fees' => [], 'total' => 0],
-                    'miscellaneous'     => ['fees' => [], 'total' => 0],
-                    'exam'              => ['fees' => [], 'total' => 0],
-                    'grand_total'       => 0,
-                    'total_paid'        => 0,
-                    'remaining_balance' => 0,
-                    'status'            => 'no_fees',
-                ],
-            ]);
-        }
-
-        $grandTotal = $fees->sum('amount');
-        $feeIds     = $fees->pluck('id');
-
-        $totalPaid = DB::table('fee_payment')
-            ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
-            ->where('payments.student_id', $student->id)
-            ->where('payments.status', 'paid')
-            ->whereIn('fee_payment.fee_id', $feeIds)
-            ->sum('fee_payment.amount');
-
-        $remainingBalance = max($grandTotal - $totalPaid, 0);
-
-        if ($totalPaid <= 0) {
-            $status = 'pending';
-        } elseif ($remainingBalance <= 0) {
-            $status = 'cleared';
-        } else {
-            $status = 'partial';
-        }
-
-        $breakdown = [
-            'tuition' => [
-                'fees'  => $fees->where('type', 'tuition')->values(),
-                'total' => $fees->where('type', 'tuition')->sum('amount'),
-            ],
-            'miscellaneous' => [
-                'fees'  => $fees->where('type', 'miscellaneous')->values(),
-                'total' => $fees->where('type', 'miscellaneous')->sum('amount'),
-            ],
-            'exam' => [
-                'fees'  => $fees->where('type', 'exam')->values(),
-                'total' => $fees->where('type', 'exam')->sum('amount'),
-            ],
-            'grand_total'       => $grandTotal,
-            'total_paid'        => $totalPaid,
-            'remaining_balance' => $remainingBalance,
-            'status'            => $status,
-        ];
-
-        return response()->json(['success' => true, 'breakdown' => $breakdown]);
+    if (!$currentSemester || !$currentSchoolYear) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No active semester or school year set.',
+        ], 404);
     }
+
+    $fees = Fee::where('school_year_id', $currentSchoolYear->id)
+               ->where('semester_id', $currentSemester->id)
+               ->where(function ($q) use ($currentExamPeriod) {
+                   if ($currentExamPeriod) {
+                       $q->whereNull('exam_period_id')
+                         ->orWhere('exam_period_id', $currentExamPeriod->id);
+                   } else {
+                       $q->whereNull('exam_period_id');
+                   }
+               })
+               ->where(function ($q) use ($student) {
+                   $q->where('course', $student->course)
+                     ->orWhereNull('course');
+               })
+               ->get();
+
+    if ($fees->isEmpty()) {
+        return response()->json([
+            'success'   => true,
+            'breakdown' => [
+                'tuition'           => ['fees' => [], 'total' => 0],
+                'miscellaneous'     => ['fees' => [], 'total' => 0],
+                'exam'              => ['fees' => [], 'total' => 0],
+                'grand_total'       => 0,
+                'total_paid'        => 0,
+                'remaining_balance' => 0,
+                'status'            => 'no_fees',
+            ],
+        ]);
+    }
+
+    // Always recompute grand_total from current fee amounts
+    $grandTotal = (float) $fees->sum('amount');
+    $feeIds     = $fees->pluck('id');
+
+    // Sum only what was actually paid (confirmed payments)
+    $totalPaid = (float) DB::table('fee_payment')
+        ->join('payments', 'payments.id', '=', 'fee_payment.payment_id')
+        ->where('payments.student_id', $student->id)
+        ->where('payments.status', 'paid')
+        ->whereIn('fee_payment.fee_id', $feeIds)
+        ->sum('fee_payment.amount');
+
+    // Always derive remaining balance from current fee amounts vs actual paid
+    $remainingBalance = max($grandTotal - $totalPaid, 0);
+
+    // Recompute status from fresh values — never trust a cached state
+    if ($totalPaid <= 0) {
+        $status = 'pending';
+    } elseif ($grandTotal > 0 && $remainingBalance <= 0) {
+        $status = 'cleared';
+    } elseif ($remainingBalance > 0 && $totalPaid > 0) {
+        $status = 'partial';
+    } else {
+        $status = 'pending';
+    }
+
+    $breakdown = [
+        'tuition' => [
+            'fees'  => $fees->where('type', 'tuition')->values(),
+            'total' => (float) $fees->where('type', 'tuition')->sum('amount'),
+        ],
+        'miscellaneous' => [
+            'fees'  => $fees->where('type', 'miscellaneous')->values(),
+            'total' => (float) $fees->where('type', 'miscellaneous')->sum('amount'),
+        ],
+        'exam' => [
+            'fees'  => $fees->where('type', 'exam')->values(),
+            'total' => (float) $fees->where('type', 'exam')->sum('amount'),
+        ],
+        'grand_total'       => $grandTotal,
+        'total_paid'        => $totalPaid,
+        'remaining_balance' => $remainingBalance,
+        'status'            => $status,
+    ];
+
+    return response()->json(['success' => true, 'breakdown' => $breakdown]);
+}
 }

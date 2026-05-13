@@ -70,7 +70,7 @@ $recentCleared = $students
         'pending_payments'  => Payment::pending()->count(),
         'cleared_students' => Student::where('clearance_status', 'cleared')->count(),
         'total_students'    => Student::count(),
-        'total'             => Student::count(),
+        'total' => Announcement::count(),
         'published' => Announcement::where('is_published', true)->count(),
 'important' => Announcement::where('priority', 'important')->count(),
 'urgent'    => Announcement::where('priority', 'urgent')->count(),
@@ -101,8 +101,8 @@ $recentCleared = $students
         // Recent clearances (now using the derived collection)
         'recent_cleared'    => $recentCleared,
     ];
-
-    return view('admin.dashboard', compact('stats'));
+$announcements = \App\Models\Announcement::latest()->take(5)->get();
+return view('admin.dashboard', compact('stats', 'announcements'));
 }
     public function apiStats()
     {

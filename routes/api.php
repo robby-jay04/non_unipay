@@ -13,6 +13,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ExamPeriodController;
 use App\Http\Controllers\ChatbotController;
+ use App\Http\Controllers\Admin\AnnouncementController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -41,6 +42,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Chatbot Route
     Route::post('/chatbot', [ChatbotController::class, 'chat']);
+
+
+    // Student-facing announcements (authenticated users)
+Route::get('/announcements', [AnnouncementController::class, 'apiIndex']);
 
     // Fee Routes (Both Admin & Student)
     Route::prefix('fees')->group(function () {

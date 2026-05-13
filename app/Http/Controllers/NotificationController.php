@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Notification;
+use App\Models\Announcement;
 
 class NotificationController extends Controller
 {
@@ -12,7 +13,12 @@ class NotificationController extends Controller
         $user = $request->user();
         $notifications = Notification::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($n) {
+                // Decode JSON data so the app can navigate straight to the resource
+                $n->data = $n->data ? json_decode($n->data, true) : null;
+                return $n;
+            });
 
         return response()->json([
             'success'       => true,
@@ -71,7 +77,6 @@ class NotificationController extends Controller
 
     public function clearAll(Request $request)
     {
-        // ── Fixed: scope to the authenticated user, not a relationship ────────
         Notification::where('user_id', $request->user()->id)->delete();
 
         return response()->json(['success' => true]);

@@ -714,6 +714,11 @@
                             <i class="fas fa-coins"></i> Fee Management
                         </a>
                     </li>
+                    <li class="nav-item {{ request()->routeIs('admin.announcements*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('admin.announcements.index') }}">
+        <i class="fas fa-bullhorn"></i> Announcements
+    </a>
+</li>
                     @if(auth()->user()->role === 'superadmin')
                         <li class="nav-section-title">ADMINISTRATION</li>
                         <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">
@@ -775,6 +780,11 @@
                         <i class="fas fa-coins"></i> Fee Management
                     </a>
                 </li>
+                <li class="nav-item {{ request()->routeIs('admin.announcements*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('admin.announcements.index') }}">
+        <i class="fas fa-bullhorn"></i> Announcements
+    </a>
+</li>
                 @if(auth()->user()->role === 'superadmin')
                     <li class="nav-section-title">ADMINISTRATION</li>
                     <li class="nav-item {{ request()->routeIs('admin.superadmin.admins*') ? 'active' : '' }}">

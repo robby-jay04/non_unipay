@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ExamPeriodController;
 use App\Http\Controllers\Admin\AuditLogController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\AnnouncementController;
 
 // Landing / Login
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -98,6 +99,15 @@ Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->
         Route::post('/fees', [FeeController::class, 'storeWeb'])->name('fees.store');
         Route::put('/fees/{fee}', [FeeController::class, 'updateWeb'])->name('fees.update');
         Route::delete('/fees/{fee}', [FeeController::class, 'destroy'])->name('fees.destroy');
+
+        // ANNOUNCEMENTS  (admin + superadmin)
+Route::prefix('announcements')->name('announcements.')->group(function () {
+    Route::get('/',                         [AnnouncementController::class, 'index'])   ->name('index');
+    Route::post('/',                        [AnnouncementController::class, 'store'])   ->name('store');
+    Route::get('/{announcement}',           [AnnouncementController::class, 'show'])    ->name('show');   // JSON for edit modal
+    Route::put('/{announcement}',           [AnnouncementController::class, 'update'])  ->name('update');
+    Route::delete('/{announcement}',        [AnnouncementController::class, 'destroy']) ->name('destroy');
+});
 
         // Dynamic API loaders (used by fee modals)
         Route::get('/api/semesters/{schoolYearId}', function ($schoolYearId) {

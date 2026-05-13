@@ -84,36 +84,41 @@ class AnnouncementController extends Controller
 
     // ── Web: update ───────────────────────────────────────────────────────────
 
-    public function update(Request $request, Announcement $announcement)
-    {
-       $data = $request->validate([
-    'title'          => 'required|string|max:255',
-    'body'           => 'required|string',
-    'priority'       => 'required|in:normal,important,urgent',
-    'audience'       => 'required|in:all,course,year_level',
-    'audience_value' => 'nullable|string|max:50',
-    'is_published'   => 'boolean',
-    'due_date'       => 'nullable|date',   // ← add
-]);
+   public function update(Request $request, Announcement $announcement)
+{
+    $data = $request->validate([
+        'title'          => 'required|string|max:255',
+        'body'           => 'required|string',
+        'priority'       => 'required|in:normal,important,urgent',
+        'audience'       => 'required|in:all,course,year_level',
+        'audience_value' => 'nullable|string|max:50',
+        'is_published'   => 'boolean',
+        'due_date'       => 'nullable|date',
+    ]);
 
-        if ($data['audience'] === 'all') {
-            $data['audience_value'] = null;
-        }
-
-        $wasUnpublished = ! $announcement->is_published;
-        $data['is_published'] = $request->boolean('is_published', true);
-
-        $announcement->update($data);
-
-        // If it just got published for the first time (or re-published), notify
-        if ($data['is_published'] && $wasUnpublished) {
-            $this->notifyStudents($announcement);
-        }
-
-        return redirect()->route('admin.announcements.index')
-            ->with('success', 'Announcement updated.');
+    if ($data['audience'] === 'all') {
+        $data['audience_value'] = null;
     }
 
+    $wasUnpublished  = ! $announcement->is_published;
+    $oldAudience     = $announcement->audience;
+    $oldAudienceVal  = $announcement->audience_value;
+
+    $data['is_published'] = $request->boolean('is_published', true);
+
+    $announcement->update($data);
+
+    $audienceChanged = $oldAudience !== $announcement->audience
+        || $oldAudienceVal !== $announcement->audience_value;
+
+    // Notify if: just published OR audience was broadened/changed
+    if ($data['is_published'] && ($wasUnpublished || $audienceChanged)) {
+        $this->notifyStudents($announcement);
+    }
+
+    return redirect()->route('admin.announcements.index')
+        ->with('success', 'Announcement updated.');
+}
     // ── Web: destroy ──────────────────────────────────────────────────────────
 
     public function destroy(Announcement $announcement)
@@ -180,43 +185,52 @@ class AnnouncementController extends Controller
      * Push an in-app notification to every student matched by the announcement's
      * audience setting. Uses a chunked query to handle large student counts.
      */
-    private function notifyStudents(Announcement $announcement): void
-    {
-        $priorityLabel = match ($announcement->priority) {
-            'urgent'    => '🚨 Urgent',
-            'important' => '⭐ Important',
-            default     => '📢 New',
-        };
+ private function notifyStudents(Announcement $announcement): void
+{
+    $priorityLabel = match ($announcement->priority) {
+        'urgent'    => '🚨 Urgent',
+        'important' => '⭐ Important',
+        default     => '📢 New',
+    };
 
-        $title = "{$priorityLabel} Announcement";
-        $body  = $announcement->title;
+    $title = "{$priorityLabel} Announcement";
+    $body  = $announcement->title;
 
-        // Build the user-id query
-        $userIdQuery = \App\Models\Student::query()
-            ->whereHas('user', fn ($q) => $q->where('is_active', true));
+    $userIdQuery = \App\Models\Student::query()
+        ->whereHas('user', fn ($q) => $q->where('is_active', true));
 
-        if ($announcement->audience === 'course') {
-            $userIdQuery->where('course', $announcement->audience_value);
-        } elseif ($announcement->audience === 'year_level') {
-            $userIdQuery->where('year_level', $announcement->audience_value);
-        }
-
-        $userIdQuery->with('user:id')
-            ->chunkById(200, function ($students) use ($title, $body, $announcement) {
-                $rows = $students->map(fn ($s) => [
-                    'user_id'    => $s->user->id,
-                    'type'       => 'announcement',
-                    'title'      => $title,
-                    'message'    => $body,
-                    'data'       => json_encode(['announcement_id' => $announcement->id]),
-                    'is_read'    => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])->toArray();
-
-                Notification::insert($rows);
-            });
+    if ($announcement->audience === 'course') {
+        $userIdQuery->where('course', $announcement->audience_value);
+    } elseif ($announcement->audience === 'year_level') {
+        $userIdQuery->where('year_level', $announcement->audience_value);
     }
+
+    $userIdQuery->with('user:id')
+        ->chunkById(200, function ($students) use ($title, $body, $announcement) {
+            $rows = $students->map(fn ($s) => [
+                'user_id'    => $s->user->id,
+                'type'       => 'announcement',
+                'title'      => $title,
+                'message'    => $body,
+                'data'       => json_encode(['announcement_id' => $announcement->id]),
+                'is_read'    => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
+
+            $existingUserIds = Notification::where('type', 'announcement')
+                ->whereIn('user_id', collect($rows)->pluck('user_id'))
+                ->whereJsonContains('data->announcement_id', $announcement->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            $rows = array_filter($rows, fn ($r) => !in_array($r['user_id'], $existingUserIds));
+
+            if (!empty($rows)) {
+                Notification::insert(array_values($rows));
+            }
+        });
+}
 
 public function nearestDue(Request $request)
 {

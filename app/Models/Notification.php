@@ -12,14 +12,15 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'title',      // ← was missing
         'message',
         'data',
         'is_read',
     ];
 
     protected $casts = [
-        'data' => 'array',
         'is_read' => 'boolean',
+        // Remove 'data' cast — controller handles json manually
     ];
 
     public function user()

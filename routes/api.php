@@ -47,6 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Student-facing announcements (authenticated users)
 Route::get('/announcements', [AnnouncementController::class, 'apiIndex']);
 
+Route::get('/announcements/nearest-due', [AnnouncementController::class, 'nearestDue']);
+
     // Fee Routes (Both Admin & Student)
     Route::prefix('fees')->group(function () {
         Route::get('/', [FeeController::class, 'index']);

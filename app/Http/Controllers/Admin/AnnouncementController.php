@@ -217,4 +217,44 @@ class AnnouncementController extends Controller
                 Notification::insert($rows);
             });
     }
+
+public function nearestDue(Request $request)
+{
+    $user    = $request->user();
+    $student = $user->student ?? null;
+
+    $query = Announcement::where('is_published', true)
+        ->whereNotNull('due_date')
+        ->where(function ($q) {
+            // Include overdue ones too so the banner still shows
+            $q->where('due_date', '>=', now()->subDays(30))
+              ->orWhere('due_date', '>=', now());
+        })
+        ->orderBy('due_date', 'asc');
+
+    if ($student) {
+        $query->where(function ($q) use ($student) {
+            $q->where('audience', 'all')
+              ->orWhere(function ($q2) use ($student) {
+                  $q2->where('audience', 'course')
+                     ->where('audience_value', $student->course);
+              })
+              ->orWhere(function ($q2) use ($student) {
+                  $q2->where('audience', 'year_level')
+                     ->where('audience_value', (string) $student->year_level);
+              });
+        });
+    }
+
+    $announcement = $query->first();
+
+    return response()->json([
+        'success'      => true,
+        'announcement' => $announcement ? [
+            'id'       => $announcement->id,
+            'title'    => $announcement->title,
+            'due_date' => $announcement->due_date?->format('Y-m-d'),
+        ] : null,
+    ]);
+}
 }

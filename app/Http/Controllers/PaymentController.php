@@ -55,13 +55,11 @@ class PaymentController extends Controller
         return view('admin.payments', compact('payments'));
     }
 
-    public function show($id)
-    {
-        $payment = Payment::with(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod'])
-                  ->findOrFail($id);
-
-        return view('admin.payments.partials.view', compact('payment'));
-    }
+ public function show(Payment $payment)
+{
+    $payment->load(['student.user', 'fees', 'semester', 'schoolYear', 'examPeriod']);
+    return view('admin.payments.partials.view', compact('payment'));
+}
 
     public function initiate(Request $request)
     {
@@ -453,12 +451,13 @@ class PaymentController extends Controller
         }
     }
 
-    public function verify($id)
-    {
-        $payment = Payment::find($id);
+    public function verify(Payment $payment)
+{
+    try {
+        $payment->load('student.user');
 
-        if (!$payment) {
-            return response()->json(['success' => false, 'message' => 'Payment not found']);
+        if ($payment->status === 'paid') {
+            return response()->json(['success' => true, 'message' => 'Already verified']);
         }
 
         $payment->update([
@@ -466,46 +465,82 @@ class PaymentController extends Controller
             'payment_date' => now(),
         ]);
 
-        $this->clearanceService->updateClearance($payment->student_id);
-
-        Notification::create([
-            'user_id' => $payment->student->user_id,
-            'type'    => 'payment_success',
-            'message' => 'Your payment of ₱' . number_format($payment->total_amount, 2) . ' has been approved.',
-            'data'    => [
-                'payment_id' => $payment->id,
-                'amount'     => $payment->total_amount,
-                'reference'  => $payment->reference_no,
-            ],
-        ]);
-
-        return response()->json(['success' => true]);
-    }
-
-    public function reject($id)
-    {
-        $payment = Payment::find($id);
-
-        if (!$payment) {
-            return response()->json(['success' => false, 'message' => 'Payment not found']);
+        try {
+            $this->clearanceService->updateClearance($payment->student_id);
+        } catch (\Exception $e) {
+            Log::error('Clearance update failed on verify: ' . $e->getMessage());
         }
 
-        $payment->status = 'failed';
-        $payment->save();
-
-        $this->clearanceService->updateClearance($payment->student_id);
-
-        Notification::create([
-            'user_id' => $payment->student->user_id,
-            'type'    => 'payment_failed',
-            'message' => 'Your payment of ₱' . number_format($payment->total_amount, 2) . ' was rejected. Please contact support.',
-            'data'    => [
-                'payment_id' => $payment->id,
-                'amount'     => $payment->total_amount,
-                'reference'  => $payment->reference_no,
-            ],
-        ]);
+        try {
+            Notification::create([
+                'user_id' => $payment->student->user_id,
+                'type'    => 'payment_success',
+                'title'   => 'Payment Approved',
+                'message' => 'Your payment of ₱' . number_format($payment->total_amount, 2) . ' has been approved.',
+                'data'    => json_encode([
+                    'payment_id' => $payment->id,
+                    'amount'     => $payment->total_amount,
+                    'reference'  => $payment->reference_no,
+                ]),
+                'is_read' => false,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Notification failed on verify: ' . $e->getMessage());
+        }
 
         return response()->json(['success' => true]);
+
+    } catch (\Exception $e) {
+        Log::error('Payment verify 500: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
+
+public function reject(Payment $payment)
+{
+    try {
+        $payment->load('student.user');
+
+        if ($payment->status === 'failed') {
+            return response()->json(['success' => true, 'message' => 'Already rejected']);
+        }
+
+        $payment->update(['status' => 'failed']);
+
+        try {
+            $this->clearanceService->updateClearance($payment->student_id);
+        } catch (\Exception $e) {
+            Log::error('Clearance update failed on reject: ' . $e->getMessage());
+        }
+
+        try {
+            Notification::create([
+                'user_id' => $payment->student->user_id,
+                'type'    => 'payment_failed',
+                'title'   => 'Payment Rejected',
+                'message' => 'Your payment of ₱' . number_format($payment->total_amount, 2) . ' was rejected. Please contact support.',
+                'data'    => json_encode([
+                    'payment_id' => $payment->id,
+                    'amount'     => $payment->total_amount,
+                    'reference'  => $payment->reference_no,
+                ]),
+                'is_read' => false,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Notification failed on reject: ' . $e->getMessage());
+        }
+
+        return response()->json(['success' => true]);
+
+    } catch (\Exception $e) {
+        Log::error('Payment reject 500: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
 }

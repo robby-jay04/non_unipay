@@ -8,6 +8,8 @@ use App\Models\Clearance;
 use App\Models\Student;
 use App\Models\Fee;
 
+use App\Models\Announcement;
+
 class DashboardController extends Controller
 {
    public function index()
@@ -69,6 +71,9 @@ $recentCleared = $students
         'cleared_students' => Student::where('clearance_status', 'cleared')->count(),
         'total_students'    => Student::count(),
         'total'             => Student::count(),
+        'published' => Announcement::where('is_published', true)->count(),
+'important' => Announcement::where('priority', 'important')->count(),
+'urgent'    => Announcement::where('priority', 'urgent')->count(),
         'recent_payments'   => Payment::with('student.user')
                                     ->latest()
                                     ->take(5)

@@ -119,6 +119,22 @@
                                 <i class="fas fa-eye-slash" style="font-size:.7rem;"></i> Draft
                             </span>
                         @endif
+
+                        {{-- FIX 4: Due date badge moved inside the @foreach so $ann is in scope --}}
+                        @if($ann->due_date)
+                            @php
+                                $isOverdue = $ann->due_date->isPast();
+                                $isDueSoon = !$isOverdue && $ann->due_date->diffInDays(now()) <= 7;
+                                $dueBg    = $isOverdue ? 'rgba(220,53,69,.1)'   : ($isDueSoon ? 'rgba(244,180,20,.1)' : 'rgba(76,175,80,.1)');
+                                $dueColor = $isOverdue ? '#dc3545'               : ($isDueSoon ? '#f4b414'             : '#4caf50');
+                                $dueIcon  = $isOverdue ? 'fa-exclamation-circle' : 'fa-calendar-alt';
+                                $dueLabel = $isOverdue ? 'Overdue'               : ($isDueSoon ? 'Due soon'            : 'Due');
+                            @endphp
+                            <span class="ann-badge" style="background:{{ $dueBg }}; color:{{ $dueColor }};">
+                                <i class="fas {{ $dueIcon }}" style="font-size:.7rem;"></i>
+                                {{ $dueLabel }} · {{ $ann->due_date->format('M d, Y') }}
+                            </span>
+                        @endif
                     </div>
                     <div class="ann-actions">
                         <button class="ann-action-btn ann-action-btn--edit"
@@ -126,7 +142,6 @@
                                 title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        {{-- Delete now opens a modal instead of a browser confirm() --}}
                         <button class="ann-action-btn ann-action-btn--delete"
                                 title="Delete"
                                 onclick="openDeleteModal(
@@ -197,9 +212,9 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">Priority</label>
                             <select class="form-select" name="priority" id="annPriority">
-                                <option value="normal">📢 Normal</option>
-                                <option value="important">⭐ Important</option>
-                                <option value="urgent">🚨 Urgent</option>
+                                <option value="normal"> Normal</option>
+                                <option value="important"> Important</option>
+                                <option value="urgent"> Urgent</option>
                             </select>
                         </div>
 
@@ -207,9 +222,9 @@
                             <label class="form-label fw-semibold" style="font-size:.85rem;">Audience</label>
                             <select class="form-select" name="audience" id="annAudience"
                                     onchange="toggleAudienceValue()">
-                                <option value="all">👥 All Students</option>
-                                <option value="course">🎓 By Course</option>
-                                <option value="year_level">📅 By Year Level</option>
+                                <option value="all"> All Students</option>
+                                <option value="course"> By Course</option>
+                                <option value="year_level"> By Year Level</option>
                             </select>
                         </div>
 
@@ -228,6 +243,19 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+
+                    {{-- FIX 1: Due date field moved inside the modal body where it belongs --}}
+                    <div class="mt-3 p-3" style="background:var(--input-bg); border-radius:12px; border:1px solid var(--border-color);">
+                        <label class="form-label fw-semibold mb-1" style="font-size:.85rem;">
+                            <i class="fas fa-calendar-alt me-1" style="color:#0f3c91;"></i>
+                            Payment Due Date
+                            <span class="text-muted fw-normal ms-1" style="font-size:.78rem;">(optional)</span>
+                        </label>
+                        <input type="date" class="form-control" name="due_date" id="annDueDate">
+                        <small class="text-muted" style="font-size:.75rem;">
+                            Sets a deadline visible to students on their app.
+                        </small>
                     </div>
 
                     <div class="d-flex align-items-center gap-3 mt-4 p-3"
@@ -268,7 +296,6 @@
         <div class="modal-content" style="border-radius:24px; overflow:hidden; border:none;">
 
             <div class="modal-body p-4 pt-5 text-center">
-                {{-- Red icon circle --}}
                 <div class="del-icon-wrap mx-auto mb-4">
                     <i class="fas fa-trash-alt"></i>
                 </div>
@@ -280,7 +307,6 @@
                     You're about to permanently delete:
                 </p>
 
-                {{-- Announcement title preview --}}
                 <div class="del-title-preview mb-3">
                     <i class="fas fa-bullhorn me-2" style="color:#dc3545; opacity:.7;"></i>
                     <span id="deleteAnnouncementTitle">—</span>
@@ -376,7 +402,6 @@ body.dark .form-check-input:checked { background-color: #3b82f6; border-color: #
     width: 76px; height: 76px; border-radius: 50%;
     background: rgba(220,53,69,.1);
     display: flex; align-items: center; justify-content: center;
-    /* subtle pulse ring */
     box-shadow: 0 0 0 8px rgba(220,53,69,.06), 0 0 0 16px rgba(220,53,69,.03);
 }
 .del-icon-wrap i { font-size: 1.9rem; color: #dc3545; }
@@ -477,6 +502,8 @@ function openCreateModal() {
     audienceEl.value    = 'all';
     publishEl.checked   = true;
     counter.textContent = '0 / 2000 characters';
+    // FIX 2: due_date field now exists in the DOM; safe to clear it here
+    document.getElementById('annDueDate').value = '';
     toggleAudienceValue();
 
     annModal.show();
@@ -503,6 +530,10 @@ async function openEditModal(id) {
         audienceEl.value    = ann.audience;
         publishEl.checked   = !!ann.is_published;
         counter.textContent = `${ann.body.length} / 2000 characters`;
+        // FIX 3: ann is now defined before accessing ann.due_date
+        document.getElementById('annDueDate').value = ann.due_date
+            ? ann.due_date.substring(0, 10)
+            : '';
 
         toggleAudienceValue();
 

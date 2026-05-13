@@ -53,13 +53,14 @@ class AnnouncementController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'          => 'required|string|max:255',
-            'body'           => 'required|string',
-            'priority'       => 'required|in:normal,important,urgent',
-            'audience'       => 'required|in:all,course,year_level',
-            'audience_value' => 'nullable|string|max:50',
-            'is_published'   => 'boolean',
-        ]);
+    'title'          => 'required|string|max:255',
+    'body'           => 'required|string',
+    'priority'       => 'required|in:normal,important,urgent',
+    'audience'       => 'required|in:all,course,year_level',
+    'audience_value' => 'nullable|string|max:50',
+    'is_published'   => 'boolean',
+    'due_date'       => 'nullable|date',   // ← add
+]);
 
         // audience_value only makes sense for course / year_level
         if ($data['audience'] === 'all') {
@@ -85,14 +86,15 @@ class AnnouncementController extends Controller
 
     public function update(Request $request, Announcement $announcement)
     {
-        $data = $request->validate([
-            'title'          => 'required|string|max:255',
-            'body'           => 'required|string',
-            'priority'       => 'required|in:normal,important,urgent',
-            'audience'       => 'required|in:all,course,year_level',
-            'audience_value' => 'nullable|string|max:50',
-            'is_published'   => 'boolean',
-        ]);
+       $data = $request->validate([
+    'title'          => 'required|string|max:255',
+    'body'           => 'required|string',
+    'priority'       => 'required|in:normal,important,urgent',
+    'audience'       => 'required|in:all,course,year_level',
+    'audience_value' => 'nullable|string|max:50',
+    'is_published'   => 'boolean',
+    'due_date'       => 'nullable|date',   // ← add
+]);
 
         if ($data['audience'] === 'all') {
             $data['audience_value'] = null;

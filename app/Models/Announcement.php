@@ -7,19 +7,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Announcement extends Model
 {
-    protected $fillable = [
-        'created_by',
-        'title',
-        'body',
-        'priority',
-        'audience',
-        'audience_value',
-        'is_published',
-    ];
+   protected $fillable = [
+    'created_by',
+    'title',
+    'body',
+    'priority',
+    'audience',
+    'audience_value',
+    'is_published',
+    'due_date',      // ← add
+];
 
-    protected $casts = [
-        'is_published' => 'boolean',
-    ];
+protected $casts = [
+    'is_published' => 'boolean',
+    'due_date'     => 'date',   // ← add
+];
 
     // ── Relations ────────────────────────────────────────────────────────────
 
